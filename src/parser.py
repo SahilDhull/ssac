@@ -3,7 +3,7 @@ import ply.yacc as yacc
 import sys
 import os
 from lexer import *
-from pprint import pprint
+from symbol import st,symnode
 
 # class Node:
 #    def __init__(self,type,children=None,leaf=None):
@@ -525,13 +525,6 @@ def p_element_list(p):
   else:
     p[0]=[",",p[1],p[3]]
 
-# def p_comma_keyed(p):
-#   '''CommaKeyed : CommaKeyed COMMA KeyedElement
-#                 | epsilon'''
-#   if len(p)==2:
-#     p[0]=p[1]
-#   else:
-#     p[0]=["CommaKeyedElement",",",p[2],p[3]]
 
 def p_keyed_element(p):
   '''KeyedElement : Element
@@ -697,17 +690,11 @@ def p_unary_op(p):
 # -------------------------------------------------------
 
 
-
-
 # -----------------CONVERSIONS-----------------------------
 def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
     p[0] = ["Conversion", "typecast", p[2],  "(", p[4], ")"]
 # ---------------------------------------------------------
-
-
-
-
 
 
 # ---------------- STATEMENTS -----------------------
@@ -1115,51 +1102,3 @@ result = parser.parse(s,debug=0)
 
 print "Parsing Done ----------------------------> :)"
 
-
-# new_file_name = file_name.split("/")[-1].split(".")[0] + ".dot"
-fname = out_name
-sys.stdout =  open(fname, "w+")
-
-######### function to traverse the list of lists ----------------
-
-counter = "global"
-counter = 1
-
-
-
-def writeGraph(someList):
-    global counter
-    local=counter
-    counter+=1
-    name=someList[0]
-
-    if(len(someList) > 1):
-        for i in range(1,len(someList)):
-            innerList = someList[i]
-            if len(innerList) >0 and type(innerList) is list:
-                # print str(local)+" [label=\""+name+"\"] ;"
-                print str(counter)+" [label=\"",
-                if type(innerList[0]) is list:
-                    naming = innerList[0][0]
-                else:
-                    naming = innerList[0]
-                print naming.replace('\"','')+"\" ] ;"
-                print str(local) + "->" + str(counter) + ";"
-                writeGraph(innerList)
-            else:
-                if len(innerList) == 0:
-                    continue
-                print str(counter)+" [label=\""+innerList.replace('\"','')+"\" ] ;"
-                print str(local) + "->" + str(counter) + ";"
-            counter+=1
-
-            
-
-print "digraph G{"
-print "1 [label=\"start\"]"
-writeGraph(result)
-print "}"
-
-
-
-#  ^[^#]\s*p\[0\]\ \=\ \["[a-zA-z]*",\s*p\[1\]\s*\]
