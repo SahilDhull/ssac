@@ -1102,7 +1102,7 @@ def p_empty(p):
 
 def p_error(p):
     if p:
-      print("Syntax error at line no:", p.lineno, "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
+      print("Syntax error at line no:", (p.lineno-13), "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
       # print("\n")
       parser.errok()
     else:
