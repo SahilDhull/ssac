@@ -1093,33 +1093,24 @@ def p_empty(p):
   # p[0] = p[1]
 
 
-# Error rule for syntax errors
-
-
-# def p_error(p):
-#   # print("Syntax error in input!")
-#   # print(p)
-
 def p_error(p):
     if p:
       print("Syntax error at line no:", (p.lineno-13), "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
-      # print("\n")
       parser.errok()
     else:
       print("Syntax error at EOF")
 
 
-# Build the parser
+
 parser = yacc.yacc()
 
 
 try:
   s = data
-  # print(s)
 except EOFError:
-  print("khatam bc")
+  print("EOF Error")
 if not s:
-  print("bas kar")
+  print("Not found")
 result = parser.parse(s,debug=0)
 
 print "Parsing Done ----------------------------> :)"
@@ -1128,6 +1119,7 @@ print "Parsing Done ----------------------------> :)"
 # new_file_name = file_name.split("/")[-1].split(".")[0] + ".dot"
 fname = out_name
 sys.stdout =  open(fname, "w+")
+
 ######### function to traverse the list of lists ----------------
 
 counter = "global"
@@ -1142,14 +1134,8 @@ def writeGraph(someList):
     name=someList[0]
 
     if(len(someList) > 1):
-        # print str(local)+" [label=\""+name+"\"] ;"
-        # for innerList in someList[1:]:
         for i in range(1,len(someList)):
             innerList = someList[i]
-            # print "-- name = "+name
-            # if name == "PackageClause":
-            #     print "------> "+innerList[0]
-            #     print "------------------"
             if len(innerList) >0 and type(innerList) is list:
                 # print str(local)+" [label=\""+name+"\"] ;"
                 print str(counter)+" [label=\"",
@@ -1163,15 +1149,12 @@ def writeGraph(someList):
             else:
                 if len(innerList) == 0:
                     continue
-                # print str(local)+" [label=\""+name+"\"] ;"
                 print str(counter)+" [label=\""+innerList.replace('\"','')+"\" ] ;"
                 print str(local) + "->" + str(counter) + ";"
             counter+=1
 
             
 
-
-############# -----------------------------------------------------
 print "digraph G{"
 print "1 [label=\"start\"]"
 writeGraph(result)
