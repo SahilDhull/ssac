@@ -15,6 +15,32 @@ from symbol import st,symnode
 #         self.leaf = leaf
 
 
+# ------------   SCOPE    ----------------------
+
+curScope = 0
+scopeLevel = 0
+varNum = 0
+labelNum = 1
+mainFunc = True
+
+labelDict = {}
+scopeDict = {}
+scopeDict[0] = st()
+
+
+# ----------  TYPE CHECKING -------------------
+
+def equalcheck(x,y):
+  if x==y:
+    return True
+  return False
+
+
+
+
+
+
+
 
 precedence = (
     ('left', 'IDENTIFIER'),
