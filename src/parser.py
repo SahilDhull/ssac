@@ -78,14 +78,14 @@ precedence = (
     ('left', 'LPAREN', 'RPAREN')
 )
 
+root = None
 
 # ------------------------START----------------------------
 def p_start(p):
     '''start : SourceFile'''
-    # p[0] = ["start", p[1]]
     p[0] = p[1]
-    p[0][0] = "start"
-    # print p[0]
+    global root
+    root = p[0]
 # -------------------------------------------------------
 
 
@@ -93,35 +93,42 @@ def p_start(p):
 def p_type(p):
     '''Type : TypeName
             | TypeLit'''
-    if len(p) == 4:
-        p[0] = ["Type", "(", p[2], ")"]
-    else:
-        # p[0] = ["Type", p[1]]
-        p[0]=p[1]
+    p[0]=p[1]
 
 def p_type_name(p):
     '''TypeName : TypeToken
                 | QualifiedIdent'''
-    # p[0] = ["TypeName", p[1]]
     p[0]=p[1]
 
+def definedcheck(name):
+  for scope in scopeStack[::-1]:
+    if scopeDict[scope].retrieve(name) is not None:
+      info = scopeDict[scope].retrieve(name)
+      if typeOf == "**":
+          return True
+  return False
+
 def p_type_token(p):
-    '''TypeToken : INT_T
-                 | INT
+    '''TypeToken : INT
                  | FLOAT
                  | BOOL
-                 | COMPLEX
-                 | BOOL_T
-                 | COMPLEX_T
                  | STRING
-                 | FLOAT_T
-                 | STRING_T
                  | TYPE IDENTIFIER'''
     if len(p) == 2:
-        # p[0] = ["TypeToken", p[1]]
-        p[0]=p[1]
+        p[0]=node()
+        p[0].types.append(p[1])
+        # define size for each
+        if p[1]=='int' or p[1]=='float':
+          p[0].extra['sizeList']=[4]
+        elif p[1]=='bool':
+          p[0].extra['sizeList']=[1]
+        #REMAINING to define size of string
     else:
-        p[0] = ["TypeToken", p[1], p[2]]
+        if not definedcheck(p[2]):
+          raise TypeError("TypeName" + p[2] + "not defined anywhere")
+        p[0]=node()
+        var = findinfo(p[2],0)
+        p[0].types.append(var['type'])
 
 def p_type_lit(p):
     '''TypeLit : ArrayType
@@ -129,37 +136,18 @@ def p_type_lit(p):
                | PointerType
                | MapType
                | SliceType'''
-    # p[0] = ["TypeLit", p[1]]
     p[0] = p[1]
-    p[0][0] = "TypeLit"
 
 def p_type_opt(p):
     '''TypeOpt : Type
                | epsilon'''
-    # p[0] = ["TypeOpt", p[1]]
     p[0] = p[1]
-    # p[0][0] = "TypeOpt"
 # -------------------------------------------------------
 
 def p_slice_type(p):
     '''SliceType : LSQUARE RSQUARE ElementType'''
     p[0] = ["SliceType","[","]",p[3]]
 
-
-# ----------------- channel type -----------------------
-
-# def p_channel_type(p):
-#     '''ChannelType : CHAN ElementType
-#                    | CHAN LEFT_ARROW ElementType
-#                    | LEFT_ARROW CHAN ElementType'''
-#     if len(p) == 3:
-#         p[0] = ["ChannelType","chan",p[2]]
-#     elif p[1] == "<-":
-#         p[0] = ["ChannelType","<-","chan",p[3]]
-#     else:
-#         p[0] = ["ChannelType","chan","<-",p[3]]
-
-# ------------------------------------------------------
 
 # ------------------ map type --------------------------
 
@@ -169,25 +157,26 @@ def p_map_type(p):
 
 def p_key_type(p):
   '''KeyType : Type'''
-  # p[0] = ["KeyType",p[1]]
   p[0] = p[1]
-  # p[0][0] = "KeyType"
 
 # ------------------------------------------------------
 
 # ------------------- ARRAY TYPE -------------------------
 def p_array_type(p):
   '''ArrayType : LSQUARE ArrayLength RSQUARE ElementType'''
-  p[0] = ["ArrayType", "[", p[2], "]", p[4]]
+  p[0] = node()
+  p[0].code = p[2].code + p[4].code
+  p[0].types.append("*"+p[4].types[0])
+  v = newvar()
+  #CODEGEN
+  p[0].extra['sizeList'] = [v] + p[4].extra['sizeList']     #DOUBT
 
 def p_array_length(p):
   ''' ArrayLength : Expression '''
-  # p[0] = ["ArrayLength", p[1]]
   p[0]=p[1]
 
 def p_element_type(p):
   ''' ElementType : Type '''
-  # p[0] = ["ElementType", p[1]]
   p[0]=p[1]
 
 # --------------------------------------------------------
@@ -227,7 +216,9 @@ def p_Tag(p):
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
     '''PointerType : MULTIPLY BaseType'''
-    p[0] = ["PointerType", "*", p[2]]
+    p[0] = p[2]
+    p[0].types[0]="*"+p[0].types[0]
+    p[0].extra['sizeList'] = ['inf']+p[0].extra['sizeList']
 
 def p_base_type(p):
     '''BaseType : Type'''
@@ -683,8 +674,11 @@ def p_basic_lit(p):
 
 def p_operand_name(p):
     '''OperandName : IDENTIFIER'''
-    # p[0] = ["OperandName", p[1]]
     p[0] = p[1]
+    if not definedcheck(p[1]):
+      raise NameError("identifier" + p[1] + "not defined")
+    #COMEPLETE
+    
 # ---------------------------------------------------------
 
 

@@ -29,16 +29,10 @@ keywords = {
 	'return' : 'RETURN',
 	'var' : 'VAR',
 	'typecast' : 'TYPECAST',
-	'int_t':'INT_T',
-	'float_t' : 'FLOAT_T',
-	'string_t' : 'STRING_T',
 	'int' : 'INT',
 	'float' : 'FLOAT',
 	'string' : 'STRING',
-	'complex' : 'COMPLEX',
-	'bool' : 'BOOL',
-	'complex_t' : 'COMPLEX_T',
-	'bool_t' : 'BOOL_T'
+	'bool' : 'BOOL'
 }
 
 tokens = [
