@@ -62,7 +62,7 @@ class st:
 				(self.table)[name].insertretType(val)
 			if(s=="label"):
 				(self.table)[name].insertlabel(val)
-			if(s=="list"):
+			if(s=="size"):
 				(self.table)[name].insertlistsize(val)
 			if(s=="place"):
 				(self.table)[name].insertplace(val)
@@ -70,3 +70,11 @@ class st:
 				(self.table)[name].insertchild(val)
 		else:
 			raise Error(name+"isn't found")
+
+class node:
+	def __init__(self):
+		self.idlist=[]
+		self.code=[]
+		self.types=[]
+		self.place=[]
+		self.extra={}

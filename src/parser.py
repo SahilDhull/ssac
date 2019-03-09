@@ -3,17 +3,7 @@ import ply.yacc as yacc
 import sys
 import os
 from lexer import *
-from symbol import st,symnode
-
-# class Node:
-#    def __init__(self,type,children=None,leaf=None):
-#         self.type = type
-#         if children:
-#              self.children = children
-#         else:
-#              self.children = [ ]
-#         self.leaf = leaf
-
+from symbol import st,symnode,node
 
 # ------------   SCOPE    ----------------------
 
@@ -26,6 +16,16 @@ mainFunc = True
 labelDict = {}
 scopeDict = {}
 scopeDict[0] = st()
+scopestack=[0]
+
+
+def findscope(name):
+  for s in scopestack[::-1]:
+    if scopeDict[s].retrieve(name) is not None:
+      return s
+
+  raise NameError(name+ "is not defined in any scope")
+
 
 
 # ----------  TYPE CHECKING -------------------
@@ -35,9 +35,26 @@ def equalcheck(x,y):
     return True
   return False
 
+def checkid(name,str):
+  if str=='e':
+    if scopeDict[curScope].retrieve(name) is not None:
+      return True
+    return False
+
+# -------------  SOME OTHER FUNCTIONS ---------------------
 
 
+def newvar():
+  global varNum
+  val = 'v'+str(varNum)
+  varNum+=1
+  return val
 
+def newlabel():
+  global labelNum
+  val = 'l'+str(labelNum)
+  labelNum+=1
+  return val
 
 
 
@@ -333,46 +350,97 @@ def p_const_decl(p):
     '''ConstDecl : CONST ConstSpec
                  | CONST LPAREN ConstSpecRep RPAREN'''
     if len(p) == 3:
-        p[0] = ["ConstDecl", "const", p[2]]
+        p[0]=p[2]
     else:
-        p[0] = ["ConstDecl", "const", '(', p[3], ')']
+        p[0]=p[3]
 
 def p_const_spec_rep(p):
     '''ConstSpecRep : ConstSpecRep ConstSpec SEMICOLON
                     | epsilon'''
     if len(p) == 4:
-        p[0] = ["ConstSpecRep", p[1], p[2], ';']
+        p[0]=p[1]
+        p[0].code+=p[2].code
     else:
-        # p[0] = ["ConstSpecRep", p[1]]
         p[0]=p[1]
 
 def p_const_spec(p):
     '''ConstSpec : IdentifierList TypeExprListOpt'''
-    p[0] = ["ConstSpec", p[1], p[2]]
+    p[0] = node()
+    p[0].code = p[1].code + p[2].code
+    if len(p[1].place)!=len(p[2].place):
+      raise ValueError("Error: Unequal number of identifiers and Expressions")
+    for i in range(len(p[1].place)):
+      x = p[1].idlist[i]
+      p[1].place[i] = p[2].place[i]
+      scope = findscope(x)
+      scopeDict[scope].updateAttr(x,'place',p[1].place[i])
+      if p[2].types[i]==i:
+        raise TypeError('Type of ' + p[0].idlist[i] + 'does not match that of expr')
+      scopeDict[scope].updateAttr(x,'type',p[2].types[i])
+
 
 def p_type_expr_list(p):
-    '''TypeExprListOpt : TypeOpt EQUALS ExpressionList
+    '''TypeExprListOpt : Type EQUALS ExpressionList
                        | epsilon'''
     if len(p) == 4:
-        p[0] = ["TypeExprListOpt", p[1], "=", p[3]]
+      p[0]=p[3]
+      flag=0
+      for i in range(len(p[0].place)):
+        if not equalcheck(p[1].types[0],p[3].types[i]):
+          p[0].types[i] = i
+          flag=1
+        else:
+          p[0].types[i]=p[1].types[0]
     else:
-        # p[0] = ["TypeExprListOpt", p[1]]
-        p[0]=p[1]
+      p[0]=p[1]
 
 
 def p_identifier_list(p):
     '''IdentifierList : IDENTIFIER 
                       | IdentifierRep'''
-    # p[0] = ["IdentifierList", p[1]]
-    p[0]=p[1]
+    if hasattr(p[1],'idlist'):
+      p[0]=p[1]
+    else:
+      p[0]=node()
+      p[0].idlist+=[p[1]]
+      if checkid(p[1],"e"):
+        raise NameError(p[1]+" : This name already exists")
+      else:
+        scopeDict[curScope].insert(p[1],None)
+        v = newvar()
+        p[0].place = [v]
+        scopeDict[curScope].updateAttr(p[1],'place',v)
+
 
 def p_identifier_rep(p):
     '''IdentifierRep : IdentifierRep COMMA IDENTIFIER
                      | IDENTIFIER COMMA IDENTIFIER'''
-    if len(p) == 4:
-        p[0] = ["IdentifierRep", p[1], ",", p[3]]
+    if hasattr(p[1],'idlist'):
+      p[0]=p[1]
+      p[0].idlist = p[0].idlist + [p[3]]
+      if checkid(p[3],"e"):
+        raise NameError(p[3]+" : This name already exists")
+      else:
+        scopeDict[curScope].insert(p[3],None)
+        v = newvar()
+        p[0].place = p[0].place + [v]
+        scopeDict[curScope].updateAttr(p[3],'place',v)
     else:
-        p[0]=p[1]
+      p[0]=node()
+      p[0].idlist = [p[1]] + [p[3]]
+      if checkid(p[1],"e") or checkid(p[3],"e"):
+        if checkid(p[1],"e"):
+          raise NameError(p[1]+" : This name already exists")
+        else:
+          raise NameError(p[3]+" : This name already exists")
+      else:
+        scopeDict[curScope].insert(p[1],None)
+        scopeDict[curScope].insert(p[3],None)
+        v1 = newvar()
+        v2 = newvar()
+        p[0].place = [v1] + [v2]
+        scopeDict[curScope].updateAttr(p[1],'place',v1)
+        scopeDict[curScope].updateAttr(p[3],'place',v2)
 
 
 def p_expr_list(p):
@@ -434,43 +502,75 @@ def p_var_decl(p):
     '''VarDecl : VAR VarSpec
                | VAR LPAREN VarSpecRep RPAREN'''
     if len(p) == 3:
-        p[0] = ["VarDecl", "var", p[2]]
+        p[0] = p[2]
     else:
-        p[0] = ["VarDecl", "var", "(", p[3], ")"]
+        p[0] = p[3]
 
 def p_var_spec_rep(p):
     '''VarSpecRep : VarSpecRep VarSpec SEMICOLON
                   | epsilon'''
     if len(p) == 4:
-        p[0] = ["VarSpecRep", p[1], p[2], ";"]
+        p[0] = p[1]
+        p[0].code+=p[2].code
     else:
-        # p[0] = ["VarSpecRep", p[1]]
         p[0]=p[1]
 
 def p_var_spec(p):
-    '''VarSpec : IdentifierList Type ExpressionListOpt
-               | IdentifierList EQUALS ExpressionList'''
-    if p[2] == '=':
-        p[0] = ["VarSpec", p[1], "=", p[3]]
-    else:
-        p[0] = ["VarSpec", p[1], p[2], p[3]]
+    '''VarSpec : IdentifierList Type ExpressionListOpt'''
+    if len(p[3].place)==0:
+      p[0]=p[1]
+      p[0].code+=p[2].code
+
+      # if p[2].place[0][0]=='*':              # CODGEN
+
+      for i in range(len(p[1].idlist)):
+        s = findscope(p[1].idlist[i])
+        scopeDict[s].updateAttr(p[1].idlist[i],'type',p[2].types[0])
+        #REMAINING -- For arrays   #CODGEN
+      return
+    p[0]=node()
+    p[0].code = p[1].code + p[3].code
+    if len(p[1].place)!=len(p[3].place):
+      raise ValueError("Mismatch in number of expressions assigned to variables")
+
+    for i in range(len(p[1].place)):
+      x = p[1].idlist[i]
+      p[1].place[i] = p[3].place[i]
+      scope = findscope(x)
+      scopeDict[scope].updateAttr(x,'place',p[1].place[i])
+      scopeDict[scope].updateAttr(x,'type',p[2].types[0])
+      #pointer case
+      if p[2].types[0][0]=='*':
+        scopeDict[scope].updateAttr(x,'size',p[2].extra['sizeList'])
+      if not equalcheck(p[2].types[0],p[3].types[i]):
+        raise TypeError("Type of"+ x + "does not match that of expr")
+
 
 def p_expr_list_opt(p):
     '''ExpressionListOpt : EQUALS ExpressionList
                          | epsilon'''
     if len(p) == 3:
-        # p[0] = ["ExpressionListOpt", "=", p[2]]
-        p[0] = ["=", p[2]]
+        p[0] = p[2]
     else:
-        # p[0] = ["ExpressionListOpt", p[1]]
         p[0]=p[1]
 # -------------------------------------------------------
 
 
-# ----------------SHORT VARIABLE DECLARATIONS-------------
+# ----------------SHORT VARIABLE DECL-------------
 def p_short_var_decl(p):
   ''' ShortVarDecl : IDENTIFIER SHORT_ASSIGNMENT Expression '''
-  p[0] = ["ShortVarDecl", p[1], ":=", p[3]]
+  p[0] = node()
+  if checkid(p[1],'e'):
+    raise NameError("Variable"+p[1]+"already exists.")
+  else:
+    scopeDict[curScope].insert(p[1],None)
+  v = newvar()
+  p[0].code = p[3].code
+  p[0].code.append(['=',v,p[3].place[0]])
+  scopeDict[curScope].updateAttr(p[1],'place',v)
+  scopeDict[curScope].updateAttr(p[1],'type',p[3].types[0])
+  
+
 # -------------------------------------------------------
 
 
