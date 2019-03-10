@@ -26,6 +26,18 @@ def findscope(name):
 
   raise NameError(name+ "is not defined in any scope")
 
+def findinfo(name, S=-1):
+  if S > -1:
+    if scopeDict[S].retrieve(name) is not None:
+        return scopeDict[S].retrieve(name)
+    raise NameError("Identifier " + name + " is not defined!")
+
+  for scope in scopeStack[::-1]:
+    if scopeDict[scope].retrieve(name) is not None:
+        info = scopeDict[scope].retrieve(name)
+        return info
+
+  raise NameError("Identifier " + name + " is not defined!")
 
 
 # ----------  TYPE CHECKING -------------------
@@ -146,14 +158,18 @@ def p_type_opt(p):
 
 def p_slice_type(p):
     '''SliceType : LSQUARE RSQUARE ElementType'''
-    p[0] = ["SliceType","[","]",p[3]]
+    p[0] = p[3]
+    #TODO
 
 
 # ------------------ map type --------------------------
 
 def p_map_type(p):
   '''MapType : MAP LSQUARE KeyType RSQUARE ElementType '''
-  p[0] = ["MapType","map","[",p[2],"]",p[4]]
+  p[0] = p[3]
+  p[0].code+=p[5].code
+  #TODO
+  p[0].types = ['m'] + p[3].types[0] + p[5].types[0]
 
 def p_key_type(p):
   '''KeyType : Type'''
@@ -184,32 +200,39 @@ def p_element_type(p):
 
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
-  '''StructType : STRUCT LCURL FieldDeclRep RCURL'''
-  p[0] = ["StructType", "struct", "{", p[3], "}"]
+  '''StructType : FuncScope STRUCT LCURL FieldDeclRep RCURL'''
+  p[0] = p[4]
+  #TODO
+
+def p_func_scope(p):
+  '''FuncScope : '''
+  addscope(p[-1])
 
 def p_field_decl_rep(p):
   ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
                   | epsilon '''
   if len(p) == 4:
-    p[0] = ["FieldDeclRep", p[1], p[2], ";"]
+    p[0] = p[1]
+    p[0].code+=p[2].code
+    p[0].idlist+=p[2].idlist
+    p[0].types+=p[2].types
   else:
-    # p[0] = ["FieldDeclRep", p[1]]
     p[0]=p[1]
 
 def p_field_decl(p):
-  ''' FieldDecl : IdentifierList Type TagOpt'''
-  p[0] = ["FieldDecl", p[1], p[2], p[3]]
+  ''' FieldDecl : IdentifierList Type'''
+  p[0] = p[1]
+  for i in p[0].idlist:
+    scopeDict[curScope].updateAttr(i,'type',p[2].types[0])
 
-def p_TagOpt(p):
-  ''' TagOpt : Tag
-             | epsilon '''
-  # p[0] = ["TagOpt", p[1]]
-  p[0]=p[1]
+# def p_TagOpt(p):
+#   ''' TagOpt : Tag
+#              | epsilon '''
+#   p[0]=p[1]
 
-def p_Tag(p):
-  ''' Tag : STRING_LIT '''
-  # p[0] = ["Tag", p[1]]
-  p[0]=p[1]
+# def p_Tag(p):
+#   ''' Tag : STRING_LIT '''
+#   p[0]=p[1]
 # ---------------------------------------------------------
 
 
@@ -679,9 +702,25 @@ def p_operand_name(p):
 
 
 # -------------------QUALIFIED IDENTIFIER----------------
+def packageimport(name):
+  for scope in scopeStack[::-1]:
+    if scopeDict[scope].retrieve(name) is not None:
+      info = scopeDict[scope].retrieve(name)
+      if info['type'] == "package":
+          return True
+
+  return False
+
+
+
 def p_qualified_ident(p):
     '''QualifiedIdent : IDENTIFIER DOT TypeName'''
-    p[0] = ["QualifiedIdent", p[1], ".", p[3]]
+    p[0] = node()
+    if packageimport(p[1]):
+      raise NameError("package"+p[1]+"not included")
+    p[0].types.append(p[1]+p[2]+p[3].types[0])
+
+
 # -------------------------------------------------------
 
 
@@ -772,6 +811,8 @@ def p_expr(p):
           raise TypeError("RHS of shift operator is not integer")
       elif p[1].types!=p[3].types:
         raise TypeError("Types of expressions does not match")
+      else:
+        p[0].types=p[1].types
       if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
         p[0].types = ['bool']
         #CODEGEN
@@ -789,9 +830,30 @@ def p_unary_expr(p):
     if len(p) == 2:
         p[0] = p[1]
     elif p[1] == "!":
-        p[0] = ["UnaryExpr", "!", p[2]]
+      p[0] = p[2]
+      v = newvar()
+      p[0].code.append(["!",v,p[2].place[0]])
+      p[0].place = [v]
     else:
-        p[0] = [p[1],p[2]]
+      p[0] = p[2]
+      v = newvar()
+      if p[1][0]=='+' or p[1][0]=='-':
+        v1=newvar()
+        p[0].code.append(['=',v1,0])
+        p[0].code.append(['=',v,v1,p[2].place[0]])
+      elif p[1][0]=='*':
+        p[0].code..append(['load',v,p[2].place[0]])
+        if p[2].types[0][0]!='*':
+          raise TypeError("Cannot refernce a non pointer")
+        p[0].types[0]=p[2].types[0][1:]
+      else:
+        if 'AddrList' in p[0].extra:
+          p[0].code.append(['addr',v,p[0].extra['AddrList'][0]])
+        else:
+          p[0].code.append(['addr',v,p[2].place[0]])
+        p[0].types[0] = '*' + p[2].types[0]
+      p[0].place=[v]
+
 
 def p_unary_op(p):
     '''UnaryOp : PLUS
@@ -956,22 +1018,13 @@ def p_AssignOp(p):
                | LSHIFT_EQUAL
                | RSHIFT_EQUAL
                | EQUALS '''
-  # p[0] = ["AssignOp", p[1]]
   p[0] = p[1]
-  # p[0][0] = "AssignOp"
 
 
 def p_if_statement(p):
   ''' IfStmt : IF Expression Block ElseOpt '''
   p[0] = ["IfStmt", "if", p[2], p[3], p[4]]
 
-# def p_SimpleStmtOpt(p):
-#   ''' SimpleStmtOpt : SimpleStmt SEMICOLON
-#                     | epsilon '''
-#   if len(p) == 3:
-#     p[0] = ["SimpleStmtOpt", p[1], ";"]
-#   else :
-#     p[0] = ["SimpleStmtOpt", p[1]]
 
 def p_else_opt(p):
   ''' ElseOpt : ELSE IfStmt
@@ -1031,7 +1084,7 @@ def p_ExprSwitchCase(p):
 
 
 
-# --------- FOR STATEMENTS AND OTHERS (MANDAL) ---------------
+# --------- FOR STATEMENTS    -------------------------------
 def p_for(p):
   '''ForStmt : FOR ConditionBlockOpt Block'''
   p[0] = ["ForStmt", "for", p[2], p[3]]
@@ -1111,26 +1164,26 @@ def p_goto(p):
 # ----------------  SOURCE FILE --------------------------------
 def p_source_file(p):
     '''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
-    p[0] = ["SourceFile", p[1], ";", p[3], p[4]]
+    p[0] = p[0]
+    p[0].code+=p[2].code
+    p[0].code+=p[3].code
 
 def p_import_decl_rep(p):
   '''ImportDeclRep : epsilon
            | ImportDeclRep ImportDecl SEMICOLON'''
   if len(p) == 4:
-    p[0] = ["ImportDeclRep", p[1], p[2], ";"]
+    p[0] = p[1]
+    p[0].code +=p[2].code
   else:
-    # p[0] = ["ImportDeclRep", p[1]]
-    # p[0] =[]
     p[0] = p[1]
 
 def p_toplevel_decl_rep(p):
   '''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
                      | epsilon'''
   if len(p) == 4:
-    p[0] = ["TopLevelDeclRep", p[1], p[2], ";"]
+    p[0] = p[1]
+    p[0].code+=p[2].code
   else:
-    # p[0] = ["TopLevelDeclRep", p[1]]
-    # p[0] =[]
     p[0] = p[1]
 # --------------------------------------------------------
 
@@ -1138,13 +1191,17 @@ def p_toplevel_decl_rep(p):
 # ---------- PACKAGE CLAUSE --------------------
 def p_package_clause(p):
     '''PackageClause : PACKAGE PackageName'''
-    p[0] = ["PackageClause", "package", p[2]]
+    p[0] = p[2]
 
 
 def p_package_name(p):
     '''PackageName : IDENTIFIER'''
-    # p[0] = ["PackageName", p[1]]
-    p[0]=p[1]
+    p[0]=node()
+    p[0].idlist.append(str(p[1]))
+    if checkid(p[1],'e'):
+      raise NameError("Package Name"+p[1]+"already exists")
+    else:
+      scopeDict[0].insert(p[1],"package")
 # -----------------------------------------------
 
 
@@ -1153,50 +1210,47 @@ def p_import_decl(p):
   '''ImportDecl : IMPORT ImportSpec
           | IMPORT LPAREN ImportSpecRep RPAREN '''
   if len(p) == 3:
-    p[0] = ["ImportDecl", "import", p[2]]
+    p[0] = p[2]
   else:
-    p[0] = ["ImportDecl", "import", "(", p[3], ")"]
+    p[0] = p[3]
 
 def p_import_spec_rep(p):
   ''' ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
             | epsilon '''
   if len(p) == 4:
-    p[0] = ["ImportSpecRep", p[1], p[2], ";"]
+    p[0] = p[1]
+    p[0].idlist+=p[2].idlist
   else:
-    # p[0] = ["ImportSpecRep", p[1]]
     p[0] = p[1]
 
 def p_import_spec(p):
   ''' ImportSpec : PackageNameDotOpt ImportPath '''
-  if len(p[1]) == 0 :
-    p[0]=p[2]
+  p[0]=p[1]
+  if len(p[1].idlist)!=0:
+    p[0].idlist = p[1].idlist + " " + p[2].idlist
   else:
-    p[0] = ["ImportSpec", p[1], p[2]]
+    p[0].idlist+=p[2].idlist
 
 def p_package_name_dot_opt(p):
   ''' PackageNameDotOpt : DOT
                         | PackageName
                         | epsilon'''
   if p[1]== '.':
-    p[0] = ["PackageNameDotOpt", "."]
-  # elif p[1] == "epsilon":
-  #   p[0] = []
+    p[0] = node()
+    p[0].idlist.append('.')
   else:
-    # p[0] = ["PackageNameDotOpt", p[1]]
     p[0] = p[1]
 
 def p_import_path(p):
   ''' ImportPath : STRING_LIT '''
-  # p[0] = ["ImportPath", p[1]]
-  p[0]=p[1]
+  p[0]=node()
+  p[0].idlist.append(str(p[1]))
 # -------------------------------------------------------
 
 
 def p_empty(p):
   '''epsilon : '''
-  # p[0] = "epsilon"
-  p[0] = []
-  # p[0] = p[1]
+  p[0] = node()
 
 
 def p_error(p):
