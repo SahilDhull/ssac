@@ -763,9 +763,18 @@ def p_expr(p):
     if len(p)==2:
       p[0]=p[1]
     else:
-      
-
-
+      p[0]=node()
+      p[0].code = p[1].code + p[3].code
+      if p[2]=='<<' or p[2]=='>>':
+        if p[3].types[0]=='int' or p[3].types[0]=='cint':
+          p[0].types=p[1].types
+        else:
+          raise TypeError("RHS of shift operator is not integer")
+      elif p[1].types!=p[3].types:
+        raise TypeError("Types of expressions does not match")
+      if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
+        p[0].types = ['bool']
+        #CODEGEN
 
 
 def p_expr_opt(p):
