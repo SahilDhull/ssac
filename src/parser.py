@@ -596,24 +596,20 @@ def p_operand(p):
                | OperandName
                | LPAREN Expression RPAREN'''
     if len(p) == 2:
-        # p[0] = ["Operand", p[1]]
         p[0] = p[1]
-        # p[0][0] = "Operand"
     else:
-        p[0] = ["Operand", "(", p[2], ")"]
+        p[0] = p[2]
 
 def p_literal(p):
     '''Literal : BasicLit
                | CompositeLit'''
-    # p[0] = ["Literal", p[1]]
     p[0] = p[1]
-    # p[0][0] = "Literal"
 
 # -------------   composite literals --------------------
 
 def p_composite_lit(p):
   '''CompositeLit : LiteralType LiteralValue'''
-  p[0] = ["CompositeLit",p[1],p[2]]
+  # p[0] = ["CompositeLit",p[1],p[2]]
 
 def p_literal_type(p):
   '''LiteralType : StructType
@@ -628,11 +624,11 @@ def p_literal_value(p):
                   | LCURL ElementList RCURL
                   | LCURL ElementList COMMA RCURL'''
   if len(p)==3:
-    p[0]=["LiteralValue","{","}"]
+    p[0]=node()
   elif len(p)==4:
-    p[0]=["LiteralValue","{",p[2],"}"]
+    p[0]=p[2]
   else:
-    p[0]=["LiteralValue","{",p[2],p[3],"}"]
+    p[0]=p[2]
 
 def p_element_list(p):
   '''ElementList : KeyedElement
@@ -669,21 +665,21 @@ def p_basic_lit(p):
                 | FLOAT_LIT
                 | IMAGINARY_LIT
                 | STRING_LIT'''
-    # p[0] = ["BasicLit",str(p[1])]
-    p[0]=[str(p[1])]
+  p[0]=node()
+
 
 def p_operand_name(p):
     '''OperandName : IDENTIFIER'''
-    p[0] = p[1]
     if not definedcheck(p[1]):
       raise NameError("identifier" + p[1] + "not defined")
     #COMEPLETE
+
     
 # ---------------------------------------------------------
 
 
 # -------------------QUALIFIED IDENTIFIER----------------
-def p_quali_ident(p):
+def p_qualified_ident(p):
     '''QualifiedIdent : IDENTIFIER DOT TypeName'''
     p[0] = ["QualifiedIdent", p[1], ".", p[3]]
 # -------------------------------------------------------
@@ -764,20 +760,17 @@ def p_expr(p):
                   | Expression MINUS Expression
                   | Expression MULTIPLY Expression
                   | Expression AND Expression'''
-    if len(p) == 4:
-        # p[0] = ["Expression", p[1], p[2], p[3]]
-        p[0] = [str(p[2]), p[1], p[3]]
+    if len(p)==2:
+      p[0]=p[1]
     else:
-        # p[0] = ["Expression", p[1]]
-        p[0] = p[1]
-        # p[0][0] = "Expression"
+      
+
 
 
 
 def p_expr_opt(p):
     '''ExpressionOpt : Expression
                      | epsilon'''
-    # p[0] = ["ExpressionOpt", p[1]]
     p[0]=p[1]
 
 def p_unary_expr(p):
@@ -785,13 +778,10 @@ def p_unary_expr(p):
                  | UnaryOp UnaryExpr
                  | NOT UnaryExpr'''
     if len(p) == 2:
-        # p[0] = ["UnaryExpr", p[1]]
         p[0] = p[1]
-        # p[0][0] = "UnaryExpr"
     elif p[1] == "!":
         p[0] = ["UnaryExpr", "!", p[2]]
     else:
-        # p[0] = ["UnaryExpr", p[1], p[2]]
         p[0] = [p[1],p[2]]
 
 def p_unary_op(p):
