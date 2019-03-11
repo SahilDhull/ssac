@@ -140,7 +140,7 @@ def p_type_token(p):
           raise TypeError("TypeName" + p[2] + "not defined anywhere")
         p[0]=node()
         var = findinfo(p[2],0)
-        p[0].types.append(var['type'])
+        p[0].types.append(var.type)
 
 def p_type_lit(p):
     '''TypeLit : ArrayType
@@ -252,93 +252,87 @@ def p_base_type(p):
 # ---------------FUNCTION TYPES----------------------------
 def p_sign(p):
     '''Signature : Parameters ResultOpt'''
-    if len(p[2]) == 0:
-        p[0]=p[1]
+    p[0]=p[1]
+    scopeDict[curScope].updateExtra('types',p[1].types)
+    scopeDict[0].insert(p[-2],'sigType')
+    if len(p[2].types)==0:
+      scopeDict[0].updateAttr(p[-2],'ret','void')
     else:
-        p[0] = ["Signature", p[1], p[2]]
+      for i in range(len(p[2].types)):
+        scopeDict[0].updateAttr(p[-2],'ret',p[2].types[i])
+    p[0].extra['fName'] = p[-2]
+    info = findinfo(p[-2],0)
+    if info.label==None:
+      lnew = newlabel()
+      scopeDict[0].updateAttr(p[-2],'label',lnew)
+      scopeDict[0].updateAttr(p[-2],'child',scopeDict[curScope])
+    p[0].types = p[2].types
 
 def p_result_opt(p):
     '''ResultOpt : Result
                  | epsilon'''
-    # p[0] = ["ResultOpt", p[1]]
     p[0]=p[1]
-    # if p[0] == "epsilon":
-    #     p[0] = [""]
 
 def p_result(p):
     '''Result : Parameters
               | Type'''
     p[0]=p[1]
 
-# ------------------ to change -----------------
 
-
-
-###########################      SAHIL          ########################
 def p_params(p):
     '''Parameters : LPAREN ParametersList RPAREN
-                  | LPAREN ParametersList COMMA RPAREN
                   | LPAREN RPAREN'''
     if len(p) == 4:
-      p[0] = ["Parameters","(",p[2],")"]
-    elif len(p) == 5:
-      p[0] = ["Parameters","(",p[2],",",")"]
+      p[0] = p[2]
     else:
-      p[0] = ["Parameters","(",")"]
+      p[0] = node()
 
 def p_param_list(p):
     '''ParametersList : ParameterDecl
                       | ParametersList COMMA ParameterDecl'''
     if len(p) == 2:
       p[0]=p[1]
-      # p[0] = p[1]
     else:
-      p[0] = ["ParametersList",p[1],",",p[3]]
-
-
+      p[0] = p[1]
+      p[0].idlist += p[3].idlist
+      p[0].types += p[3].types
+      p[0].place += p[3].place
 
 def p_param_decl(p):
-    '''ParameterDecl : DOTS Type
-                     | IdentifierList Type
-                     | IdentifierList DOTS Type
+    '''ParameterDecl : IdentifierList Type
                      | Type'''
+    p[0] = p[1]
     if len(p) == 3:
-      if p[1] == "...":
-        p[0] = ["ParameterDecl","...",p[2]]
-      else:
-        p[0] = ["ParameterDecl",p[1],p[2]]
-    elif len(p) == 2:
-      p[0]=p[1]
-    else:
-      p[0] = ["ParameterDecl",p[1],"...",p[3]]
-
-# def p_ohh(p):
-#     '''Ohh : Type'''
-#     p[0]=p[1]
-
-# -----------------------------------------------------
-
-
-# ---------------------------------------------------------
+      for x in p[1].idlist:
+        scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
+        p[0].types.append(p[2].types[0])
+        # if pointer
+        if (p[2].types[0]).startswith('*'):
+          t = p[2].types[0]
+          for i in range(len(t)):
+            if t[i]!='*':
+              break
+          if t[i:] == 'int' or t[i:]=='float':
+            scopeDict[curScope].updateAttr(x,'size',['inf',4])
+          #TODO if time permits: for any type T,  *T to be included
 
 
 #-----------------------BLOCKS---------------------------
 def p_block(p):
     '''Block : LCURL StatementList RCURL'''
-    p[0] = ["Blocks", "{" , p[2], "}"]
+    p[0] = p[2]
 
 def p_stat_list(p):
     '''StatementList : StatementRep'''
-    # p[0] = ["StatementList", p[1]]
     p[0] = p[1]
 
 def p_stat_rep(p):
     '''StatementRep : StatementRep Statement SEMICOLON
                     | epsilon'''
     if len(p) == 4:
-        p[0] = ["StatementRep", p[1], p[2], ';']
+        p[0] = p[1]
+        p[0] += p[2].code
     else:
-        # p[0] = ["StatementRep", p[1]]
         p[0] = p[1]
 # -------------------------------------------------------
 
@@ -353,9 +347,7 @@ def p_decl(p):
 def p_toplevel_decl(p):
   '''TopLevelDecl : Declaration
                   | FunctionDecl'''
-  # p[0] = ["TopLevelDecl", p[1]]
   p[0] = p[1]
-  # p[0][0] = "TopLevelDecl"
 # -------------------------------------------------------
 
 
@@ -591,25 +583,68 @@ def p_short_var_decl(p):
 
 # ----------------FUNCTION DECLARATIONS------------------
 def p_func_decl(p):
-    '''FunctionDecl : FUNC FunctionName Function
-                    | FUNC FunctionName Signature'''
-    p[0] = ["FunctionDecl", "func", p[2], p[3]]
+  '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope
+                  | FUNC FunctionName CreateScope Signature EndScope'''
+  p[0]=node()
+  if len(p[4].code):
+    global mainFunc
+    if mainFunc:
+      mainFunc = False
+      p[0].code = [["goto","l0"]]
+    info = findinfo(p[2])
+    label = info.label
+    p[0].code.append(['label',label])
+    p[0].code += p[4].code
+
+def p_create_scope(p):
+  '''CreateScope : '''
+  addscope()
+
+def p_end_scope(p):
+  '''EndScope : '''
+  endscope()
 
 def p_func_name(p):
-    '''FunctionName : IDENTIFIER'''
-    # p[0] = ["FunctionName", p[1]]
-    p[0] = p[1]
-    # p[0][0] = "FunctionName"
+  '''FunctionName : IDENTIFIER'''
+  p[0] = p[1]
+
+def checksignature(name):
+  for scope in scopeStack[::-1]:
+    if scopeDict[scope].retrieve(name) is not None:
+      info = scopeDict[scope].retrieve(name)
+      if info.type=="SigType":
+        return True
+  return False
 
 def p_func(p):
-    '''Function : Signature FunctionBody'''
-    p[0] = ["Function", p[1], p[2]]
+    '''Function : Signature RetTypeSet FunctionBody'''
+    p[0] = p[3]
+    for i in range(len(p[1].idlist)):
+      x = p[1].idlist[i]
+      info = findinfo(x)
+      p[0].code = [['pload',info.place,len(p[1].idlist)-i-1]] + p[0].code
+    if checksignature(p[-2]):
+      if p[-2]=="main":
+        scopeDict[0].updateAttr('main','label','l0')
+        scopeDict[0].updateAttr('main','child',scopeDict[curScope])
+      info = findinfo(p[-2])
+      info.type = 'func'
+    else:
+      raise NameError('No Signature found for '+p[-2])
+
+
+def p_ret_type_set(p):
+  '''RetTypeSet : '''
+  fname = p[-1].extra['fName']
+  scopeDict[curScope].updateExtra('fName',fname)
+  if len(p[-1].types)>0:
+    scopeDict[curScope].updateExtra('retType',p[-1].types[0])
+  else:
+    scopeDict[curScope].updateExtra('retType','void')
 
 def p_func_body(p):
     '''FunctionBody : Block'''
-    # p[0] = ["FunctionBody", p[1]]
     p[0] = p[1]
-    p[0][0] = "FunctionBody"
 # -------------------------------------------------------
 
 

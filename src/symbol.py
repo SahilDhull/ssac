@@ -3,7 +3,7 @@
 class symnode:
 	def __init__(self):
 		self.type = None
-		self.retType = None
+		self.retType = []
 		self.label = None
 		self.listsize = None
 		self.place = None
@@ -13,7 +13,7 @@ class symnode:
 		self.type = type1
 
 	def insertretType(self,a):
-		self.retType = a
+		self.retType += [a]
 
 	def insertlabel(self,a):
 		self.label = a

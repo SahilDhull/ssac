@@ -44,7 +44,7 @@ tokens = [
 		'EQEQ','NOTEQUALS', 'PLUS','MINUS','MINUSEQUAL','OREQUAL','COMPARE_OR','LESSTHAN',
 		'LESSTHAN_EQUAL', 'MULTIPLY','XOR','TIMESEQUAL','XOREQUAL', 'GREATERTHAN', 'GREATERTHAN_EQUAL',
 		'DIVIDE', 'LSHIFT', 'DIVIDE_EQUAL', 'LSHIFT_EQUAL','EQUALS','SHORT_ASSIGNMENT',
-		'MODULO','RSHIFT','MODEQUAL','RSHIFT_EQUAL','ANDXOR','ANDXOR_EQUAL','DOTS',
+		'MODULO','RSHIFT','MODEQUAL','RSHIFT_EQUAL','ANDXOR','ANDXOR_EQUAL',
 
 		#PUNCTUATION
 		'LPAREN','RPAREN','LSQUARE','RSQUARE','LCURL','RCURL',
@@ -89,7 +89,7 @@ t_MODEQUAL                 = r'%='
 t_RSHIFT_EQUAL         = r'>>='
 t_ANDXOR                   = r'&\^'
 t_ANDXOR_EQUAL             = r'&\^='
-t_DOTS                     = r'\.\.\.'
+# t_DOTS                     = r'\.\.\.'
 
 
 #Punctuation
