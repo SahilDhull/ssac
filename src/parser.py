@@ -150,10 +150,10 @@ def p_type_lit(p):
                | SliceType'''
     p[0] = p[1]
 
-def p_type_opt(p):
-    '''TypeOpt : Type
-               | epsilon'''
-    p[0] = p[1]
+# def p_type_opt(p):
+#     '''TypeOpt : Type
+#                | epsilon'''
+#     p[0] = p[1]
 # -------------------------------------------------------
 
 def p_slice_type(p):
@@ -684,10 +684,10 @@ def p_element(p):
 # -------------------------------------------------------
 
 def p_basic_lit(p):
-    '''BasicLit : INT_LIT
-                | FLOAT_LIT
-                | IMAGINARY_LIT
-                | STRING_LIT'''
+  '''BasicLit : INT_LIT
+              | FLOAT_LIT
+              | IMAGINARY_LIT
+              | STRING_LIT'''
   p[0]=node()
 
 
@@ -842,7 +842,7 @@ def p_unary_expr(p):
         p[0].code.append(['=',v1,0])
         p[0].code.append(['=',v,v1,p[2].place[0]])
       elif p[1][0]=='*':
-        p[0].code..append(['load',v,p[2].place[0]])
+        p[0].code.append(['load',v,p[2].place[0]])
         if p[2].types[0][0]!='*':
           raise TypeError("Cannot refernce a non pointer")
         p[0].types[0]=p[2].types[0][1:]
@@ -1164,9 +1164,9 @@ def p_goto(p):
 # ----------------  SOURCE FILE --------------------------------
 def p_source_file(p):
     '''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
-    p[0] = p[0]
-    p[0].code+=p[2].code
+    p[0] = p[1]
     p[0].code+=p[3].code
+    p[0].code+=p[4].code
 
 def p_import_decl_rep(p):
   '''ImportDeclRep : epsilon
@@ -1275,4 +1275,4 @@ result = parser.parse(s,debug=0)
 
 print "Parsing Done ----------------------------> :)"
 
-print result
+print result.types

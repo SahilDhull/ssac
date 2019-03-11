@@ -30,7 +30,7 @@ class symnode:
 class st:
 	def __init__(self):
 		self.table = {}
-		self.symbols = {}
+		self.symbols = []
 		self.parent = None
 		self.extra = {}
 
