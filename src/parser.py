@@ -5,6 +5,42 @@ import os
 from lexer import *
 from symbol import st,symnode,node
 
+
+# ----------  TYPE CHECKING -------------------
+
+def equalcheck(x,y):
+  if x==y:
+    return True
+  elif y.startswith('c') and x==y[1:]:
+    return True
+  return False
+
+def checkid(name,str):
+  if str=='e':
+    # print "---------------------->"+name
+    if scopeDict[curScope].retrieve(name) is not None:
+      return True
+    return False
+
+def opTypeCheck(a,b,op):
+  if a.startswith('*') and b.startswith('*'):
+    return False
+  if a==b:
+    return True
+  if a.startswith('c') and a[1:]==b:
+    return True
+  if b.startswith('c') and a==b[1:]:
+    return True
+  if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
+    return True
+  if op=='+' or op=='-':
+    if a.startswith('*') and (b=='int' or b=='cint'):
+      return True
+    if b.startswith('*') and (a=='int' or a=='cint'):
+      return True
+  return False
+
+
 # ------------   SCOPE    ----------------------
 
 curScope = 0
@@ -16,11 +52,34 @@ mainFunc = True
 labelDict = {}
 scopeDict = {}
 scopeDict[0] = st()
-scopestack=[0]
+scopeStack=[0]
 
+def addscope(name=None):
+  global scopeLevel
+  global curScope
+  scopeLevel+=1
+  scopeStack.append(scopeLevel)
+  scopeDict[scopeLevel] = st()
+  scopeDict[scopeLevel].setParent(curScope)
+  if name is not None:
+    # Not sure if correct
+    if type(name) is list:
+      scopeDict[curScope].insert(name[1],'func')
+      scopeDict[curScope].insert(name[1],'child',scopeDict[scopeLevel])
+    else:
+      if checkid(name,'e'):
+        raise NameError(name+" already defined")
+      scopeDict[curScope].insert(name, 'type'+name)
+      scopeDict[curScope].updateAttr(name, 'child',scopeDict[scopeLevel])
+  curScope = scopeLevel
+
+def endscope():
+  global curScope
+  curScope = scopeStack.pop()
+  curScope = scopeStack[-1]
 
 def findscope(name):
-  for s in scopestack[::-1]:
+  for s in scopeStack[::-1]:
     if scopeDict[s].retrieve(name) is not None:
       return s
 
@@ -39,19 +98,6 @@ def findinfo(name, S=-1):
 
   raise NameError("Identifier " + name + " is not defined!")
 
-
-# ----------  TYPE CHECKING -------------------
-
-def equalcheck(x,y):
-  if x==y:
-    return True
-  return False
-
-def checkid(name,str):
-  if str=='e':
-    if scopeDict[curScope].retrieve(name) is not None:
-      return True
-    return False
 
 # -------------  SOME OTHER FUNCTIONS ---------------------
 
@@ -113,11 +159,12 @@ def p_type_name(p):
     p[0]=p[1]
 
 def definedcheck(name):
+  # print "here ==========> "+name
+  # print scopeStack
   for scope in scopeStack[::-1]:
+    # print scopeDict[scope].table
     if scopeDict[scope].retrieve(name) is not None:
-      info = scopeDict[scope].retrieve(name)
-      if typeOf == "**":
-          return True
+      return True
   return False
 
 def p_type_token(p):
@@ -331,9 +378,9 @@ def p_stat_rep(p):
                     | epsilon'''
     if len(p) == 4:
         p[0] = p[1]
-        p[0] += p[2].code
+        p[0].code += p[2].code
     else:
-        p[0] = p[1]
+        p[0] = node()
 # -------------------------------------------------------
 
 
@@ -451,20 +498,28 @@ def p_identifier_rep(p):
 
 def p_expr_list(p):
     '''ExpressionList : Expression ExpressionRep'''
-    if len(p[2]) == 0:
-        p[0]=p[1]
-    else:
-        p[0] = ["ExpressionList", p[1], p[2]]
+    p[0]=p[2]
+    p[0].code = p[1].code+p[0].code
+    p[0].place = p[1].place + p[0].place
+    p[0].types = p[1].types + p[0].types
+    if 'AddrList' not in p[1].extra:
+      p[1].extra['AddrList'] = ['None']
+    p[0].extra['AddrList'] += p[1].extra['AddrList']
 
 def p_expr_rep(p):
     '''ExpressionRep : ExpressionRep COMMA Expression
                      | epsilon'''
     if len(p) == 4:
-        # p[0] = ["ExpressionRep", p[1], ',', p[3]]
-        p[0] = [',', p[1], p[3]]
-    else:
-        # p[0] = ["ExpressionRep", p[1]]
         p[0]=p[1]
+        p[0].code+=p[3].code
+        p[0].types+=p[3].types
+        p[0].place+=p[3].place
+        if 'AddrList' not in p[3].extra:
+          p[3].extra['AddrList'] = ['None']
+        p[0].extra['AddrList'] += p[3].extra['AddrList']
+    else:
+        p[0]=p[1]
+        p[0].extra['AddrList'] = []
 # -------------------------------------------------------
 
 
@@ -610,9 +665,11 @@ def p_func_name(p):
 
 def checksignature(name):
   for scope in scopeStack[::-1]:
+    # print scopeDict[scope].table
     if scopeDict[scope].retrieve(name) is not None:
       info = scopeDict[scope].retrieve(name)
-      if info.type=="SigType":
+      # print "---------> "+info.type
+      if info.type=="sigType":
         return True
   return False
 
@@ -719,19 +776,55 @@ def p_element(p):
 # -------------------------------------------------------
 
 def p_basic_lit(p):
-  '''BasicLit : INT_LIT
-              | FLOAT_LIT
-              | IMAGINARY_LIT
-              | STRING_LIT'''
+  '''BasicLit : I INT_LIT
+              | F FLOAT_LIT
+              | C IMAGINARY_LIT
+              | S STRING_LIT'''
   p[0]=node()
+  v = newvar()
+  p[0].code.append(["=",v,p[2]])
+  p[0].place.append(v)
+  p[0].types.append('c'+p[1])
 
+def p_I(p):
+  '''I : '''
+  p[0] = 'int'
+
+def p_F(p):
+  '''F : '''
+  p[0] = 'float'
+
+def p_C(p):
+  '''C : '''
+  p[0] = 'complex'
+
+def p_S(p):
+  '''S : '''
+  p[0] = 'string'
 
 def p_operand_name(p):
-    '''OperandName : IDENTIFIER'''
-    if not definedcheck(p[1]):
-      raise NameError("identifier" + p[1] + "not defined")
-    #COMEPLETE
-
+  '''OperandName : IDENTIFIER'''
+  if not definedcheck(p[1]):
+    raise NameError("identifier " + p[1] + " is not defined")
+  p[0] = node()
+  info = findinfo(p[1])
+  if info.type=='func' or info.type=='sigType':
+    p[0].types = [info.retType]
+    p[0].place.append(info.label)
+  else:
+    p[0].types = [info.type]
+    p[0].place.append(info.place)
+    p[0].extra['layerNum'] = 0
+    p[0].extra['operand'] = p[1]
+    if info.listsize is not None:
+      p[0].extra['sizeList'] = info.listsize
+    else:
+      for i in range(len(info.type)):
+        if info.type[i]!='*':
+          break;
+      if info.type[i:]=='int':
+        p[0].extra['sizeList'] = ['inf','4']
+  p[0].idlist = [p[1]]
     
 # ---------------------------------------------------------
 
@@ -764,26 +857,91 @@ def p_prim_expr(p):
     '''PrimaryExpr : Operand
                    | PrimaryExpr Selector
                    | Conversion
-                   | PrimaryExpr Index
+                   | PrimaryExpr LSQUARE Expression RSQUARE
                    | PrimaryExpr Slice
                    | PrimaryExpr TypeAssertion
-                   | PrimaryExpr Arguments'''
+                   | PrimaryExpr LPAREN ExpressionListTypeOpt RPAREN'''
     if len(p) == 2:
-        # p[0] = ["PrimaryExpr", p[1]]
         p[0] = p[1]
-        # p[0][0] = "PrimaryExpr"
+    elif p[2]=='[':
+      p[0] = p[1]
+      p[0].code+=p[3].code
+      info = findinfo(p[1].extra['operand'])
+      lsize = info.listsize
+      #DOUBT
+      if p[1].extra['layerNum'] == len(lsize)-1:
+        raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
+
+      v1 = newvar()
+      p[0].code.append(['=',v1,p[3].place[0]])
+      for i in sizeList[p[1].extra['layerNum']+1:]:
+        p[0].code.append(['x=',v1,i])
+      v2 = newvar()
+      p[0].code.append(['+',v2,p[0].place[0],v1])
+      p[0].place = [v2]
+      if p[1].extra['layerNum'] == len(lsize)-2:
+        v3 = newvar()
+        p[0].code.append(['load',v3,v2])
+        p[0].place = [v3]
+      p[0].extra['AddrList'] = [v2]
+      p[0].types = [p[1].types[0][1:]]
+      p[0].extra['layerNum'] += 1
+    elif p[2]=='(':
+      p[0]=p[1]
+      p[0].code+=p[3].code
+
+      listval = []
+
+      for key,value in enumerate(scopeDict[curScope].table):
+        cur = findinfo(value,curScope)
+        listval.append(value)
+        p[0].code.append(['push',cur.place])
+
+      info = findinfo(p[1].idlist[0],0)
+      functionDict = info.child
+      paramTypes = functionDict.extra['types']
+      if len(p[3].place):
+        for x in p[3].place:
+          p[0].code.append(['push',x])
+        for i in range(len(p[3].place)):
+          if not equalcheck(paramTypes[i],p[3].types[i]):
+            raise TypeError("Type Mismatch in "+p[1].idlist[0])
+
+      # Checking Return Type
+      if len(info.retType)==1:
+        if info.retType[0]=='void':
+          p[0].code.append(['callvoid',info.label])
+        elif info.retType[0]=='int':
+          v1 = newvar()
+          p[0].place = [v1]
+          p[0].code.append(['callint',v1,info.label])
+        p[0].types = [p[1].types[0]]
+      # else:
+        # Check for Multiple Return Types
+        #TODO
+
+      var1 = newvar()
+      if len(p[3].place):
+        for x in p[3].place:
+          p[0].code.append(['pop',var1])
+
+      for val in listval[::-1]:
+        cur = findinfo(val,curScope)
+        p[0].code.append(['pop',cur.place])
+
     else:
-        p[0] = ["PrimaryExpr", p[1], p[2]]
+      if not len(p[2].place):
+        p[0] =node()
+      else:
+        p[0] = p[1]
+        p[0].place = p[2].place
+        p[0].types = p[2].types
+
+
 
 def p_selector(p):
     '''Selector : DOT IDENTIFIER'''
     p[0] = ["Selector", ".", p[2]]
-    # p[0] = p[1]
-    # p[0][0] = "Selector"
-
-def p_index(p):
-    '''Index : LSQUARE Expression RSQUARE'''
-    p[0] = ["Index", "[", p[2], "]"]
 
 def p_slice(p):
     '''Slice : LSQUARE ExpressionOpt COLON ExpressionOpt RSQUARE
@@ -797,19 +955,11 @@ def p_type_assert(p):
     '''TypeAssertion : DOT LPAREN Type RPAREN'''
     p[0] = ["TypeAssertion", ".", "(", p[3], ")"]
 
-def p_argument(p):
-    '''Arguments : LPAREN ExpressionListTypeOpt RPAREN'''
-    p[0] = ["Arguments", "(", p[2], ")"]
 
 def p_expr_list_type_opt(p):
     '''ExpressionListTypeOpt : ExpressionList
                              | epsilon'''
-    if len(p) == 3:
-        p[0] = ["ExpressionListTypeOpt", p[1], p[2]]
-    else:
-        # p[0] = ["ExpressionListTypeOpt", p[1]]
-        p[0] = p[1]
-        # p[0][0] = "ExpressionListTypeOpt"
+    p[0] = p[1]
 
 
 
@@ -839,18 +989,44 @@ def p_expr(p):
     else:
       p[0]=node()
       p[0].code = p[1].code + p[3].code
-      if p[2]=='<<' or p[2]=='>>':
-        if p[3].types[0]=='int' or p[3].types[0]=='cint':
-          p[0].types=p[1].types
-        else:
+      if p[2]=='<<' or p[2]=='>>'and p[3].types[0]!='int' and p[3].types[0]!='cint':
           raise TypeError("RHS of shift operator is not integer")
-      elif p[1].types!=p[3].types:
+      if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
         raise TypeError("Types of expressions does not match")
       else:
         p[0].types=p[1].types
       if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
         p[0].types = ['bool']
         #CODEGEN
+      v = newvar()
+      if p[2]=='*':
+        p[0].code.append(['x',v,p[1].place[0],p[3].place[0]])
+      elif p[2]=='&&':
+        p[0].code.append(['&',v,p[1].place[0],p[3].place[0]])
+      elif p[2]=='||':
+        p[0].code.append(['|',v,p[1].place[0],p[3].place[0]])
+      elif p[2]=='<<':
+        p[0].code.append(['=',v,p[1].place[0]])
+        p[0].code.append(['<<=',v,p[3].place[0]])
+      elif p[2]=='>>':
+        p[0].code.append(['=',v,p[1].place[0]])
+        p[0].code.append(['>>=',v,p[3].place[0]])
+      elif (p[2]=='+'or p[2]=='-') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]).startswith('*'):
+        t = newvar()
+        p[0].code.append(['=',t,'4'])
+        p[0].code.append(['x',t,t,p[1].place[0]])
+        p[0].code.append(['+',v,t,p[3].place[0]])
+      elif (p[2]=='+'or p[2]=='-') and (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]).startswith('*'):
+        t = newvar()
+        p[0].code.append(['=',t,'4'])
+        p[0].code.append(['x',t,t,p[3].place[0]])
+        p[0].code.append(['+',v,t,p[1].place[0]])
+      else:
+        p[0].code.append([p[2],v,p[1].place[0],p[3].place[0]])
+      p[0].place = [v]
+
+      if not opTypeCheck(p[1].types[0],p[3].types[0],p[2]):
+        raise TypeError("Expression types dont match on both side of operation "+p[2])
 
 
 def p_expr_opt(p):
@@ -915,80 +1091,52 @@ def p_conversion(p):
 
 # ---------------- STATEMENTS -----------------------
 def p_statement(p):
-    '''Statement : Declaration
-                 | LabeledStmt
-                 | SimpleStmt
-                 | ReturnStmt
-                 | BreakStmt
-                 | ContinueStmt
-                 | GotoStmt
-                 | Block
-                 | IfStmt
-                 | SwitchStmt
-                 | ForStmt
-                 | DeferStmt
-                 | SelectStmt
-                 | FallThroughStmt
-                 | GoStmt'''
-    # p[0] = ["Statement", p[1]]
+  '''Statement : Declaration
+               | LabeledStmt
+               | SimpleStmt
+               | ReturnStmt
+               | BreakStmt
+               | ContinueStmt
+               | GotoStmt
+               | CreateScope Block EndScope
+               | IfStmt
+               | SwitchStmt
+               | ForStmt
+               | DeferStmt
+               | FallThroughStmt
+               | GoStmt
+               | PrintStmt
+               | ScanStmt'''
+  if len(p)==2:
     p[0] = p[1]
-    # p[0][0] = "Statement"
+  else:
+    p[0] = p[2]
+
+def p_print_stmt(p):
+  '''PrintStmt : PRINT PD Expression
+               | PRINT PS Expression'''
+  p[0] = p[3]
+  if p[2]=="%d":
+    p[0].code.append(['printint',p[3].place[0]])
+  if p[2]=="%s":
+    p[0].code.append(['printstr',p[3].place[0]])
+
+def p_scan_stmt(p):
+  '''ScanStmt : SCAN Expression'''
+  p[0] = p[2]
+  p[0].code.append(['scan',p[2].place[0]])
+  if 'AddrList' in p[2].extra:
+    p[0].code.append(['store',p[2].extra['AddrList'][0],p[2].place[0]])
 
 def p_fallthrough_stmt(p):
   '''FallThroughStmt : FALLTHROUGH'''
-  p[0] = ["FallThroughStmt","fallthrough"]
+  p[0] = node()
 
 def p_go_stmt(p):
   '''GoStmt : GO Expression'''
-  p[0] = ["GoStmt", "go",p[2]]
+  p[0] = p[2]
+  #CHECK
 
-# -----------------SELECT STMT --------------------------
-def p_select_stmt(p):
-  '''SelectStmt : SELECT LCURL CCX RCURL
-                | SELECT LCURL RCURL'''
-  if len(p) == 5:
-    p[0] = ["SelectStmt","select","{",p[3],"}"]
-  else:
-    p[0] = ["SelectStmt","select","{","}"]
-
-def p_ccx(p):
-  '''CCX : CommClause
-         | CCX CommClause'''
-  if len(p) == 2:
-    p[0]=p[1]
-  else:
-    p[0] = ["CCX",p[1],p[2]]
-
-def p_commclause(p):
-  '''CommClause : CommCase COLON StatementList'''
-  p[0] = ["CommClause",p[1],":",p[3]]
-
-def p_commcase(p):
-  '''CommCase : CASE SendStmt DEFAULT
-              | CASE RecvStmt DEFAULT'''
-  p[0] = ["CommCase","case",p[1],"default"]
-
-def p_send_stmt(p):
-  '''SendStmt : Channel LEFT_ARROW Expression'''
-  p[0] = ["SendStmt",p[1],"<-",p[3]]
-
-def p_channel(p):
-  '''Channel : Expression'''
-  p[0]=p[1]
-
-def p_recv_stmt(p):
-  '''RecvStmt : ExpressionList EQUALS RecvExpr
-              | IdentifierList SHORT_ASSIGNMENT RecvExpr'''
-  if p[2] == "=":
-    p[0] = ["RecvStmt",p[1],"=",p[3]]
-  elif p[2] == ":=":
-    p[0] = ["RecvStmt",p[1],":=",p[3]]
-
-def p_recv_expr(p):
-  '''RecvExpr : Expression'''
-  p[0]=p[1]
-
-# --------------------------------
 
 def p_defer_stmt(p):
   '''DeferStmt : DEFER Expression'''
@@ -1001,14 +1149,26 @@ def p_simple_stmt(p):
                  | IncDecStmt
                  | Assignment
                  | ShortVarDecl '''
-  # p[0] = ["SimpleStmt", p[1]]
   p[0] = p[1]
-  # p[0][0] = "SimpleStmt"
 
 
 def p_labeled_statements(p):
   ''' LabeledStmt : Label COLON Statement '''
-  p[0] = ["LabeledStmt", p[1], ":", p[3]]
+  if checkid(p[1],"label"):
+    raise NameError("Label "+p[1]+" already exists")
+  new1 = ''
+  if p[1] in labelDict:
+    scopeDict[0].insert(p[1],"label")
+    scopeDict[0].updateAttr(p[1],'label',labelDict[p[1]][1])
+    labelDict[p[1]][0]=True
+    new1 = labelDict[p[1]][1]
+  else:
+    new1 = newlabel()
+    scopeDict[0].insert(p[1],"label")
+    scopeDict[0].updateAttr(p[1],'label',new1)
+    labelDict[p[1]] = [True,new1]
+  p[0] = p[3]
+  p[0].code = [['label',new1]] + p[0].code
 
 def p_label(p):
   ''' Label : IDENTIFIER '''
@@ -1018,27 +1178,54 @@ def p_label(p):
 def p_expression_stmt(p):
   ''' ExpressionStmt : Expression '''
   # p[0] = ["ExpressionStmt", p[1]]
-  p[0]=p[1]
-  p[0][0] = "ExpressionStmt"
+  p[0] = node()
+  p[0].code = p[1].code
 
 def p_inc_dec(p):
   ''' IncDecStmt : Expression INCREMENT
                  | Expression DECREMENT '''
-  if p[2] == '++':
-    p[0] = ["IncDecStmt", p[1], "++"]
-  else:
-    p[0] = ["IncDecStmt", p[1], "--"]
+  p[0] = node()
+  p[0].code = p[1].code
+  p[0].code.append([p[2],p[1].place[0]])
 
 
 def p_assignment(p):
   ''' Assignment : ExpressionList assign_op ExpressionList'''
-  p[0] = [str(p[2]), p[1], p[3]]
+  if len(p[1].place)!=len(p[3].place):
+    raise ValueError("No. of expressions on both sides of assignment are not equal")
+  p[0] = node()
+  p[0].code = p[1].code
+  p[0].code+=p[3].code
+  for i in range(len(p[1].place)):
+    if p[2]=='/=':
+      p[0].code.append(['/',p[1].place[i],p[1].place[i],p[3].place[i]])
+    elif p[2]=='%=':
+      p[0].code.append(['%',p[1].place[i],p[1].place[i],p[3].place[i]])
+    elif p[2]=='*=':
+      p[0].code.append(['x=',p[1].place[i],p[3].place[i]])
+    else:
+      p[0].code.append([p[2],p[1].place[i],p[3].place[i]])
+
+    if p[2]=='<<=' or p[2]=='>>=':
+      if p[3].types[i]!='int' and p[3].types[i]!='cint':
+        raise TypeError("Operand for right/left shift is not integer")
+
+    if p[1].extra['AddrList'][i]!='None':
+      p[0].code.append(['store',p[1].extra['AddrList'][i],p[1].place[i]])
+
+    if p[2]=='=':
+      # print i
+      # print "p[1].types[i] = "+str(p[1].types[i])
+      # print "p[3].types[i] = "+str(p[3].types[i])
+      if not equalcheck(p[1].types[i],p[3].types[i]):
+        raise TypeError("Types of expressions on both sides of = don't match")
+    else:
+      if not opTypeCheck(p[1].types[i],p[3].types[i],p[2][0]):
+        raise TypeError("Types of expressions on both sides of ()= don't match")
 
 def p_assign_op(p):
   ''' assign_op : AssignOp'''
-  # p[0] = ["assign_op", p[1]]
   p[0] = p[1]
-  # p[0][0] = "assign_op"
 
 def p_AssignOp(p):
   ''' AssignOp : PLUSEQUAL
@@ -1055,6 +1242,7 @@ def p_AssignOp(p):
                | EQUALS '''
   p[0] = p[1]
 
+# -------------   IF STMT   ------------------------
 
 def p_if_statement(p):
   ''' IfStmt : IF Expression Block ElseOpt '''
@@ -1071,9 +1259,7 @@ def p_else_opt(p):
     # p[0] = ["ElseOpt", p[1]]
     p[0]=p[1]
 
-# ----------------------------------------------------------------
-
-
+# ------------------- SWITCH STMT ----------------------------
 
 
 def p_switch_statement(p):
@@ -1119,7 +1305,7 @@ def p_ExprSwitchCase(p):
 
 
 
-# --------- FOR STATEMENTS    -------------------------------
+# --------- FOR STMT   -------------------------------
 def p_for(p):
   '''ForStmt : FOR ConditionBlockOpt Block'''
   p[0] = ["ForStmt", "for", p[2], p[3]]
@@ -1139,8 +1325,6 @@ def p_condition(p):
 def p_forclause(p):
   '''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
   p[0] = ["ForClause", p[1], ";", p[3], ";", p[5]]
-
-
 
 def p_conditionopt(p):
   '''ConditionOpt : epsilon
@@ -1279,7 +1463,9 @@ def p_package_name_dot_opt(p):
 def p_import_path(p):
   ''' ImportPath : STRING_LIT '''
   p[0]=node()
-  p[0].idlist.append(str(p[1]))
+  p[0].idlist.append(str(p[1]).replace('\"',''))
+  scopeDict[0].insert(str(p[1]).replace('\"',''),"import")
+  # print p[1]
 # -------------------------------------------------------
 
 

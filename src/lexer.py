@@ -6,12 +6,9 @@ keywords = {
 	'break' : 'BREAK',
 	'default' : 'DEFAULT',
 	'func' : 'FUNC',
-	# 'interface' : 'INTERFACE',
-	'select' : 'SELECT',
 	'case' : 'CASE',
 	'defer' : 'DEFER',
 	'go' : 'GO',
-	# 'chan':'CHAN',
 	'map' : 'MAP',
 	'struct' : 'STRUCT',
 	'else' : 'ELSE',
@@ -32,7 +29,9 @@ keywords = {
 	'int' : 'INT',
 	'float' : 'FLOAT',
 	'string' : 'STRING',
-	'bool' : 'BOOL'
+	'bool' : 'BOOL',
+	'print' : 'PRINT',
+	'scan' : 'SCAN'
 }
 
 tokens = [
@@ -40,7 +39,7 @@ tokens = [
 		'STRING_LIT','IMAGINARY_LIT','FLOAT_LIT','INT_LIT','IDENTIFIER',
 		# 'NEWLINE',
 		#Operators
-		'INCREMENT','DECREMENT','LEFT_ARROW', 'NOT', 'OR', 'AND', 'PLUSEQUAL','ANDEQUAL','COMPARE_AND',
+		'INCREMENT','DECREMENT', 'NOT', 'OR', 'AND', 'PLUSEQUAL','ANDEQUAL','COMPARE_AND',
 		'EQEQ','NOTEQUALS', 'PLUS','MINUS','MINUSEQUAL','OREQUAL','COMPARE_OR','LESSTHAN',
 		'LESSTHAN_EQUAL', 'MULTIPLY','XOR','TIMESEQUAL','XOREQUAL', 'GREATERTHAN', 'GREATERTHAN_EQUAL',
 		'DIVIDE', 'LSHIFT', 'DIVIDE_EQUAL', 'LSHIFT_EQUAL','EQUALS','SHORT_ASSIGNMENT',
@@ -48,14 +47,16 @@ tokens = [
 
 		#PUNCTUATION
 		'LPAREN','RPAREN','LSQUARE','RSQUARE','LCURL','RCURL',
-		'COMMA','DOT','SEMICOLON','COLON'
+		'COMMA','DOT','SEMICOLON','COLON',
+		'PD','PS'
 ] + list(keywords.values())
 
+t_PD = r'%d'
+t_PS = r'%s'
 
 #operators
 t_INCREMENT                = r'\+\+'
 t_DECREMENT                = r'--'
-t_LEFT_ARROW               = r'<-'
 t_NOT                      = r'!'
 t_OR                       = r'\|'
 t_AND                      = r'&'

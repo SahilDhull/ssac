@@ -58,16 +58,18 @@ class st:
 		if(self.look(name)):
 			if(s=="type"):
 				(self.table)[name].insertType(val)
-			if(s=="ret"):
+			elif(s=="ret"):
 				(self.table)[name].insertretType(val)
-			if(s=="label"):
+			elif(s=="label"):
 				(self.table)[name].insertlabel(val)
-			if(s=="size"):
+			elif(s=="size"):
 				(self.table)[name].insertlistsize(val)
-			if(s=="place"):
+			elif(s=="place"):
 				(self.table)[name].insertplace(val)
-			if(s=="child"):
+			elif(s=="child"):
 				(self.table)[name].insertchild(val)
+			# else:
+			# 	(self.table)[name].insertextra(val)
 		else:
 			raise Error(name+"isn't found")
 
