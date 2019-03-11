@@ -192,13 +192,13 @@ for a in tokens:
 file_name = sys.argv[1]	
 
 # ------ output check ----------------
-check2 = sys.argv[2][:6]
-# print(check2)
-if check2!='--out=':
-	print ("wrong command")
-	print("Type last argument as '--out=...'")
-	sys.exit()
-out_name = sys.argv[2][6:]
+# check2 = sys.argv[2][:6]
+# # print(check2)
+# if check2!='--out=':
+# 	print ("wrong command")
+# 	print("Type last argument as '--out=...'")
+# 	sys.exit()
+# out_name = sys.argv[2][6:]
 
 with open(file_name) as fp:
     data = fp.read()
