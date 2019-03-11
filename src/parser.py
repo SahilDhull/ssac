@@ -21,6 +21,11 @@ def checkid(name,str):
     if scopeDict[curScope].retrieve(name) is not None:
       return True
     return False
+  if str=='label':
+    if scopeDict[0].retrieve(name) is not None:
+      return True
+    return False
+  return False
 
 def opTypeCheck(a,b,op):
   if a.startswith('*') and b.startswith('*'):
@@ -603,8 +608,9 @@ def p_var_spec(p):
       #pointer case
       if p[2].types[0][0]=='*':
         scopeDict[scope].updateAttr(x,'size',p[2].extra['sizeList'])
-      if not equalcheck(p[2].types[0],p[3].types[i]):
-        raise TypeError("Type of"+ x + "does not match that of expr")
+      # print p[3].types[i][0]
+      if not equalcheck(p[2].types[0],p[3].types[i][0]):
+        raise TypeError("Type of "+ x + " does not match that of expr")
 
 
 def p_expr_list_opt(p):
@@ -668,7 +674,7 @@ def checksignature(name):
     # print scopeDict[scope].table
     if scopeDict[scope].retrieve(name) is not None:
       info = scopeDict[scope].retrieve(name)
-      # print "---------> "+info.type
+      # print name+" ---------> "+info.type
       if info.type=="sigType":
         return True
   return False
@@ -1352,12 +1358,24 @@ def p_expressionidentifier(p):
 
 def p_return(p):
   '''ReturnStmt : RETURN ExpressionListPureOpt'''
-  p[0] = ["ReturnStmt", "return", p[2]]
+  p[0] = p[2]
+
+  for scope in scopeStack[::-1]:
+    if 'fName' in scopeDict[scope].extra:
+      fname = scopeDict[scope].extra['fName']
+      retType = scopeDict[scope].extra['retType']
+  if len(p[2].types) == 1:
+    if not equalcheck(retType,p[2].types[0]):
+      raise TypeError("Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
+    p[0].code.append(['retint',p[2].place[0]])
+  elif len(p[2].types) == 0:
+    if retType!='void':
+      raise TypeError("function "+fname+" has return type "+retType+" , but returned void in the stmt")
+    p[0].code.append(['retvoid'])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList
              | epsilon'''
-  # p[0] = ["ExpressionListPureOpt", p[1]]
   p[0] = p[1]
 
 def p_break(p):
