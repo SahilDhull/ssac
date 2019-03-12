@@ -4,132 +4,132 @@ import sys
 import os
 from lexer import *
 from symbol import *
-from scope import *
+# from scope import *
 
 root = None
 
-# # ----------  TYPE CHECKING -------------------
+# ----------  TYPE CHECKING -------------------
 
-# def equalcheck(x,y):
-#   if x==y:
-#     return True
-#   elif y.startswith('c') and x==y[1:]:
-#     return True
-#   return False
+def equalcheck(x,y):
+  if x==y:
+    return True
+  elif y.startswith('c') and x==y[1:]:
+    return True
+  return False
 
-# def checkid(name,str):
-#   if str=='andsand':
-#     if scopeDict[curScope].retrieve(name) is not None:
-#       info = scopeDict[curScope].retrieve(name)
-#       if info.type!=('type'+name):
-#         return True
-#     return False
-#   if str=='label':
-#     if scopeDict[0].retrieve(name) is not None:
-#       return True
-#     return False
-#   if str=='e':
-#     # print "---------------------->"+name
-#     if scopeDict[curScope].retrieve(name) is not None:
-#       return True
-#     return False
+def checkid(name,str):
+  if str=='andsand':
+    if scopeDict[curScope].retrieve(name) is not None:
+      info = scopeDict[curScope].retrieve(name)
+      if info.type!=('type'+name):
+        return True
+    return False
+  if str=='label':
+    if scopeDict[0].retrieve(name) is not None:
+      return True
+    return False
+  if str=='e':
+    # print "---------------------->"+name
+    if scopeDict[curScope].retrieve(name) is not None:
+      return True
+    return False
 
-#   return False
+  return False
 
-# def opTypeCheck(a,b,op):
-#   if a.startswith('*') and b.startswith('*'):
-#     return False
-#   if a.startswith('c') and a[1:]==b:
-#     return True
-#   if b.startswith('c') and a==b[1:]:
-#     return True
-#   if a==b:
-#     return True
-#   if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
-#     return True
-#   if op=='+' or op=='-':
-#     if a.startswith('*') and (b=='int' or b=='cint'):
-#       return True
-#     if b.startswith('*') and (a=='int' or a=='cint'):
-#       return True
-#   return False
+def opTypeCheck(a,b,op):
+  if a.startswith('*') and b.startswith('*'):
+    return False
+  if a.startswith('c') and a[1:]==b:
+    return True
+  if b.startswith('c') and a==b[1:]:
+    return True
+  if a==b:
+    return True
+  if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
+    return True
+  if op=='+' or op=='-':
+    if a.startswith('*') and (b=='int' or b=='cint'):
+      return True
+    if b.startswith('*') and (a=='int' or a=='cint'):
+      return True
+  return False
 
 
-# # ------------   SCOPE    ----------------------
+# ------------   SCOPE    ----------------------
 
-# curScope = 0
-# scopeLevel = 0
-# varNum = 0
-# labelNum = 1
-# mainFunc = True
+curScope = 0
+scopeLevel = 0
+varNum = 0
+labelNum = 1
+mainFunc = True
 
-# labelDict = {}
-# scopeDict = {}
-# scopeDict[0] = st()
-# scopeStack=[0]
+labelDict = {}
+scopeDict = {}
+scopeDict[0] = st()
+scopeStack=[0]
 
-# def addscope(name=None):
-#   # print name
-#   global scopeLevel
-#   global curScope
-#   scopeLevel+=1
-#   scopeStack.append(scopeLevel)
-#   scopeDict[scopeLevel] = st()
-#   scopeDict[scopeLevel].setParent(curScope)
-#   if name is not None:
-#     # Not sure if correct
-#     if type(name) is list:
-#       scopeDict[curScope].insert(name[1],'func')
-#       scopeDict[curScope].insert(name[1],'child',scopeDict[scopeLevel])
-#     else:
-#       if checkid(name,'e'):
-#         raise NameError(name+" already defined")
-#       scopeDict[curScope].insert(name, 'type'+name)
-#       scopeDict[curScope].updateAttr(name, 'child',scopeDict[scopeLevel])
-#   curScope = scopeLevel
+def addscope(name=None):
+  # print name
+  global scopeLevel
+  global curScope
+  scopeLevel+=1
+  scopeStack.append(scopeLevel)
+  scopeDict[scopeLevel] = st()
+  scopeDict[scopeLevel].setParent(curScope)
+  if name is not None:
+    # Not sure if correct
+    if type(name) is list:
+      scopeDict[curScope].insert(name[1],'func')
+      scopeDict[curScope].insert(name[1],'child',scopeDict[scopeLevel])
+    else:
+      if checkid(name,'e'):
+        raise NameError(name+" already defined")
+      scopeDict[curScope].insert(name, 'type'+name)
+      scopeDict[curScope].updateAttr(name, 'child',scopeDict[scopeLevel])
+  curScope = scopeLevel
 
-# def endscope():
-#   global curScope
-#   curScope = scopeStack.pop()
-#   curScope = scopeStack[-1]
+def endscope():
+  global curScope
+  curScope = scopeStack.pop()
+  curScope = scopeStack[-1]
 
-# def findscope(name):
-#   for s in scopeStack[::-1]:
-#     if scopeDict[s].retrieve(name) is not None:
-#       return s
+def findscope(name):
+  for s in scopeStack[::-1]:
+    if scopeDict[s].retrieve(name) is not None:
+      return s
 
-#   raise NameError(name+ "is not defined in any scope")
+  raise NameError(name+ "is not defined in any scope")
 
-# def findinfo(name, S=-1):
-#   # print S
-#   if S > -1:
-#     # print S
-#     if scopeDict[S].retrieve(name) is not None:
-#         return scopeDict[S].retrieve(name)
-#     raise NameError("Identifier " + name + " is not defined!")
+def findinfo(name, S=-1):
+  # print S
+  if S > -1:
+    # print S
+    if scopeDict[S].retrieve(name) is not None:
+        return scopeDict[S].retrieve(name)
+    raise NameError("Identifier " + name + " is not defined!")
 
-#   for scope in scopeStack[::-1]:
-#     if scopeDict[scope].retrieve(name) is not None:
-#         info = scopeDict[scope].retrieve(name)
-#         return info
+  for scope in scopeStack[::-1]:
+    if scopeDict[scope].retrieve(name) is not None:
+        info = scopeDict[scope].retrieve(name)
+        return info
 
-#   raise NameError("Identifier " + name + " is not defined!")
+  raise NameError("Identifier " + name + " is not defined!")
 
 
 # -------------  SOME OTHER FUNCTIONS ---------------------
 
 
-# def newvar():
-#   global varNum
-#   val = 'v'+str(varNum)
-#   varNum+=1
-#   return val
+def newvar():
+  global varNum
+  val = 'v'+str(varNum)
+  varNum+=1
+  return val
 
-# def newlabel():
-#   global labelNum
-#   val = 'l'+str(labelNum)
-#   labelNum+=1
-#   return val
+def newlabel():
+  global labelNum
+  val = 'l'+str(labelNum)
+  labelNum+=1
+  return val
 
 #   ----------------------------------------------------
 
@@ -173,14 +173,14 @@ def p_type_name(p):
                 | QualifiedIdent'''
     p[0]=p[1]
 
-# def definedcheck(name):
-#   # print "here ==========> "+name
-#   # print scopeStack
-#   for scope in scopeStack[::-1]:
-#     # print scopeDict[scope].table
-#     if scopeDict[scope].retrieve(name) is not None:
-#       return True
-#   return False
+def definedcheck(name):
+  # print "here ==========> "+name
+  # print scopeStack
+  for scope in scopeStack[::-1]:
+    # print scopeDict[scope].table
+    if scopeDict[scope].retrieve(name) is not None:
+      return True
+  return False
 
 def p_type_token(p):
     '''TypeToken : INT
@@ -225,7 +225,7 @@ def p_slice_type(p):
     '''SliceType : LSQUARE RSQUARE ElementType'''
     p[0] = p[3]
     #TODO
-    print "Not fully Implemented"
+    print "SliceType : Not fully Implemented"
 
 
 # ------------------ map type --------------------------
@@ -241,17 +241,29 @@ def p_key_type(p):
   '''KeyType : Type'''
   p[0] = p[1]
 
-# ------------------------------------------------------
 
 # ------------------- ARRAY TYPE -------------------------
 # to change, not fully correct right now
+
 def p_array_type(p):
   '''ArrayType : LSQUARE ArrayLength RSQUARE ElementType'''
   p[0] = node()
   p[0].code = p[2].code + p[4].code
+  # print "ArrayType => "+p[4].idlist[0]
+  # ----- changing it ---------------
   p[0].types.append("*"+p[4].types[0])
+  # ---------------------------------
+  # if p[4].types[0]=='arr':
+  #   p[0].types = ['arr'] + p[4].types[1:]
+  # else:
+  #   p[0].types = ['arr'] + p[4].types
+  #   # print p[0].types[1:]
+  # ---------------------------------
   v = newvar()
   p[0].code.append(['=',v,p[2].place[0]])
+  if 'operandValue' in p[2].extra:
+    # print "excellent"
+    p[0].extra['operandValue'] = p[2].extra['operandValue']
   # print p[4].extra
   p[0].size = [v] + p[4].size
   #TODO
@@ -275,14 +287,16 @@ def p_func_scope(p):
   '''FuncScope : '''
   addscope(p[-1])
 
+
 def p_field_decl_rep(p):
   ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
                   | epsilon '''
   if len(p) == 4:
+    # addinstance(p[0],p[1],p[2])
     p[0] = p[1]
+    p[0].types+=p[2].types
     p[0].code+=p[2].code
     p[0].idlist+=p[2].idlist
-    p[0].types+=p[2].types
   else:
     p[0]=p[1]
 
@@ -293,23 +307,13 @@ def p_field_decl(p):
     # print p[2].types[0]
     scopeDict[curScope].updateAttr(i,'type',p[2].types[0])
 
-# def p_TagOpt(p):
-#   ''' TagOpt : Tag
-#              | epsilon '''
-#   p[0]=p[1]
-
-# def p_Tag(p):
-#   ''' Tag : STRING_LIT '''
-#   p[0]=p[1]
-# ---------------------------------------------------------
-
 
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
     '''PointerType : MULTIPLY BaseType'''
     p[0] = p[2]
-    p[0].types[0]="*"+p[0].types[0]
     p[0].size = ['inf']+p[0].size
+    p[0].types[0]="*"+p[0].types[0]
 
 def p_base_type(p):
     '''BaseType : Type'''
@@ -609,50 +613,57 @@ def p_var_spec_rep(p):
         p[0]=p[1]
 
 def p_var_spec(p):
-    '''VarSpec : IdentifierList Type ExpressionListOpt'''
-    if len(p[3].place)==0:
-      p[0]=p[1]
-      p[0].code+=p[2].code
-
-      if p[2].types[0][0]=='*':
-        # CODGEN
-        # print p[2].extra
-        v = newvar()
+  '''VarSpec : IdentifierList Type ExpressionListOpt'''
+  if len(p[3].place)==0:
+    p[0]=p[1]
+    p[0].code+=p[2].code
+    # print "VarSpec : "
+    # print p[1].idlist
+    # print p[2].types
+    # print p[2].size
+    if p[2].types[0][0]=='*':
+      v = newvar()
+      if p[2].size[0]!='inf':
+        p[0].code.append(['=',v,1])
+      for i in p[2].size:
         if p[2].size[0]!='inf':
-          p[0].code.append(['=',v,1])
-        for i in p[2].size:
-          if p[2].size[0]!='inf':
-            p[0].code.append(['x=',v,i])
+          p[0].code.append(['x=',v,i])
 
-      for i in range(len(p[1].idlist)):
-        s = findscope(p[1].idlist[i])
-        scopeDict[s].updateAttr(p[1].idlist[i],'type',p[2].types[0])
-        #REMAINING -- For arrays   #CODGEN
-        if p[2].types[0][0] == '*' and p[2].size[0]!='inf':
-          p[0].code.append(['array',p[1].place[i],v])
-          scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
-      return
-    p[0]=node()
-    p[0].code = p[1].code + p[3].code
-    if len(p[1].place)!=len(p[3].place):
-      raise ValueError("Mismatch in number of expressions assigned to variables")
-
-    for i in range(len(p[1].place)):
+    for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
-      p[1].place[i] = p[3].place[i]
-      scope = findscope(x)
-      scopeDict[scope].updateAttr(x,'place',p[1].place[i])
-      scopeDict[scope].updateAttr(x,'type',p[2].types[0])
-      #pointer case
-      if p[2].types[0][0]=='*':
-        scopeDict[scope].updateAttr(x,'size',p[2].size)
-      if type(p[3].types[i]) is list:
-        s = p[3].types[i][0]
-      else:
-        s = p[3].types[i]
-      # print s + "  ->  "+ x
-      if not equalcheck(p[2].types[0],s):
-        raise TypeError("Type of "+ x + " does not match that of expr")
+      s = findscope(x)
+      scopeDict[s].updateAttr(x,'type',p[2].types[0])
+      #REMAINING -- For arrays   #CODGEN
+      if p[2].types[0][0] == '*' and p[2].size[0]!='inf':
+        if 'operandValue' in p[2].extra:
+          info1 = findinfo(x)
+          # print x
+          # print p[2].extra['operandValue']
+          scopeDict[curScope].updateExtra(str(x),p[2].extra['operandValue'][0])
+        p[0].code.append(['array',p[1].place[i],v])
+        scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
+    return
+  p[0]=node()
+  p[0].code = p[1].code + p[3].code
+  if len(p[1].place)!=len(p[3].place):
+    raise ValueError("Mismatch in number of expressions assigned to variables")
+
+  for i in range(len(p[1].place)):
+    x = p[1].idlist[i]
+    p[1].place[i] = p[3].place[i]
+    scope = findscope(x)
+    scopeDict[scope].updateAttr(x,'place',p[1].place[i])
+    scopeDict[scope].updateAttr(x,'type',p[2].types[0])
+    #pointer case
+    if p[2].types[0][0]=='*':
+      scopeDict[scope].updateAttr(x,'size',p[2].size)
+    if type(p[3].types[i]) is list:
+      s = p[3].types[i][0]
+    else:
+      s = p[3].types[i]
+    # print s + "  ->  "+ x
+    if not equalcheck(p[2].types[0],s):
+      raise TypeError("Type of "+ x + " does not match that of expr")
 
 
 def p_expr_list_opt(p):
@@ -771,60 +782,6 @@ def p_literal(p):
     '''Literal : BasicLit'''
     p[0] = p[1]
 
-# -------------   composite literals --------------------
-
-# def p_composite_lit(p):
-#   '''CompositeLit : LiteralType LiteralValue'''
-#   print "CompositeLit Not done until now"
-
-# def p_literal_type(p):
-#   '''LiteralType : StructType
-#                  | ArrayType
-#                  | SliceType
-#                  | MapType
-#                  | TypeName'''
-#   p[0]=p[1]
-
-# def p_literal_value(p):
-#   '''LiteralValue : LCURL RCURL
-#                   | LCURL ElementList RCURL
-#                   | LCURL ElementList COMMA RCURL'''
-#   if len(p)==3:
-#     p[0]=node()
-#   elif len(p)==4:
-#     p[0]=p[2]
-#   else:
-#     p[0]=p[2]
-
-# def p_element_list(p):
-#   '''ElementList : KeyedElement
-#                  | ElementList COMMA KeyedElement'''
-#   if len(p)==2:
-#     p[0]=p[1]
-#   else:
-#     p[0]=[",",p[1],p[3]]
-
-
-# def p_keyed_element(p):
-#   '''KeyedElement : Element
-#                   | Key COLON Element
-#                   | IDENTIFIER COLON Element'''
-#   if len(p)==2:
-#     p[0]=p[1]
-#   else:
-#     p[0]=["KeyedElement",p[1],":",p[3]]
-
-# def p_key(p):
-#   '''Key : Expression
-#          | LiteralValue'''
-#   p[0]=p[1]
-
-# def p_element(p):
-#   '''Element : Expression
-#              | LiteralValue'''
-#   p[0]=p[1]
-
-# -------------------------------------------------------
 
 def p_basic_lit(p):
   '''BasicLit : I INT_LIT
@@ -833,8 +790,11 @@ def p_basic_lit(p):
               | S STRING_LIT'''
   p[0]=node()
   v = newvar()
+  # print "BasicLit : "
+  # print p[2]
   p[0].code.append(["=",v,p[2]])
   p[0].place.append(v)
+  p[0].extra['operandValue'] = [p[2]]
   p[0].types.append('c'+p[1])
 
 def p_I(p):
@@ -863,6 +823,10 @@ def p_operand_name(p):
     p[0].types = [info.retType]
     p[0].place.append(info.label)
   else:
+    # print "OperandName"
+    # print p[1]
+    # print info.type
+    # print info.listsize
     p[0].types = [info.type]
     p[0].place.append(info.place)
     p[0].extra['layerNum'] = 0
@@ -905,90 +869,105 @@ def p_qualified_ident(p):
 
 # ------------------PRIMARY EXPRESSIONS--------------------
 def p_prim_expr(p):
-    '''PrimaryExpr : Operand
-                   | PrimaryExpr Selector
-                   | Conversion
-                   | PrimaryExpr LSQUARE Expression RSQUARE
-                   | PrimaryExpr Slice
-                   | PrimaryExpr TypeAssertion
-                   | PrimaryExpr LPAREN ExpressionListTypeOpt RPAREN'''
-    if len(p) == 2:
-        p[0] = p[1]
-    elif p[2]=='[':
-      p[0] = p[1]
-      p[0].code+=p[3].code
-      info = findinfo(p[1].extra['operand'])
-      # print info.type
-      lsize = info.listsize
-      #DOUBT
+  '''PrimaryExpr : Operand
+                 | PrimaryExpr Selector
+                 | Conversion
+                 | PrimaryExpr LSQUARE Expression RSQUARE
+                 | PrimaryExpr Slice
+                 | PrimaryExpr TypeAssertion
+                 | PrimaryExpr LPAREN ExpressionListTypeOpt RPAREN'''
+  if len(p) == 2:
+    p[0] = p[1]
+  # Arrays:
+  elif p[2]=='[':
+    p[0] = p[1]
+    p[0].code+=p[3].code
+    info = findinfo(p[1].extra['operand'])
+    # print info.type
+    lsize = info.listsize
+    #DOUBT
+    # print "PrimaryExpr : lsize = "
+    # print p[3].types
+    # print lsize
+    # print p[1].extra['layerNum']
+    #CHECK
+    if 'operandValue' in p[3].extra:
+      # for arrays of single dimension
+      # print "fantastic -- PrimaryExpr"
+      z = p[3].extra['operandValue'][0]
       # print lsize
-      if p[1].extra['layerNum'] == len(lsize)-1:
-        raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
+      y = scopeDict[curScope].extra[p[1].extra['operand']]
+      if z>=y:
+        raise IndexError("Array "+ p[1].extra['operand'] +" out of Bounds")
+    if p[1].extra['layerNum'] == len(lsize):
+      raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
-      v1 = newvar()
-      p[0].code.append(['=',v1,p[3].place[0]])
-      for i in lsize[p[1].extra['layerNum']+1:]:
-        p[0].code.append(['x=',v1,i])
-      v2 = newvar()
-      p[0].code.append(['+',v2,p[0].place[0],v1])
-      p[0].place = [v2]
-      if p[1].extra['layerNum'] == len(lsize)-2:
-        v3 = newvar()
-        p[0].code.append(['load',v3,v2])
-        p[0].place = [v3]
-      p[0].extra['AddrList'] = [v2]
-      p[0].types = [p[1].types[0][1:]]
-      p[0].extra['layerNum'] += 1
-    elif p[2]=='(':
-      p[0]=p[1]
-      p[0].code+=p[3].code
+    v1 = newvar()
+    p[0].code.append(['=',v1,p[3].place[0]])
+    for i in lsize[p[1].extra['layerNum']:]:
+      # print "i = "+i
+      p[0].code.append(['x=',v1,i])
+    v2 = newvar()
+    p[0].code.append(['+',v2,p[0].place[0],v1])
+    p[0].place = [v2]
+    #CHECK
+    if p[1].extra['layerNum'] == len(lsize)-1:
+      v3 = newvar()
+      p[0].code.append(['load',v3,v2])
+      p[0].place = [v3]
+    p[0].extra['AddrList'] = [v2]
+    p[0].types = [p[1].types[0][1:]]
+    p[0].extra['layerNum'] += 1
+  elif p[2]=='(':
+    p[0]=p[1]
+    p[0].code+=p[3].code
 
-      listval = []
+    listval = []
 
-      for key,value in enumerate(scopeDict[curScope].table):
-        cur = findinfo(value,curScope)
-        listval.append(value)
-        p[0].code.append(['push',cur.place])
+    for key,value in enumerate(scopeDict[curScope].table):
+      cur = findinfo(value,curScope)
+      listval.append(value)
+      p[0].code.append(['push',cur.place])
 
-      info = findinfo(p[1].idlist[0],0)
-      functionDict = info.child
-      paramTypes = functionDict.extra['types']
-      if len(p[3].place):
-        for x in p[3].place:
-          p[0].code.append(['push',x])
-        for i in range(len(p[3].place)):
-          if not equalcheck(paramTypes[i],p[3].types[i]):
-            raise TypeError("Type Mismatch in "+p[1].idlist[0])
+    info = findinfo(p[1].idlist[0],0)
+    functionDict = info.child
+    paramTypes = functionDict.extra['types']
+    if len(p[3].place):
+      for x in p[3].place:
+        p[0].code.append(['push',x])
+      for i in range(len(p[3].place)):
+        if not equalcheck(paramTypes[i],p[3].types[i]):
+          raise TypeError("Type Mismatch in "+p[1].idlist[0])
 
-      # Checking Return Type
-      if len(info.retType)==1:
-        if info.retType[0]=='void':
-          p[0].code.append(['callvoid',info.label])
-        elif info.retType[0]=='int':
-          v1 = newvar()
-          p[0].place = [v1]
-          p[0].code.append(['callint',v1,info.label])
-        p[0].types = [p[1].types[0]]
-      # else:
-        # Check for Multiple Return Types
-        #TODO
+    # Checking Return Type
+    if len(info.retType)==1:
+      if info.retType[0]=='void':
+        p[0].code.append(['callvoid',info.label])
+      elif info.retType[0]=='int':
+        v1 = newvar()
+        p[0].place = [v1]
+        p[0].code.append(['callint',v1,info.label])
+      p[0].types = [p[1].types[0]]
+    # else:
+      # Check for Multiple Return Types
+      #TODO
 
-      var1 = newvar()
-      if len(p[3].place):
-        for x in p[3].place:
-          p[0].code.append(['pop',var1])
+    var1 = newvar()
+    if len(p[3].place):
+      for x in p[3].place:
+        p[0].code.append(['pop',var1])
 
-      for val in listval[::-1]:
-        cur = findinfo(val,curScope)
-        p[0].code.append(['pop',cur.place])
+    for val in listval[::-1]:
+      cur = findinfo(val,curScope)
+      p[0].code.append(['pop',cur.place])
 
+  else:
+    if not len(p[2].place):
+      p[0] =node()
     else:
-      if not len(p[2].place):
-        p[0] =node()
-      else:
-        p[0] = p[1]
-        p[0].place = p[2].place
-        p[0].types = p[2].types
+      p[0] = p[1]
+      p[0].place = p[2].place
+      p[0].types = p[2].types
 
 
 def p_selector(p):
@@ -1000,6 +979,8 @@ def p_selector(p):
       if structname[i]!='*':
         break
     structname = structname[i+4:]
+    # print "Selector"
+    # print structname
     info_of_struct = findinfo(structname,0)
     struct_scope = info_of_struct.child
     if p[2] not in struct_scope.table:
@@ -1668,4 +1649,4 @@ print "\nPrinting the identifiers used:"
 print result.idlist
 
 print "\nPrinting the 3AC code for the input:"
-# print_list(result.code)
+print_list(result.code)
