@@ -67,6 +67,7 @@ scopeDict[0] = st()
 scopeStack=[0]
 
 def addscope(name=None):
+  # print name
   global scopeLevel
   global curScope
   scopeLevel+=1
@@ -221,6 +222,7 @@ def p_slice_type(p):
     '''SliceType : LSQUARE RSQUARE ElementType'''
     p[0] = p[3]
     #TODO
+    print "Not fully Implemented"
 
 
 # ------------------ map type --------------------------
@@ -245,7 +247,7 @@ def p_array_type(p):
   p[0].code = p[2].code + p[4].code
   p[0].types.append("*"+p[4].types[0])
   v = newvar()
-  #CODEGEN
+  p[0].code.append(['=',v,p[2].place[0]])
   p[0].extra['sizeList'] = [v] + p[4].extra['sizeList']     #DOUBT
 
 def p_array_length(p):
@@ -263,7 +265,8 @@ def p_element_type(p):
 def p_struct_type(p):
   '''StructType : FuncScope STRUCT LCURL FieldDeclRep RCURL'''
   p[0] = p[4]
-  #TODO
+  info = findinfo(p[-1],0)
+  p[0].types = [info.type]
 
 def p_func_scope(p):
   '''FuncScope : '''
@@ -284,6 +287,7 @@ def p_field_decl(p):
   ''' FieldDecl : IdentifierList Type'''
   p[0] = p[1]
   for i in p[0].idlist:
+    # print p[2].types[0]
     scopeDict[curScope].updateAttr(i,'type',p[2].types[0])
 
 # def p_TagOpt(p):
@@ -375,7 +379,7 @@ def p_param_decl(p):
               break
           if t[i:] == 'int' or t[i:]=='float':
             scopeDict[curScope].updateAttr(x,'size',['inf',4])
-          #TODO if time permits: for any type T,  *T to be included
+          #TODO if time permits: typedef pointers
 
 
 #-----------------------BLOCKS---------------------------
@@ -576,6 +580,8 @@ def p_type_def(p):
     if checkid(p[1],'andsand'):
       raise NameError("Name "+p[1]+" already defined")
     else:
+      # print p[1]
+      # print p[2].types
       scopeDict[curScope].insert(p[1],p[2].types[0])
     p[0]=node()
 # -------------------------------------------------------
@@ -752,7 +758,7 @@ def p_literal(p):
 
 def p_composite_lit(p):
   '''CompositeLit : LiteralType LiteralValue'''
-  # p[0] = ["CompositeLit",p[1],p[2]]
+  print "CompositeLit Not done until now"
 
 def p_literal_type(p):
   '''LiteralType : StructType
@@ -966,23 +972,45 @@ def p_prim_expr(p):
         p[0].types = p[2].types
 
 
-
 def p_selector(p):
     '''Selector : DOT IDENTIFIER'''
-    p[0] = ["Selector", ".", p[2]]
+    p[0] = node()
+    info = findinfo(p[-1].idlist[0])
+    structname=info.type
+    for i in range(len(structname)):
+      if structname[i]!='*':
+        break
+    structname = structname[i+4:]
+    info_of_struct = findinfo(structname,0)
+    struct_scope = info_of_struct.child
+    if p[2] not in struct_scope.table:
+      raise NameError("identifier " + p[2]+ " is not defined inside the struct")
+    s = p[-1].idlist[0]+'.'+p[2]
+    if checkid(s,'e'):
+      info = findinfo(s)
+      p[0].place = [info.place]
+      p[0].types = [info.type]
+    else:
+      v = newvar()
+      p[0].place = [v]
+      type_of_var = struct_scope.retrieve(p[2])
+      p[0].types = [type_of_var.type]
+      scopeDict[curScope].insert(s,p[0].types[0])
+      scopeDict[curScope].updateAttr(s,'place',p[0].place[0])
 
 def p_slice(p):
     '''Slice : LSQUARE ExpressionOpt COLON ExpressionOpt RSQUARE
              | LSQUARE ExpressionOpt COLON Expression COLON Expression RSQUARE'''
+    print "Slice not Implemented"
     if len(p) == 6:
-        p[0] = ["Slice", "[", p[2], ":", p[4], "]"]
+        p[0] = node()
     else:
-        p[0] = ["Slice", "[", p[2], ":", p[4], ":", p[6], "]"]
+        p[0] = node()
 
 def p_type_assert(p):
     '''TypeAssertion : DOT LPAREN Type RPAREN'''
-    p[0] = ["TypeAssertion", ".", "(", p[3], ")"]
-
+    p[0] = p[3]
+    print "Type Assertion Not Implemented (Interface also not Implemented"
 
 def p_expr_list_type_opt(p):
     '''ExpressionListTypeOpt : ExpressionList
@@ -1025,7 +1053,6 @@ def p_expr(p):
         p[0].types=p[1].types
       if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
         p[0].types = ['bool']
-        #CODEGEN
       v = newvar()
       if p[2]=='*':
         p[0].code.append(['x',v,p[1].place[0],p[3].place[0]])
@@ -1113,7 +1140,8 @@ def p_unary_op(p):
 # -----------------CONVERSIONS-----------------------------
 def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
-    p[0] = ["Conversion", "typecast", p[2],  "(", p[4], ")"]
+    p[0] = p[4]
+    p[0].types = [p[1].types[0]]
 # ---------------------------------------------------------
 
 
