@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import ply.lex as lex
 from random import shuffle
 import sys

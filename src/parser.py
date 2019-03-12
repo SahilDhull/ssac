@@ -3,10 +3,12 @@ import ply.yacc as yacc
 import sys
 import os
 from lexer import *
-from symbol import st,symnode,node
+from symbol import *
+from scope import *
+from typecheck import *
 
 
-# ----------  TYPE CHECKING -------------------
+# # ----------  TYPE CHECKING -------------------
 
 def equalcheck(x,y):
   if x==y:
@@ -16,20 +18,20 @@ def equalcheck(x,y):
   return False
 
 def checkid(name,str):
-  if str=='e':
-    # print "---------------------->"+name
-    if scopeDict[curScope].retrieve(name) is not None:
-      return True
-    return False
-  if str=='label':
-    if scopeDict[0].retrieve(name) is not None:
-      return True
-    return False
   if str=='andsand':
     if scopeDict[curScope].retrieve(name) is not None:
       info = scopeDict[curScope].retrieve(name)
       if info.type!=('type'+name):
         return True
+    return False
+  if str=='label':
+    if scopeDict[0].retrieve(name) is not None:
+      return True
+    return False
+  if str=='e':
+    # print "---------------------->"+name
+    if scopeDict[curScope].retrieve(name) is not None:
+      return True
     return False
 
   return False
@@ -37,11 +39,11 @@ def checkid(name,str):
 def opTypeCheck(a,b,op):
   if a.startswith('*') and b.startswith('*'):
     return False
-  if a==b:
-    return True
   if a.startswith('c') and a[1:]==b:
     return True
   if b.startswith('c') and a==b[1:]:
+    return True
+  if a==b:
     return True
   if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
     return True
@@ -53,65 +55,65 @@ def opTypeCheck(a,b,op):
   return False
 
 
-# ------------   SCOPE    ----------------------
+# # ------------   SCOPE    ----------------------
 
-curScope = 0
-scopeLevel = 0
-varNum = 0
-labelNum = 1
-mainFunc = True
+# curScope = 0
+# scopeLevel = 0
+# varNum = 0
+# labelNum = 1
+# mainFunc = True
 
-labelDict = {}
-scopeDict = {}
-scopeDict[0] = st()
-scopeStack=[0]
+# labelDict = {}
+# scopeDict = {}
+# scopeDict[0] = st()
+# scopeStack=[0]
 
-def addscope(name=None):
-  # print name
-  global scopeLevel
-  global curScope
-  scopeLevel+=1
-  scopeStack.append(scopeLevel)
-  scopeDict[scopeLevel] = st()
-  scopeDict[scopeLevel].setParent(curScope)
-  if name is not None:
-    # Not sure if correct
-    if type(name) is list:
-      scopeDict[curScope].insert(name[1],'func')
-      scopeDict[curScope].insert(name[1],'child',scopeDict[scopeLevel])
-    else:
-      if checkid(name,'e'):
-        raise NameError(name+" already defined")
-      scopeDict[curScope].insert(name, 'type'+name)
-      scopeDict[curScope].updateAttr(name, 'child',scopeDict[scopeLevel])
-  curScope = scopeLevel
+# def addscope(name=None):
+#   # print name
+#   global scopeLevel
+#   global curScope
+#   scopeLevel+=1
+#   scopeStack.append(scopeLevel)
+#   scopeDict[scopeLevel] = st()
+#   scopeDict[scopeLevel].setParent(curScope)
+#   if name is not None:
+#     # Not sure if correct
+#     if type(name) is list:
+#       scopeDict[curScope].insert(name[1],'func')
+#       scopeDict[curScope].insert(name[1],'child',scopeDict[scopeLevel])
+#     else:
+#       if checkid(name,'e'):
+#         raise NameError(name+" already defined")
+#       scopeDict[curScope].insert(name, 'type'+name)
+#       scopeDict[curScope].updateAttr(name, 'child',scopeDict[scopeLevel])
+#   curScope = scopeLevel
 
-def endscope():
-  global curScope
-  curScope = scopeStack.pop()
-  curScope = scopeStack[-1]
+# def endscope():
+#   global curScope
+#   curScope = scopeStack.pop()
+#   curScope = scopeStack[-1]
 
-def findscope(name):
-  for s in scopeStack[::-1]:
-    if scopeDict[s].retrieve(name) is not None:
-      return s
+# def findscope(name):
+#   for s in scopeStack[::-1]:
+#     if scopeDict[s].retrieve(name) is not None:
+#       return s
 
-  raise NameError(name+ "is not defined in any scope")
+#   raise NameError(name+ "is not defined in any scope")
 
-def findinfo(name, S=-1):
-  # print S
-  if S > -1:
-    # print S
-    if scopeDict[S].retrieve(name) is not None:
-        return scopeDict[S].retrieve(name)
-    raise NameError("Identifier " + name + " is not defined!")
+# def findinfo(name, S=-1):
+#   # print S
+#   if S > -1:
+#     # print S
+#     if scopeDict[S].retrieve(name) is not None:
+#         return scopeDict[S].retrieve(name)
+#     raise NameError("Identifier " + name + " is not defined!")
 
-  for scope in scopeStack[::-1]:
-    if scopeDict[scope].retrieve(name) is not None:
-        info = scopeDict[scope].retrieve(name)
-        return info
+#   for scope in scopeStack[::-1]:
+#     if scopeDict[scope].retrieve(name) is not None:
+#         info = scopeDict[scope].retrieve(name)
+#         return info
 
-  raise NameError("Identifier " + name + " is not defined!")
+#   raise NameError("Identifier " + name + " is not defined!")
 
 
 # -------------  SOME OTHER FUNCTIONS ---------------------
@@ -1676,4 +1678,4 @@ print "\nPrinting the identifiers used:"
 print result.idlist
 
 print "\nPrinting the 3AC code for the input:"
-print_list(result.code)
+# print_list(result.code)
