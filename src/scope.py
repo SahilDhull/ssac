@@ -1,6 +1,18 @@
 #!/usr/bin/env python2
 from symbol import *
 
+def newvar():
+  global varNum
+  val = 'v'+str(varNum)
+  varNum+=1
+  return val
+
+def newlabel():
+  global labelNum
+  val = 'l'+str(labelNum)
+  labelNum+=1
+  return val
+
 # ------------   SCOPE    ----------------------
 
 curScope = 0
@@ -106,5 +118,15 @@ def opTypeCheck(a,b,op):
     if a.startswith('*') and (b=='int' or b=='cint'):
       return True
     if b.startswith('*') and (a=='int' or a=='cint'):
+      return True
+  return False
+
+
+def definedcheck(name):
+  # print "here ==========> "+name
+  # print scopeStack
+  for scope in scopeStack[::-1]:
+    # print scopeDict[scope].table
+    if scopeDict[scope].retrieve(name) is not None:
       return True
   return False

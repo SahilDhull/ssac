@@ -119,17 +119,17 @@ root = None
 # -------------  SOME OTHER FUNCTIONS ---------------------
 
 
-def newvar():
-  global varNum
-  val = 'v'+str(varNum)
-  varNum+=1
-  return val
+# def newvar():
+#   global varNum
+#   val = 'v'+str(varNum)
+#   varNum+=1
+#   return val
 
-def newlabel():
-  global labelNum
-  val = 'l'+str(labelNum)
-  labelNum+=1
-  return val
+# def newlabel():
+#   global labelNum
+#   val = 'l'+str(labelNum)
+#   labelNum+=1
+#   return val
 
 #   ----------------------------------------------------
 
@@ -173,14 +173,14 @@ def p_type_name(p):
                 | QualifiedIdent'''
     p[0]=p[1]
 
-def definedcheck(name):
-  # print "here ==========> "+name
-  # print scopeStack
-  for scope in scopeStack[::-1]:
-    # print scopeDict[scope].table
-    if scopeDict[scope].retrieve(name) is not None:
-      return True
-  return False
+# def definedcheck(name):
+#   # print "here ==========> "+name
+#   # print scopeStack
+#   for scope in scopeStack[::-1]:
+#     # print scopeDict[scope].table
+#     if scopeDict[scope].retrieve(name) is not None:
+#       return True
+#   return False
 
 def p_type_token(p):
     '''TypeToken : INT
@@ -244,6 +244,7 @@ def p_key_type(p):
 # ------------------------------------------------------
 
 # ------------------- ARRAY TYPE -------------------------
+# to change, not fully correct right now
 def p_array_type(p):
   '''ArrayType : LSQUARE ArrayLength RSQUARE ElementType'''
   p[0] = node()
@@ -262,9 +263,6 @@ def p_array_length(p):
 def p_element_type(p):
   ''' ElementType : Type '''
   p[0]=p[1]
-
-# --------------------------------------------------------
-
 
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
@@ -1452,13 +1450,10 @@ def p_ExprSwitchCase(p):
         p[0].extra['labeltype'] = ['default']
         p[0].extra['exprList'] = [[]]
         p[0].extra['place'] = [v]
-    
-
-# -----------------------------------------------------------
-
 
 
 # --------- FOR STMT   -------------------------------
+
 def p_for(p):
   '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope'''
   p[0] = node()
@@ -1547,7 +1542,6 @@ def p_labelopt(p):
 def p_goto(p):
   '''GotoStmt : GOTO Label '''
   p[0] = ["GotoStmt", "goto", p[2]]
-# -----------------------------------------------------------
 
 
 # ----------------  SOURCE FILE --------------------------------
@@ -1578,7 +1572,6 @@ def p_toplevel_decl_rep(p):
     p[0].idlist += p[2].idlist
   else:
     p[0] = p[1]
-# --------------------------------------------------------
 
 
 # ---------- PACKAGE CLAUSE --------------------
@@ -1595,7 +1588,6 @@ def p_package_name(p):
       raise NameError("Package Name"+p[1]+"already exists")
     else:
       scopeDict[0].insert(p[1],"package")
-# -----------------------------------------------
 
 
 # --------- IMPORT DECLARATIONS ---------------
@@ -1640,8 +1632,8 @@ def p_import_path(p):
   p[0].idlist.append(str(p[1]).replace('\"',''))
   scopeDict[0].insert(str(p[1]).replace('\"',''),"import")
   # print p[1]
-# -------------------------------------------------------
 
+# ---------------   EMPTY and SYNTAX ERROR --------------
 
 def p_empty(p):
   '''epsilon : '''
