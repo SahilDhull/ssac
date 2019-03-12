@@ -197,6 +197,8 @@ def p_type_token(p):
         elif p[1]=='bool':
           p[0].extra['sizeList']=[1]
         #REMAINING to define size of string
+        else:
+          p[0].extra['sizeList'] = [8]
     else:
         if not definedcheck(p[2]):
           raise TypeError("TypeName" + p[2] + "not defined anywhere")
@@ -248,7 +250,9 @@ def p_array_type(p):
   p[0].types.append("*"+p[4].types[0])
   v = newvar()
   p[0].code.append(['=',v,p[2].place[0]])
-  p[0].extra['sizeList'] = [v] + p[4].extra['sizeList']     #DOUBT
+  # print p[4].extra
+  p[0].extra['sizeList'] = [v] + p[4].extra['sizeList']
+  #TODO
 
 def p_array_length(p):
   ''' ArrayLength : Expression '''
@@ -611,12 +615,23 @@ def p_var_spec(p):
       p[0]=p[1]
       p[0].code+=p[2].code
 
-      # if p[2].place[0][0]=='*':              # CODGEN
+      if p[2].types[0][0]=='*':
+        # CODGEN
+        # print p[2].extra
+        v = newvar()
+        if p[2].extra['sizeList'][0]!='inf':
+          p[0].code.append(['=',v,1])
+        for i in p[2].extra['sizeList']:
+          if p[2].extra['sizeList'][0]!='inf':
+            p[0].code.append(['x=',v,i])
 
       for i in range(len(p[1].idlist)):
         s = findscope(p[1].idlist[i])
         scopeDict[s].updateAttr(p[1].idlist[i],'type',p[2].types[0])
         #REMAINING -- For arrays   #CODGEN
+        if p[2].types[0][0] == '*' and p[2].extra['sizeList'][0]!='inf':
+          p[0].code.append(['array',p[1].place[i],v])
+          scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].extra['sizeList'])
       return
     p[0]=node()
     p[0].code = p[1].code + p[3].code
@@ -684,6 +699,9 @@ def p_func_decl(p):
     label = info.label
     p[0].code.append(['label',label])
     p[0].code += p[4].code
+    # p[0].idlist += p[4].idlist
+    # print p[4].idlist
+  p[0].idlist += [p[2]]
 
 def p_create_scope(p):
   '''CreateScope : '''
@@ -696,6 +714,7 @@ def p_end_scope(p):
 def p_func_name(p):
   '''FunctionName : IDENTIFIER'''
   p[0] = p[1]
+  # print p[1]
 
 def checksignature(name):
   for scope in scopeStack[::-1]:
@@ -901,14 +920,16 @@ def p_prim_expr(p):
       p[0] = p[1]
       p[0].code+=p[3].code
       info = findinfo(p[1].extra['operand'])
+      # print info.type
       lsize = info.listsize
       #DOUBT
+      # print lsize
       if p[1].extra['layerNum'] == len(lsize)-1:
         raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
       v1 = newvar()
       p[0].code.append(['=',v1,p[3].place[0]])
-      for i in sizeList[p[1].extra['layerNum']+1:]:
+      for i in lsize[p[1].extra['layerNum']+1:]:
         p[0].code.append(['x=',v1,i])
       v2 = newvar()
       p[0].code.append(['+',v2,p[0].place[0],v1])
@@ -1535,6 +1556,8 @@ def p_source_file(p):
     p[0] = p[1]
     p[0].code+=p[3].code
     p[0].code+=p[4].code
+    p[0].idlist += p[3].idlist
+    p[0].idlist += p[4].idlist
 
 def p_import_decl_rep(p):
   '''ImportDeclRep : epsilon
@@ -1542,6 +1565,7 @@ def p_import_decl_rep(p):
   if len(p) == 4:
     p[0] = p[1]
     p[0].code +=p[2].code
+    p[0].idlist += p[2].idlist
   else:
     p[0] = p[1]
 
@@ -1551,6 +1575,7 @@ def p_toplevel_decl_rep(p):
   if len(p) == 4:
     p[0] = p[1]
     p[0].code+=p[2].code
+    p[0].idlist += p[2].idlist
   else:
     p[0] = p[1]
 # --------------------------------------------------------
@@ -1643,6 +1668,12 @@ if not s:
   print("Not found")
 result = parser.parse(s,debug=0)
 
-print "Parsing Done ----------------------------> :)"
+def print_list(l):
+  for i in l:
+    print i
 
-print result.types
+print "\nPrinting the identifiers used:"
+print result.idlist
+
+print "\nPrinting the 3AC code for the input:"
+print_list(result.code)
