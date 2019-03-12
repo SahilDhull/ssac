@@ -61,3 +61,50 @@ def findinfo(name, S=-1):
 
   raise NameError("Identifier " + name + " is not defined!")
 
+
+
+# ----------  TYPE CHECKING -------------------
+
+def equalcheck(x,y):
+  if x==y:
+    return True
+  elif y.startswith('c') and x==y[1:]:
+    return True
+  return False
+
+def checkid(name,str):
+  if str=='andsand':
+    if scopeDict[curScope].retrieve(name) is not None:
+      info = scopeDict[curScope].retrieve(name)
+      if info.type!=('type'+name):
+        return True
+    return False
+  if str=='label':
+    if scopeDict[0].retrieve(name) is not None:
+      return True
+    return False
+  if str=='e':
+    # print "---------------------->"+name
+    if scopeDict[curScope].retrieve(name) is not None:
+      return True
+    return False
+
+  return False
+
+def opTypeCheck(a,b,op):
+  if a.startswith('*') and b.startswith('*'):
+    return False
+  if a.startswith('c') and a[1:]==b:
+    return True
+  if b.startswith('c') and a==b[1:]:
+    return True
+  if a==b:
+    return True
+  if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
+    return True
+  if op=='+' or op=='-':
+    if a.startswith('*') and (b=='int' or b=='cint'):
+      return True
+    if b.startswith('*') and (a=='int' or a=='cint'):
+      return True
+  return False

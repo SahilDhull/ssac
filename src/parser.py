@@ -5,54 +5,54 @@ import os
 from lexer import *
 from symbol import *
 from scope import *
-from typecheck import *
 
+root = None
 
 # # ----------  TYPE CHECKING -------------------
 
-def equalcheck(x,y):
-  if x==y:
-    return True
-  elif y.startswith('c') and x==y[1:]:
-    return True
-  return False
+# def equalcheck(x,y):
+#   if x==y:
+#     return True
+#   elif y.startswith('c') and x==y[1:]:
+#     return True
+#   return False
 
-def checkid(name,str):
-  if str=='andsand':
-    if scopeDict[curScope].retrieve(name) is not None:
-      info = scopeDict[curScope].retrieve(name)
-      if info.type!=('type'+name):
-        return True
-    return False
-  if str=='label':
-    if scopeDict[0].retrieve(name) is not None:
-      return True
-    return False
-  if str=='e':
-    # print "---------------------->"+name
-    if scopeDict[curScope].retrieve(name) is not None:
-      return True
-    return False
+# def checkid(name,str):
+#   if str=='andsand':
+#     if scopeDict[curScope].retrieve(name) is not None:
+#       info = scopeDict[curScope].retrieve(name)
+#       if info.type!=('type'+name):
+#         return True
+#     return False
+#   if str=='label':
+#     if scopeDict[0].retrieve(name) is not None:
+#       return True
+#     return False
+#   if str=='e':
+#     # print "---------------------->"+name
+#     if scopeDict[curScope].retrieve(name) is not None:
+#       return True
+#     return False
 
-  return False
+#   return False
 
-def opTypeCheck(a,b,op):
-  if a.startswith('*') and b.startswith('*'):
-    return False
-  if a.startswith('c') and a[1:]==b:
-    return True
-  if b.startswith('c') and a==b[1:]:
-    return True
-  if a==b:
-    return True
-  if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
-    return True
-  if op=='+' or op=='-':
-    if a.startswith('*') and (b=='int' or b=='cint'):
-      return True
-    if b.startswith('*') and (a=='int' or a=='cint'):
-      return True
-  return False
+# def opTypeCheck(a,b,op):
+#   if a.startswith('*') and b.startswith('*'):
+#     return False
+#   if a.startswith('c') and a[1:]==b:
+#     return True
+#   if b.startswith('c') and a==b[1:]:
+#     return True
+#   if a==b:
+#     return True
+#   if a.startswith('c') and b.startswith('c') and a[1:]==b[1:]:
+#     return True
+#   if op=='+' or op=='-':
+#     if a.startswith('*') and (b=='int' or b=='cint'):
+#       return True
+#     if b.startswith('*') and (a=='int' or a=='cint'):
+#       return True
+#   return False
 
 
 # # ------------   SCOPE    ----------------------
@@ -131,7 +131,7 @@ def newlabel():
   labelNum+=1
   return val
 
-
+#   ----------------------------------------------------
 
 
 precedence = (
@@ -153,15 +153,13 @@ precedence = (
     ('left', 'LPAREN', 'RPAREN')
 )
 
-root = None
 
-# ------------------------START----------------------------
+
 def p_start(p):
     '''start : SourceFile'''
     p[0] = p[1]
     global root
     root = p[0]
-# -------------------------------------------------------
 
 
 # -----------------------TYPES---------------------------
@@ -195,18 +193,19 @@ def p_type_token(p):
         p[0].types.append(p[1])
         # define size for each
         if p[1]=='int' or p[1]=='float':
-          p[0].extra['sizeList']=[4]
+          p[0].size=[4]
         elif p[1]=='bool':
-          p[0].extra['sizeList']=[1]
-        #REMAINING to define size of string
+          p[0].size=[1]
         else:
-          p[0].extra['sizeList'] = [8]
+          p[0].size = [8]
+          # maximum size of string set to 8 bytes
     else:
         if not definedcheck(p[2]):
           raise TypeError("TypeName" + p[2] + "not defined anywhere")
-        p[0]=node()
-        var = findinfo(p[2],0)
-        p[0].types.append(var.type)
+        else:
+          p[0]=node()
+          var = findinfo(p[2],0)
+          p[0].types.append(var.type)
 
 def p_type_lit(p):
     '''TypeLit : ArrayType
@@ -253,7 +252,7 @@ def p_array_type(p):
   v = newvar()
   p[0].code.append(['=',v,p[2].place[0]])
   # print p[4].extra
-  p[0].extra['sizeList'] = [v] + p[4].extra['sizeList']
+  p[0].size = [v] + p[4].size
   #TODO
 
 def p_array_length(p):
@@ -312,7 +311,7 @@ def p_point_type(p):
     '''PointerType : MULTIPLY BaseType'''
     p[0] = p[2]
     p[0].types[0]="*"+p[0].types[0]
-    p[0].extra['sizeList'] = ['inf']+p[0].extra['sizeList']
+    p[0].size = ['inf']+p[0].size
 
 def p_base_type(p):
     '''BaseType : Type'''
@@ -621,19 +620,19 @@ def p_var_spec(p):
         # CODGEN
         # print p[2].extra
         v = newvar()
-        if p[2].extra['sizeList'][0]!='inf':
+        if p[2].size[0]!='inf':
           p[0].code.append(['=',v,1])
-        for i in p[2].extra['sizeList']:
-          if p[2].extra['sizeList'][0]!='inf':
+        for i in p[2].size:
+          if p[2].size[0]!='inf':
             p[0].code.append(['x=',v,i])
 
       for i in range(len(p[1].idlist)):
         s = findscope(p[1].idlist[i])
         scopeDict[s].updateAttr(p[1].idlist[i],'type',p[2].types[0])
         #REMAINING -- For arrays   #CODGEN
-        if p[2].types[0][0] == '*' and p[2].extra['sizeList'][0]!='inf':
+        if p[2].types[0][0] == '*' and p[2].size[0]!='inf':
           p[0].code.append(['array',p[1].place[i],v])
-          scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].extra['sizeList'])
+          scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
       return
     p[0]=node()
     p[0].code = p[1].code + p[3].code
@@ -648,7 +647,7 @@ def p_var_spec(p):
       scopeDict[scope].updateAttr(x,'type',p[2].types[0])
       #pointer case
       if p[2].types[0][0]=='*':
-        scopeDict[scope].updateAttr(x,'size',p[2].extra['sizeList'])
+        scopeDict[scope].updateAttr(x,'size',p[2].size)
       if type(p[3].types[i]) is list:
         s = p[3].types[i][0]
       else:
@@ -771,62 +770,61 @@ def p_operand(p):
         p[0] = p[2]
 
 def p_literal(p):
-    '''Literal : BasicLit
-               | CompositeLit'''
+    '''Literal : BasicLit'''
     p[0] = p[1]
 
 # -------------   composite literals --------------------
 
-def p_composite_lit(p):
-  '''CompositeLit : LiteralType LiteralValue'''
-  print "CompositeLit Not done until now"
+# def p_composite_lit(p):
+#   '''CompositeLit : LiteralType LiteralValue'''
+#   print "CompositeLit Not done until now"
 
-def p_literal_type(p):
-  '''LiteralType : StructType
-                 | ArrayType
-                 | SliceType
-                 | MapType
-                 | TypeName'''
-  p[0]=p[1]
+# def p_literal_type(p):
+#   '''LiteralType : StructType
+#                  | ArrayType
+#                  | SliceType
+#                  | MapType
+#                  | TypeName'''
+#   p[0]=p[1]
 
-def p_literal_value(p):
-  '''LiteralValue : LCURL RCURL
-                  | LCURL ElementList RCURL
-                  | LCURL ElementList COMMA RCURL'''
-  if len(p)==3:
-    p[0]=node()
-  elif len(p)==4:
-    p[0]=p[2]
-  else:
-    p[0]=p[2]
+# def p_literal_value(p):
+#   '''LiteralValue : LCURL RCURL
+#                   | LCURL ElementList RCURL
+#                   | LCURL ElementList COMMA RCURL'''
+#   if len(p)==3:
+#     p[0]=node()
+#   elif len(p)==4:
+#     p[0]=p[2]
+#   else:
+#     p[0]=p[2]
 
-def p_element_list(p):
-  '''ElementList : KeyedElement
-                 | ElementList COMMA KeyedElement'''
-  if len(p)==2:
-    p[0]=p[1]
-  else:
-    p[0]=[",",p[1],p[3]]
+# def p_element_list(p):
+#   '''ElementList : KeyedElement
+#                  | ElementList COMMA KeyedElement'''
+#   if len(p)==2:
+#     p[0]=p[1]
+#   else:
+#     p[0]=[",",p[1],p[3]]
 
 
-def p_keyed_element(p):
-  '''KeyedElement : Element
-                  | Key COLON Element
-                  | IDENTIFIER COLON Element'''
-  if len(p)==2:
-    p[0]=p[1]
-  else:
-    p[0]=["KeyedElement",p[1],":",p[3]]
+# def p_keyed_element(p):
+#   '''KeyedElement : Element
+#                   | Key COLON Element
+#                   | IDENTIFIER COLON Element'''
+#   if len(p)==2:
+#     p[0]=p[1]
+#   else:
+#     p[0]=["KeyedElement",p[1],":",p[3]]
 
-def p_key(p):
-  '''Key : Expression
-         | LiteralValue'''
-  p[0]=p[1]
+# def p_key(p):
+#   '''Key : Expression
+#          | LiteralValue'''
+#   p[0]=p[1]
 
-def p_element(p):
-  '''Element : Expression
-             | LiteralValue'''
-  p[0]=p[1]
+# def p_element(p):
+#   '''Element : Expression
+#              | LiteralValue'''
+#   p[0]=p[1]
 
 # -------------------------------------------------------
 
@@ -872,13 +870,13 @@ def p_operand_name(p):
     p[0].extra['layerNum'] = 0
     p[0].extra['operand'] = p[1]
     if info.listsize is not None:
-      p[0].extra['sizeList'] = info.listsize
+      p[0].size = info.listsize
     else:
       for i in range(len(info.type)):
         if info.type[i]!='*':
           break;
       if info.type[i:]=='int':
-        p[0].extra['sizeList'] = ['inf','4']
+        p[0].size = ['inf','4']
   p[0].idlist = [p[1]]
     
 # ---------------------------------------------------------

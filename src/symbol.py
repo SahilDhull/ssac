@@ -79,4 +79,5 @@ class node:
 		self.code=[]
 		self.types=[]
 		self.place=[]
+		self.size=[]
 		self.extra={}
