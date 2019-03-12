@@ -18,7 +18,6 @@ keywords = {
 	'const' : 'CONST',
 	'fallthrough' : 'FALLTHROUGH',
 	'if' : 'IF',
-	'range' : 'RANGE',
 	'type' : 'TYPE',
 	'continue' : 'CONTINUE',
 	'for' : 'FOR',

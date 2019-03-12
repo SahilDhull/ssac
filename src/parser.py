@@ -25,6 +25,13 @@ def checkid(name,str):
     if scopeDict[0].retrieve(name) is not None:
       return True
     return False
+  if str=='andsand':
+    if scopeDict[curScope].retrieve(name) is not None:
+      info = scopeDict[curScope].retrieve(name)
+      if info.type!=('type'+name):
+        return True
+    return False
+
   return False
 
 def opTypeCheck(a,b,op):
@@ -91,7 +98,9 @@ def findscope(name):
   raise NameError(name+ "is not defined in any scope")
 
 def findinfo(name, S=-1):
+  # print S
   if S > -1:
+    # print S
     if scopeDict[S].retrieve(name) is not None:
         return scopeDict[S].retrieve(name)
     raise NameError("Identifier " + name + " is not defined!")
@@ -533,33 +542,42 @@ def p_type_decl(p):
     '''TypeDecl : TYPE TypeSpec
                 | TYPE LPAREN TypeSpecRep RPAREN'''
     if len(p) == 5:
-        p[0] = ["TypeDecl", "type", "(", p[3], ")"]
+        p[0] = p[3]
     else:
-        p[0] = ["TypeDecl", "type", p[2]]
+        p[0] = p[2]
 
 def p_type_spec_rep(p):
     '''TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
                    | epsilon'''
     if len(p) == 4:
-        p[0] = ["TypeSpecRep", p[1], p[2], ";"]
+        p[0] = node()
     else:
-        # p[0] = ["TypeSpecRep", p[1]]
         p[0]=p[1]
 
 def p_type_spec(p):
     '''TypeSpec : AliasDecl
                 | TypeDef'''
     p[0]=p[1]
+
 def p_alias_decl(p):
     '''AliasDecl : IDENTIFIER EQUALS Type'''
-    p[0] = ["AliasDecl", p[1], '=', p[3]]
+    if checkid(p[1],'andsand'):
+      raise NameError("Name "+p[1]+" already defined")
+    else:
+      # print p[1] + "  " + str(curScope)
+      scopeDict[curScope].insert(p[1],p[3].types[0])
+    p[0]=node()
 # -------------------------------------------------------
 
 
 # -------------------TYPE DEFINITIONS--------------------
 def p_type_def(p):
     '''TypeDef : IDENTIFIER Type'''
-    p[0] = ["TypeDef", p[1], p[2]]
+    if checkid(p[1],'andsand'):
+      raise NameError("Name "+p[1]+" already defined")
+    else:
+      scopeDict[curScope].insert(p[1],p[2].types[0])
+    p[0]=node()
 # -------------------------------------------------------
 
 
@@ -608,8 +626,12 @@ def p_var_spec(p):
       #pointer case
       if p[2].types[0][0]=='*':
         scopeDict[scope].updateAttr(x,'size',p[2].extra['sizeList'])
-      # print p[3].types[i][0]
-      if not equalcheck(p[2].types[0],p[3].types[i][0]):
+      if type(p[3].types[i]) is list:
+        s = p[3].types[i][0]
+      else:
+        s = p[3].types[i]
+      # print s + "  ->  "+ x
+      if not equalcheck(p[2].types[0],s):
         raise TypeError("Type of "+ x + " does not match that of expr")
 
 
@@ -1123,8 +1145,13 @@ def p_print_stmt(p):
                | PRINT PS Expression'''
   p[0] = p[3]
   if p[2]=="%d":
+    # if p[3].types[0]!='int' and p[3].types[0]!='cint':
+    #   raise TypeError("Can't Print Expr of type other than int using '%d'")
+    # else:
     p[0].code.append(['printint',p[3].place[0]])
   if p[2]=="%s":
+    # if p[3].types[0]!='string' and p[3].types[0]!='cstring':
+    #   raise TypeError("Can't Print Expr of type other than string using '%s'")
     p[0].code.append(['printstr',p[3].place[0]])
 
 def p_scan_stmt(p):
@@ -1287,18 +1314,44 @@ def p_else_opt(p):
 
 def p_switch_statement(p):
   ''' SwitchStmt : ExprSwitchStmt'''
-  # p[0] = ["SwitchStmt", p[1]]
   p[0] = p[1]
-  p[0][0] = "SwitchStmt"
 
 def p_ExprSwitchStmt(p):
-    '''ExprSwitchStmt : SWITCH SimpleStmt SEMICOLON  ExpressionOpt LCURL ExprCaseClauseList RCURL
-                 | SWITCH ExpressionOpt LCURL ExprCaseClauseList RCURL '''
-    if len(p) == 8:
-        p[0] = ["ExprSwitchStmt","switch",p[2],";",p[4],"{",p[6],"}"]
+  '''ExprSwitchStmt : SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL '''
+  p[0]=p[2]
+  dLabel = None
+  l1 = newlabel()
+  p[0].code += [['goto',l1]]
+  p[0].code += p[6].code
+  p[0].code += [['label',l1]]
+  p[0].code += p[6].extra['exprList']
+  for i in range(len(p[6].extra['labels'])):
+    if p[6].extra['labeltype'][i] == 'default':
+      dLabel = p[6].extra['labels'][i]
     else:
-        p[0] = ["ExprSwitchStmt","switch",p[2],"{",p[4],"}"]
+      v = newvar()
+      p[0].code += [['==',v,p[2].place[0],p[6].place[i]]]
+      p[0].code += [['ifgoto',v,p[6].extra['labels'][i]]]
+  if dLabel is not None:
+    p[0].code += [['goto',dLabel]]
+  else:
+    l = newlabel()
+    p[0].code += [['goto',l]]
+    p[0].code += [['label',l]]
+  p[0].code += [['label',p[5].extra['end']]]
 
+def p_start_switch(p):
+  '''StartSwitch : '''
+  p[0] = node()
+  l2 = newlabel()
+  scopeDict[curScope].updateExtra('endofAll',l2)
+  p[0].extra['end'] = l2
+
+def findLabel(name):
+  for scope in scopeStack[::-1]:
+    if name in scopeDict[scope].extra:
+      return scopeDict[scope].extra[name]
+  raise ValueError("Not defined in any loop scope")
 
 def p_ExprCaseClauseList(p):
     '''ExprCaseClauseList : epsilon
@@ -1306,22 +1359,50 @@ def p_ExprCaseClauseList(p):
     '''
     if len(p) == 2:
         p[0]=p[1]
+        p[0].extra['labels'] = []
+        p[0].extra['labeltype'] = []
+        p[0].extra['exprList'] = [[]]
     else:
-        p[0] = ["ExprCaseClauseList",p[1],p[2]]
+        p[0] = p[1]
+        p[0].code += p[2].code
+        p[0].place += p[2].place
+        p[0].extra['labels'] += p[2].extra['labels']
+        p[0].extra['labeltype'] += p[2].extra['labeltype']
+        p[0].extra['exprList'] += p[2].extra['exprList']
 
 def p_ExprCaseClause(p):
-    '''ExprCaseClause : ExprSwitchCase COLON StatementList 
-    '''
-    p[0] = [":",p[1],p[3]]
+    '''ExprCaseClause : ExprSwitchCase COLON StatementList '''
+    p[0] = node()
+    l = newlabel()
+    p[0].code = [['label',l]]
+    p[0].code += p[3].code
+    p[0].extra['labels'] = [l]
+    lend = findLabel('endofAll')
+    p[0].code.append(['goto',lend])
+    p[0].extra['exprList'] = p[1].extra['exprList']
+    p[0].place = p[1].place
+    p[0].extra['labeltype'] = p[1].extra['labeltype']
 
 def p_ExprSwitchCase(p):
     '''ExprSwitchCase : CASE ExpressionList
                  | DEFAULT 
     '''
     if len(p) == 3:
-        p[0] = ["ExprSwitchCase","case",p[2]]
+        p[0] = p[2]
+        # p[0].extra['labeltype'] = ['case']
+        p[0].extra['exprList'] = p[2].code
+        p[0].extra['labels'] =[]
+        p[0].extra['labeltype'] = []
+        for i in range(len(p[2].place)):
+          l = newlabel()
+          (p[0].extra['labels']).append(l)
+          (p[0].extra['labeltype']).append('case')
     else:
-        p[0] = p[1]
+        p[0] = node()
+        v = newvar()
+        p[0].extra['labeltype'] = ['default']
+        p[0].extra['exprList'] = [[]]
+        p[0].extra['place'] = [v]
     
 
 # -----------------------------------------------------------
@@ -1330,15 +1411,20 @@ def p_ExprSwitchCase(p):
 
 # --------- FOR STMT   -------------------------------
 def p_for(p):
-  '''ForStmt : FOR ConditionBlockOpt Block'''
-  p[0] = ["ForStmt", "for", p[2], p[3]]
+  '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope'''
+  p[0] = node()
+  l1 = p[3].extra['before']
+  p[0].code = p[3].code + p[4].code
+  if 'incr' in p[3].extra:
+    p[0].code += p[3].extra['incr']
+  p[0].code += [['goto',l1]]
+  l2 = p[3].extra['after']
+  p[0].code += [['label',l2]]
 
 def p_conditionblockopt(p):
   '''ConditionBlockOpt : epsilon
              | Condition
-             | ForClause
-             | RangeClause'''
-  # p[0] = ["ConditionBlockOpt", p[1]]
+             | ForClause'''
   p[0] = p[1]
 
 def p_condition(p):
@@ -1347,31 +1433,31 @@ def p_condition(p):
 
 def p_forclause(p):
   '''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
-  p[0] = ["ForClause", p[1], ";", p[3], ";", p[5]]
+  p[0] = p[1]
+  l1 = newlabel()
+  p[0].code += [['label',l1]]
+  p[0].extra['before'] = l1
+  p[0].code += p[3].code
+  l2 = newlabel()
+  scopeDict[curScope].updateExtra('beginFor',l1)
+  scopeDict[curScope].updateExtra('endFor',l2)
+  p[0].extra['after'] = l2
+  if len(p[3].place)!=0:
+    v1 = newvar()
+    v2 = newvar()
+    p[0].code += [['=',v1,p[3].place[0]]]
+    p[0].code += [['=',v2,1]]
+    p[0].code += [['-',v1,v2,v2]]
+    p[0].code += [['ifgoto',v1,l2]]
+  p[0].extra['incr'] = p[5].code
 
 def p_conditionopt(p):
   '''ConditionOpt : epsilon
           | Condition '''
-  # p[0] = ["ConditionOpt", p[1]]
   p[0] = p[1]
 
 
-def p_rageclause(p):
-  '''RangeClause : ExpressionIdentListOpt RANGE Expression'''
-  p[0] = ["RangeClause", p[1], "range", p[3]]
-
-def p_expression_ident_listopt(p):
-  '''ExpressionIdentListOpt : epsilon
-             | ExpressionIdentifier'''
-  # p[0] = ["ExpressionIdentListOpt", p[1]]
-  p[0] = p[1]
-
-def p_expressionidentifier(p):
-  '''ExpressionIdentifier : ExpressionList EQUALS'''
-  if p[2] == "=":
-    p[0] = ["ExpressionIdentifier", p[1], "="]
-  else:
-    p[0] = ["ExpressionIdentifier", p[1], ":="]
+# ----------------- RETURN STMT  --------------------------
 
 def p_return(p):
   '''ReturnStmt : RETURN ExpressionListPureOpt'''
