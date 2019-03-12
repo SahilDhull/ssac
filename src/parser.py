@@ -11,6 +11,10 @@ root = None
 # ----------  TYPE CHECKING -------------------
 
 def equalcheck(x,y):
+  if type(x) is list:
+    x=x[0]
+  if type(y) is list:
+    y=y[0]
   if x==y:
     return True
   elif y.startswith('c') and x==y[1:]:
@@ -251,19 +255,27 @@ def p_array_type(p):
   p[0].code = p[2].code + p[4].code
   # print "ArrayType => "+p[4].idlist[0]
   # ----- changing it ---------------
-  p[0].types.append("*"+p[4].types[0])
+  # p[0].types.append("*"+p[4].types[0])
   # ---------------------------------
-  # if p[4].types[0]=='arr':
-  #   p[0].types = ['arr'] + p[4].types[1:]
-  # else:
-  #   p[0].types = ['arr'] + p[4].types
-  #   # print p[0].types[1:]
+  if p[4].types[0]=='arr':
+    p[0].types = ['arr'] + p[4].types
+    if 'operandValue' in p[2].extra:
+      p[0].limits = p[2].extra['operandValue']
+      p[0].limits += p[4].limits
+    # print p[0].types
+    # print p[0].limits
+  else:
+    p[0].types = ['arr'] + p[4].types
+    if 'operandValue' in p[2].extra:
+      p[0].limits = p[2].extra['operandValue']
+    # print p[0].types
+    # print p[0].limits
   # ---------------------------------
   v = newvar()
   p[0].code.append(['=',v,p[2].place[0]])
-  if 'operandValue' in p[2].extra:
-    # print "excellent"
-    p[0].extra['operandValue'] = p[2].extra['operandValue']
+  # if 'operandValue' in p[2].extra:
+  #   # print "excellent"
+  #   p[0].extra['operandValue'] = p[2].extra['operandValue']
   # print p[4].extra
   p[0].size = [v] + p[4].size
   #TODO
@@ -617,11 +629,11 @@ def p_var_spec(p):
   if len(p[3].place)==0:
     p[0]=p[1]
     p[0].code+=p[2].code
-    # print "VarSpec : "
+    print "VarSpec : "
     # print p[1].idlist
     # print p[2].types
     # print p[2].size
-    if p[2].types[0][0]=='*':
+    if p[2].types[0]=='arr':
       v = newvar()
       if p[2].size[0]!='inf':
         p[0].code.append(['=',v,1])
@@ -632,14 +644,23 @@ def p_var_spec(p):
     for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
       s = findscope(x)
-      scopeDict[s].updateAttr(x,'type',p[2].types[0])
+      scopeDict[s].updateAttr(x,'type',p[2].types)
       #REMAINING -- For arrays   #CODGEN
-      if p[2].types[0][0] == '*' and p[2].size[0]!='inf':
-        if 'operandValue' in p[2].extra:
-          info1 = findinfo(x)
-          # print x
-          # print p[2].extra['operandValue']
-          scopeDict[curScope].updateExtra(str(x),p[2].extra['operandValue'][0])
+      if p[2].types[0] == 'arr':
+        print p[2].types
+        print x
+        scopeDict[curScope].updateExtra(x,p[2].limits)
+        # scopeDict[curScope].updateAttr(x,)
+        print scopeDict[curScope].extra[x]
+        # info1 = findinfo(x)
+        # for j in range(len(p[2].types)-1):
+
+        # if 'operandValue' in p[2].extra:
+          
+        #   # print x
+        #   # print p[2].extra['operandValue']
+        #   print "---ohh"
+        #   scopeDict[curScope].updateExtra(str(x),p[2].extra['operandValue'][0])
         p[0].code.append(['array',p[1].place[i],v])
         scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
     return
@@ -819,25 +840,36 @@ def p_operand_name(p):
     raise NameError("identifier " + p[1] + " is not defined")
   p[0] = node()
   info = findinfo(p[1])
-  if info.type=='func' or info.type=='sigType':
+  print "OperandName"
+  print info.type
+  if type(info.type) is list:
+    s = info.type[0]
+  else:
+    s = info.type
+  if s=='func' or s=='sigType':
     p[0].types = [info.retType]
     p[0].place.append(info.label)
   else:
-    # print "OperandName"
-    # print p[1]
+    print p[1]
     # print info.type
     # print info.listsize
-    p[0].types = [info.type]
+    print info.type
+    # if type(info.type) is list:
+    #   p[0].types = info.type
+    # else:
+    p[0].types = [s]
+    print p[0].types
     p[0].place.append(info.place)
     p[0].extra['layerNum'] = 0
     p[0].extra['operand'] = p[1]
     if info.listsize is not None:
       p[0].size = info.listsize
     else:
-      for i in range(len(info.type)):
-        if info.type[i]!='*':
+      for i in range(len(s)):
+        if s[i]!='*':
           break;
-      if info.type[i:]=='int':
+      if s[i:]=='int':
+        # print "ohh okay"
         p[0].size = ['inf','4']
   p[0].idlist = [p[1]]
     
@@ -886,19 +918,22 @@ def p_prim_expr(p):
     # print info.type
     lsize = info.listsize
     #DOUBT
-    # print "PrimaryExpr : lsize = "
+    print "PrimaryExpr(Array) : "
     # print p[3].types
     # print lsize
-    # print p[1].extra['layerNum']
-    #CHECK
+    k = p[1].extra['layerNum']
+    print k
+    # check on index range
     if 'operandValue' in p[3].extra:
       # for arrays of single dimension
       # print "fantastic -- PrimaryExpr"
       z = p[3].extra['operandValue'][0]
+      # print z
       # print lsize
       y = scopeDict[curScope].extra[p[1].extra['operand']]
-      if z>=y:
-        raise IndexError("Array "+ p[1].extra['operand'] +" out of Bounds")
+      # print y
+      if z>=y[k]:
+        raise IndexError("Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
     if p[1].extra['layerNum'] == len(lsize):
       raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
@@ -916,7 +951,14 @@ def p_prim_expr(p):
       p[0].code.append(['load',v3,v2])
       p[0].place = [v3]
     p[0].extra['AddrList'] = [v2]
-    p[0].types = [p[1].types[0][1:]]
+    print "Here --->"
+    print p[1].types
+    print info.type
+    if k==0:
+      p[0].types = info.type[1:]
+    else:
+      p[0].types = p[1].types[1:]
+    print p[0].types
     p[0].extra['layerNum'] += 1
   elif p[2]=='(':
     p[0]=p[1]
@@ -975,12 +1017,17 @@ def p_selector(p):
     p[0] = node()
     info = findinfo(p[-1].idlist[0])
     structname=info.type
-    for i in range(len(structname)):
-      if structname[i]!='*':
-        break
-    structname = structname[i+4:]
-    # print "Selector"
-    # print structname
+    print "Selector"
+    print structname
+    if structname[0] =='arr':
+      for i in range(len(structname)):
+        if structname[i]!='arr':
+          break
+      structname = structname[i:][0][4:]
+    else:
+      structname = structname[4:]
+    print "after"
+    print structname
     info_of_struct = findinfo(structname,0)
     struct_scope = info_of_struct.child
     if p[2] not in struct_scope.table:
@@ -1095,6 +1142,7 @@ def p_unary_expr(p):
                  | NOT UnaryExpr'''
     if len(p) == 2:
         p[0] = p[1]
+        # print p[1].extra['operand']
     elif p[1] == "!":
       p[0] = p[2]
       v = newvar()
@@ -1117,7 +1165,11 @@ def p_unary_expr(p):
           p[0].code.append(['addr',v,p[0].extra['AddrList'][0]])
         else:
           p[0].code.append(['addr',v,p[2].place[0]])
-        p[0].types[0] = '*' + p[2].types[0]
+        print "& case in UnaryExpr:"
+        # p[0].types = []
+        print p[2].types
+        print type(p[2].types)
+        p[0].types = ['*' + p[2].types[0]]
       p[0].place=[v]
 
 
@@ -1276,8 +1328,8 @@ def p_assignment(p):
 
     if p[2]=='=':
       # print i
-      # print "p[1].types[i] = "+str(p[1].types[i])
-      # print "p[3].types[i] = "+str(p[3].types[i])
+      print "p[1].types[i] = "+str(p[1].types[i])
+      print "p[3].types[i] = "+str(p[3].types[i])
       if not equalcheck(p[1].types[i],p[3].types[i]):
         raise TypeError("Types of expressions on both sides of = don't match")
     else:

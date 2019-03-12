@@ -80,4 +80,5 @@ class node:
 		self.types=[]
 		self.place=[]
 		self.size=[]
+		self.limits=[]
 		self.extra={}
