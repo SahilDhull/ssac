@@ -1251,18 +1251,35 @@ def p_AssignOp(p):
 # -------------   IF STMT   ------------------------
 
 def p_if_statement(p):
-  ''' IfStmt : IF Expression Block ElseOpt '''
-  p[0] = ["IfStmt", "if", p[2], p[3], p[4]]
-
+  ''' IfStmt : IF Expression CreateScope Block EndScope ElseOpt '''
+  p[0] = node()
+  p[0].code = p[2].code
+  l1 = newlabel()
+  v1 = newvar()
+  v2 = newvar()
+  v3 = newvar()
+  l2 = newlabel()
+  p[0].code += [['=',v1,p[2].place[0]]]
+  p[0].code += [['=',v2,'0']]
+  p[0].code += [['!=',v1,v1,v2]]
+  p[0].code += [['=',v3,'1']]
+  p[0].code += [['-',v1,v1,v3]]
+  p[0].code += [['ifgoto',v1,l1]]
+  p[0].code += p[4].code
+  p[0].code += [['goto',l2]]
+  p[0].code += [['label',l1]]
+  p[0].code += p[6].code
+  p[0].code += [['label',l2]]
 
 def p_else_opt(p):
   ''' ElseOpt : ELSE IfStmt
-              | ELSE Block
+              | ELSE CreateScope Block EndScope
               | epsilon '''
   if len(p) == 3:
-    p[0] = ["ElseOpt", "else", p[2]]
+    p[0] = p[2]
+  elif len(p)==5:
+    p[0] = p[3]
   else:
-    # p[0] = ["ElseOpt", p[1]]
     p[0]=p[1]
 
 # ------------------- SWITCH STMT ----------------------------
