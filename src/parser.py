@@ -416,6 +416,7 @@ def p_point_type(p):
     p[0] = p[2]
     p[0].size = ['inf']+p[0].size
     p[0].types[0]="*"+p[0].types[0]
+    # print p[0].types
 
 def p_base_type(p):
     '''BaseType : Type'''
@@ -894,8 +895,11 @@ def p_ret_type_set(p):
   '''RetTypeSet : '''
   fname = p[-1].extra['fName']
   scopeDict[curScope].updateExtra('fName',fname)
-  if len(p[-1].types)>0:
+  if len(p[-1].types)==1:
+    # print p[-1].types
     scopeDict[curScope].updateExtra('retType',p[-1].types[0])
+  elif len(p[-1].types)>1:
+    scopeDict[curScope].updateExtra('retType',p[-1].types)
   else:
     scopeDict[curScope].updateExtra('retType','void')
 
@@ -1078,6 +1082,7 @@ def p_prim_expr(p):
       p[0].types = p[1].types[1:]
     # print p[0].types
     p[0].extra['layerNum'] += 1
+  # ------------------------------------function case ------------------------
   elif p[2]=='(':
     p[0]=p[1]
     p[0].code+=p[3].code
@@ -1107,8 +1112,25 @@ def p_prim_expr(p):
         v1 = newvar()
         p[0].place = [v1]
         p[0].code.append(['callint',v1,info.label])
+      elif info.retType[0]=='float':
+        v1 = newvar()
+        p[0].place = [v1]
+        p[0].code.append(['callfloat',v1,info.label])
       p[0].types = [p[1].types[0]]
-    # else:
+    else:
+      # print info.retType
+      p[0].types = info.retType
+      for i in range(len(info.retType)):
+        if info.retType[i]=='void':
+          p[0].code.append(['callvoid',info.label])
+        elif info.retType[i]=='int':
+          v1 = newvar()
+          p[0].place += [v1]
+          p[0].code.append(['callint',v1,info.label])
+        elif info.retType[i]=='float':
+          v1 = newvar()
+          p[0].place += [v1]
+          p[0].code.append(['callfloat',v1,info.label])
       # Check for Multiple Return Types
       #TODO
 
@@ -1422,7 +1444,12 @@ def p_inc_dec(p):
 
 def p_assignment(p):
   ''' Assignment : ExpressionList assign_op ExpressionList'''
-  if len(p[1].place)!=len(p[3].place):
+  # print "Assignment:"
+  # print p[3].types
+  # print p[3].place
+  # if 'retType' in p[3].extra:
+  #   print "correct"
+  if len(p[1].place)!=len(p[3].types):
     raise ValueError("No. of expressions on both sides of assignment are not equal")
   p[0] = node()
   p[0].code = p[1].code
@@ -1659,19 +1686,42 @@ def p_conditionopt(p):
 def p_return(p):
   '''ReturnStmt : RETURN ExpressionListPureOpt'''
   p[0] = p[2]
-
+  # print p[0].types
   for scope in scopeStack[::-1]:
     if 'fName' in scopeDict[scope].extra:
       fname = scopeDict[scope].extra['fName']
       retType = scopeDict[scope].extra['retType']
+  # print "retType:"
+  # print retType
   if len(p[2].types) == 1:
     if not equalcheck(retType,p[2].types[0]):
       raise TypeError("Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
-    p[0].code.append(['retint',p[2].place[0]])
+    if p[2].types[0]=='int' or p[2].types[0]=='cint':
+      p[0].code.append(['retint',p[2].place[0]])
+    elif p[2].types[0]=='float' or p[2].types[0]=='cfloat':
+      p[0].code.append(['retfloat',p[2].place[0]])
+    elif p[2].types[0]=='string' or p[2].types[0]=='cstring':
+      p[0].code.append(['retstring',p[2].place[0]])
+    elif p[2].types[0]=='bool' or p[2].types[0]=='cbool':
+      p[0].code.append(['retbool',p[2].place[0]])
   elif len(p[2].types) == 0:
     if retType!='void':
       raise TypeError("function "+fname+" has return type "+retType+" , but returned void in the stmt")
     p[0].code.append(['retvoid'])
+  else:
+    if len(p[2].types)!=len(retType):
+      raise TypeError("Number of return argument doesn't match for "+fName)
+    for i in range(len(p[2].types)):
+      if not equalcheck(retType[i],p[2].types[i]):
+        raise TypeError("Function "+fname+" has return type "+retType[i]+" which doesnt match that in stmt i.e. "+p[2].types[i] )
+      if p[2].types[i]=='int' or p[2].types[i]=='cint':
+        p[0].code.append(['retint',p[2].place[i]])
+      elif p[2].types[i]=='float' or p[2].types[i]=='cfloat':
+        p[0].code.append(['retfloat',p[2].place[0]])
+      elif p[2].types[i]=='string' or p[2].types[i]=='cstring':
+        p[0].code.append(['retstring',p[2].place[i]])
+      elif p[2].types[i]=='bool' or p[2].types[i]=='cbool':
+        p[0].code.append(['retbool',p[2].place[i]])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList
