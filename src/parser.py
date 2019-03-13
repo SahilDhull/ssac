@@ -79,6 +79,7 @@ def opTypeCheck(a,b,op):
 curScope = 0
 scopeLevel = 0
 varNum = 0
+arrNum = 0
 labelNum = 1
 mainFunc = True
 
@@ -158,6 +159,12 @@ def newlabel():
   global labelNum
   val = 'l'+str(labelNum)
   labelNum+=1
+  return val
+
+def newarray():
+  global arrNum
+  val = 'arr'+str(arrNum)
+  arrNum += 1
   return val
 
 #   ----------------------------------------------------
@@ -296,50 +303,35 @@ def p_key_type(p):
 
 
 # ------------------- ARRAY TYPE -------------------------
-# to change, not fully correct right now
 
 def p_array_type(p):
   '''ArrayType : LSQUARE ArrayLength RSQUARE ElementType'''
   p[0] = node()
   p[0].code = p[2].code + p[4].code
-  # print "ArrayType => "+p[4].idlist[0]
-  # ----- changing it ---------------
-  # p[0].types.append("*"+p[4].types[0])
-  # ---------------------------------
-  # print p[2].types
   p[0].bytesize = p[4].bytesize
   if p[2].types[0]!='int' and p[2].types[0]!='cint':
     raise IndexError("Index of array "+p[-1].idlist[0]+" is not integer")
   x = p[2].extra['operandValue'][0]
-  # print "x = "
-  # print type(x)
-  # print p[0].bytesize
   p[0].bytesize *= int(x)
   if p[4].types[0]=='arr':
     p[0].types = ['arr'] + p[4].types
     if 'operandValue' in p[2].extra:
       p[0].limits = p[2].extra['operandValue']
       p[0].limits += p[4].limits
-    # print p[0].types
-    # print p[0].limits
+    a = p[4].size[0][:4]
   else:
     p[0].types = ['arr'] + p[4].types
     if 'operandValue' in p[2].extra:
       p[0].limits = p[2].extra['operandValue']
-    # print p[0].types
-    # print p[0].limits
-  # ---------------------------------
-  # print p[0].limits
-  # for i in range(len(p[0].limits)):
+    a = newarray()
 
-  v = newvar()
-  p[0].code.append(['=',v,p[2].place[0]])
-  # if 'operandValue' in p[2].extra:
-  #   # print "excellent"
-  #   p[0].extra['operandValue'] = p[2].extra['operandValue']
-  # print p[4].extra
-  p[0].size = [v] + p[4].size
-  #TODO
+  # print "Print code in ArrayType:"
+  
+  a += '_'+str(len(p[0].limits))
+  p[0].code.append(['=',a,p[2].place[0]])
+  # print print_list(p[0].code)
+  p[0].size = [a] + p[4].size
+
 
 def p_array_length(p):
   ''' ArrayLength : Expression '''
@@ -729,16 +721,19 @@ def p_var_spec(p):
     # p[0].bytesize = p[2].bytesize
     # print "VarSpec : "
     # print p[1].idlist
-    # print p[2].types
-    # print p[2].size
     if p[2].types[0]=='arr':
-      v = newvar()
-      if p[2].size[0]!='inf':
-        p[0].code.append(['=',v,1])
+      v = p[2].size[0]
+      for i in range(len(v)):
+        if v[i]=='_':
+          break
+      v = v[:i+1] + 'size'
+      # print v
+      p[0].code.append(['=',v,1])
+      # print p[2].size
       for i in p[2].size:
         if p[2].size[0]!='inf':
           p[0].code.append(['x=',v,i])
-
+    # print print_list(p[0].code)
     for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
       s = findscope(x)
@@ -746,14 +741,12 @@ def p_var_spec(p):
       # print p[2].types
       info = findinfo(x)
       
-      #REMAINING -- For arrays   #CODGEN
+      #For arrays
       if p[2].types[0] == 'arr':
-        # print p[2].types
-        # print x
         scopeDict[curScope].updateExtra(x,p[2].limits)
-        # scopeDict[curScope].updateAttr(x,)
         scopeDict[s].updateAttr(x,'type',p[2].types)
-        p[0].code.append(['array',p[1].place[i],v])
+        p[0].code.append(['array',x,v])
+        # print print_list(p[0].code)
         scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
         p[0].bytesize += p[2].bytesize
         info.mysize = p[2].bytesize
@@ -765,13 +758,8 @@ def p_var_spec(p):
       else:
         scopeDict[s].updateAttr(x,'type',p[2].types[0])
         p[0].bytesize += p[2].bytesize
-        # print info.name
         info.mysize = p[2].bytesize
-        # print x
         info.offset = scopeDict[curScope].extra['curOffset']
-        # print info.offset
-        # print curScope
-        # print p[1].bytesize
         scopeDict[curScope].extra['curOffset'] += p[2].bytesize
         # print x
         # print scopeDict[curScope].extra['curOffset']
@@ -824,7 +812,9 @@ def p_short_var_decl(p):
     scopeDict[curScope].insert(p[1],None)
   v = newvar()
   p[0].code = p[3].code
-  p[0].code.append(['=',v,p[3].place[0]])
+  # print p[1]
+  p[0].code.append(['=',p[1],p[3].place[0]])
+  # print print_list(p[0].code)
   scopeDict[curScope].updateAttr(p[1],'place',v)
   scopeDict[curScope].updateAttr(p[1],'type',p[3].types[0])
   
@@ -842,13 +832,10 @@ def p_func_decl(p):
     global mainFunc
     if mainFunc:
       mainFunc = False
-      p[0].code = [["goto","l0"]]
-    info = findinfo(p[2])
-    label = info.label
-    p[0].code.append(['label',label])
+      p[0].code = [["goto","main"]]
+    p[0].code.append(['label',p[2]])
     p[0].code += p[4].code
-    # p[0].idlist += p[4].idlist
-    # print p[4].idlist
+    # print print_list(p[0].code)
   p[0].idlist += [p[2]]
 
 def p_create_scope(p):
@@ -880,7 +867,10 @@ def p_func(p):
     for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
       info = findinfo(x)
-      p[0].code = [['pload',info.place,len(p[1].idlist)-i-1]] + p[0].code
+      # print info.offset
+      #RESUME
+      p[0].code = [['pload',x,len(p[1].idlist)-i-1]] + p[0].code
+      # print print_list(p[0].code)
     if checksignature(p[-2]):
       if p[-2]=="main":
         scopeDict[0].updateAttr('main','label','l0')
