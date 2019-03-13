@@ -629,7 +629,7 @@ def p_var_spec(p):
   if len(p[3].place)==0:
     p[0]=p[1]
     p[0].code+=p[2].code
-    print "VarSpec : "
+    # print "VarSpec : "
     # print p[1].idlist
     # print p[2].types
     # print p[2].size
@@ -644,14 +644,16 @@ def p_var_spec(p):
     for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
       s = findscope(x)
-      scopeDict[s].updateAttr(x,'type',p[2].types)
+      # print p[2].types
+      
       #REMAINING -- For arrays   #CODGEN
       if p[2].types[0] == 'arr':
-        print p[2].types
-        print x
+        # print p[2].types
+        # print x
         scopeDict[curScope].updateExtra(x,p[2].limits)
         # scopeDict[curScope].updateAttr(x,)
-        print scopeDict[curScope].extra[x]
+        scopeDict[s].updateAttr(x,'type',p[2].types)
+        # print scopeDict[curScope].extra[x]
         # info1 = findinfo(x)
         # for j in range(len(p[2].types)-1):
 
@@ -663,6 +665,8 @@ def p_var_spec(p):
         #   scopeDict[curScope].updateExtra(str(x),p[2].extra['operandValue'][0])
         p[0].code.append(['array',p[1].place[i],v])
         scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
+      else:
+        scopeDict[s].updateAttr(x,'type',p[2].types[0])
     return
   p[0]=node()
   p[0].code = p[1].code + p[3].code
@@ -840,8 +844,8 @@ def p_operand_name(p):
     raise NameError("identifier " + p[1] + " is not defined")
   p[0] = node()
   info = findinfo(p[1])
-  print "OperandName"
-  print info.type
+  # print "OperandName"
+  # print info.type
   if type(info.type) is list:
     s = info.type[0]
   else:
@@ -850,15 +854,15 @@ def p_operand_name(p):
     p[0].types = [info.retType]
     p[0].place.append(info.label)
   else:
-    print p[1]
+    # print p[1]
     # print info.type
     # print info.listsize
-    print info.type
+    # print info.type
     # if type(info.type) is list:
     #   p[0].types = info.type
     # else:
     p[0].types = [s]
-    print p[0].types
+    # print p[0].types
     p[0].place.append(info.place)
     p[0].extra['layerNum'] = 0
     p[0].extra['operand'] = p[1]
@@ -918,11 +922,11 @@ def p_prim_expr(p):
     # print info.type
     lsize = info.listsize
     #DOUBT
-    print "PrimaryExpr(Array) : "
+    # print "PrimaryExpr(Array) : "
     # print p[3].types
     # print lsize
     k = p[1].extra['layerNum']
-    print k
+    # print k
     # check on index range
     if 'operandValue' in p[3].extra:
       # for arrays of single dimension
@@ -951,14 +955,14 @@ def p_prim_expr(p):
       p[0].code.append(['load',v3,v2])
       p[0].place = [v3]
     p[0].extra['AddrList'] = [v2]
-    print "Here --->"
-    print p[1].types
-    print info.type
+    # print "Here --->"
+    # print p[1].types
+    # print info.type
     if k==0:
       p[0].types = info.type[1:]
     else:
       p[0].types = p[1].types[1:]
-    print p[0].types
+    # print p[0].types
     p[0].extra['layerNum'] += 1
   elif p[2]=='(':
     p[0]=p[1]
@@ -1165,10 +1169,10 @@ def p_unary_expr(p):
           p[0].code.append(['addr',v,p[0].extra['AddrList'][0]])
         else:
           p[0].code.append(['addr',v,p[2].place[0]])
-        print "& case in UnaryExpr:"
+        # print "& case in UnaryExpr:"
         # p[0].types = []
-        print p[2].types
-        print type(p[2].types)
+        # print p[2].types
+        # print type(p[2].types)
         p[0].types = ['*' + p[2].types[0]]
       p[0].place=[v]
 
@@ -1328,8 +1332,8 @@ def p_assignment(p):
 
     if p[2]=='=':
       # print i
-      print "p[1].types[i] = "+str(p[1].types[i])
-      print "p[3].types[i] = "+str(p[3].types[i])
+      # print "p[1].types[i] = "+str(p[1].types[i])
+      # print "p[3].types[i] = "+str(p[3].types[i])
       if not equalcheck(p[1].types[i],p[3].types[i]):
         raise TypeError("Types of expressions on both sides of = don't match")
     else:
@@ -1697,8 +1701,10 @@ def print_list(l):
   for i in l:
     print i
 
-print "\nPrinting the identifiers used:"
-print result.idlist
+# print "\nPrinting the identifiers used:"
+# print result.idlist
 
-print "\nPrinting the 3AC code for the input:"
-print_list(result.code)
+# print "\nPrinting the 3AC code for the input:"
+# print_list(result.code)
+
+print "Successfully Done <---------------->"
