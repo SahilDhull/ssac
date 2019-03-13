@@ -257,6 +257,9 @@ def p_array_type(p):
   # ----- changing it ---------------
   # p[0].types.append("*"+p[4].types[0])
   # ---------------------------------
+  # print p[2].types
+  if p[2].types[0]!='int' and p[2].types[0]!='cint':
+    raise IndexError("Index of array "+p[-1].idlist[0]+" is not integer")
   if p[4].types[0]=='arr':
     p[0].types = ['arr'] + p[4].types
     if 'operandValue' in p[2].extra:
