@@ -2,12 +2,18 @@
 
 class symnode:
 	def __init__(self):
+		self.name = None
 		self.type = None
 		self.retType = []
 		self.label = None
 		self.listsize = None
 		self.place = None
 		self.child = None
+		self.offset = None
+		self.mysize = 0
+
+	def insertname(self,name):
+		self.name = name
 
 	def insertType(self,type1):
 		self.type = type1
@@ -27,8 +33,15 @@ class symnode:
 	def insertchild(self,a):
 		self.child = a
 
+	def insertoffset(self,a):
+		self.offset = a
+
+	def insertmysize(self,a):
+		self.mysize = a
+
 class st:
-	def __init__(self):
+	def __init__(self,val):
+		self.val = val
 		self.table = {}
 		self.symbols = []
 		self.parent = None
@@ -43,11 +56,12 @@ class st:
 	def look(self,name):
 		return (name in self.table)
 
-	def insert(self,name,type1):
+	def insert(self,name,type1,m=None):
 		if(not self.look(name)):
 			(self.table)[name] = symnode()
 			self.symbols.append(name)
 			(self.table)[name].insertType(type1)
+			(self.table)[name].insertname(m)
 
 	def retrieve(self,name):
 		if(self.look(name)):
@@ -68,6 +82,10 @@ class st:
 				(self.table)[name].insertplace(val)
 			elif(s=="child"):
 				(self.table)[name].insertchild(val)
+			elif(s=="offset"):
+				(self.table)[name].insertoffset(val)
+			elif(s=="mysize"):
+				(self.table)[name].insertmysize(val)
 			# else:
 			# 	(self.table)[name].insertextra(val)
 		else:
@@ -81,4 +99,5 @@ class node:
 		self.place=[]
 		self.size=[]
 		self.limits=[]
+		self.bytesize = 0
 		self.extra={}
