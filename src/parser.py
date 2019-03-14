@@ -99,6 +99,9 @@ def addscope(name=None):
   scopeDict[scopeLevel] = st(scopeLevel)
   scopeDict[scopeLevel].setParent(curScope)
   scopeDict[scopeLevel].updateExtra('curOffset',0)
+  if mainFunc:
+    y = scopeDict[0].extra['curOffset']
+    scopeDict[scopeLevel].updateExtra('curOffset',y)
   if name is not None:
     # Not sure if correct
     # print name
@@ -399,7 +402,7 @@ def p_field_decl(p):
   p[0] = p[1]
   # print "Struct:"
   # print p[2].bytesize
-  p[0].bytesize = p[2].bytesize
+  
   # print p[2].types
   sco = scopeDict[curScope].extra['structPscope']
   s = scopeDict[sco].extra['structname']
@@ -408,6 +411,7 @@ def p_field_decl(p):
     raise TypeError("Struct "+s[4:]+" recursively defind, not allowed")
   # if x in p[2].types
   for i in range(len(p[0].idlist)):
+    p[0].bytesize += p[2].bytesize
     x = p[0].idlist[i]
     # print p[1].idlist[i]
     # print p[2].size[0]
@@ -433,6 +437,7 @@ def p_point_type(p):
     p[0] = p[2]
     p[0].size = ['inf']+p[0].size
     p[0].types[0]="*"+p[0].types[0]
+    p[0].bytesize = 4
     # print p[0].types
 
 def p_base_type(p):
@@ -1089,7 +1094,7 @@ def p_qualified_ident(p):
 # ------------------PRIMARY EXPRESSIONS--------------------
 def p_prim_expr(p):
   '''PrimaryExpr : Operand
-                 | PrimaryExpr Selector
+                 | PrimaryExpr DOT IDENTIFIER
                  | Conversion
                  | PrimaryExpr LSQUARE Expression RSQUARE
                  | PrimaryExpr Slice
@@ -1209,55 +1214,73 @@ def p_prim_expr(p):
 
   #RESUME
   # ------------------   SELECTOR  -------------------------
+  elif len(p) == 4:
+    p[0] = p[1]
+    # print "Selector:"
+    x = p[1].idlist[0]
+    # print p[1].idlist
+    # print p[2][1]
+    # print p[1].idlist
+    # print scopeStack
+    info = findinfo(x)
+    # print info.mysize
+    # print info.offset
+    # print info.__dict__
+    t = info.type
+    # print "t = "+t
+    if t[0] =='arr':
+      for i in range(len(t)):
+        if t[i]!='arr':
+          break
+      t = t[i:][0][4:]
+    elif t[0]=='*':
+      # print t[1:5]
+      if t[1:5]!='type':
+        raise TypeError(t+" does not have any attribute")
+        return
+      if x not in scopeDict[curScope].extra:
+        # print "coooooooooooooooooool"
+        raise NameError(x+" is not set")
+      t = t[5:]
+    else:
+      t = t[4:]
+    # print t
+    sinfo = findinfo(t)
+    sScope = sinfo.child
+    # print sScope.__dict__
+    if p[3] not in sScope.table:
+      raise NameError("identifier " + p[3]+ " is not defined inside the struct " + x)
+    varname = x+'.'+p[3]
+    if not checkid(x,'e'):
+      raise NameError(x+" does not exist")
+    # print varname
+    if checkid(varname,'e'):
+      # print "Inside check -----------> "+varname
+      info1 = findinfo(varname)
+      # print info.type
+      p[0].place = [info1.place]
+      p[0].types = [info1.type]
+    else:
+      varinfo = sScope.retrieve(p[3])
+      # print "varinfo.type = "+varinfo.type
+      # print "varinfo.offset = "+str(varinfo.offset)
+      # print info.offset
+      curoff = info.offset + varinfo.offset
+      v = 'off_'+str(curoff)
+      p[0].types = [varinfo.type]
+      p[0].place = [v]
+      scopeDict[curScope].insert(varname,p[0].types[0])
+      scopeDict[curScope].updateAttr(varname,'place',v)
+      scopeDict[curScope].updateAttr(varname,'offset',curoff)
+      # scopeDict[curScope].updateExtra(varname,'defined',False)
+    p[0].idlist = [varname]
+    # print info.offset
+    # p[0] = p[1]
   else:
     # print p[2].__dict__
-    if not len(p[2].place):
+    if not len(p[3].place):
       p[0] =node()
-    else:
-      # print "Selector:"
-      # print p[1].idlist
-      info = findinfo(p[1].idlist[0])
-      # print info.mysize
-      # print p[1].bytesize
-      # print info.offset
-      p[0] = p[1]
-      p[0].place = p[2].place
-      p[0].types = p[2].types
 
-
-def p_selector(p):
-    '''Selector : DOT IDENTIFIER'''
-    p[0] = node()
-    info = findinfo(p[-1].idlist[0])
-    # print p[2]
-    structname=info.type
-    # print "Selector"
-    # print structname
-    if structname[0] =='arr':
-      for i in range(len(structname)):
-        if structname[i]!='arr':
-          break
-      structname = structname[i:][0][4:]
-    else:
-      structname = structname[4:]
-    # print "after"
-    # print structname
-    info_of_struct = findinfo(structname,0)
-    struct_scope = info_of_struct.child
-    if p[2] not in struct_scope.table:
-      raise NameError("identifier " + p[2]+ " is not defined inside the struct")
-    s = p[-1].idlist[0]+'.'+p[2]
-    if checkid(s,'e'):
-      info = findinfo(s)
-      p[0].place = [info.place]
-      p[0].types = [info.type]
-    else:
-      v = newvar()
-      p[0].place = [v]
-      type_of_var = struct_scope.retrieve(p[2])
-      p[0].types = [type_of_var.type]
-      scopeDict[curScope].insert(s,p[0].types[0])
-      scopeDict[curScope].updateAttr(s,'place',p[0].place[0])
 
 def p_slice(p):
     '''Slice : LSQUARE ExpressionOpt COLON ExpressionOpt RSQUARE
@@ -1549,11 +1572,21 @@ def p_assignment(p):
       p[0].code.append(['store',p[1].extra['AddrList'][i],p[1].place[i]])
 
     if p[2]=='=':
+      # print p[1].idlist
+      # x = p[1].idlist[0]
+      # info = findinfo(x)
+      # print info.type
+      # print p[1].types
+      # scopeDict[curScope].updateExtra(p[1].idlist)
       # print i
       # print "p[1].types[i] = "+str(p[1].types[i])
       # print "p[3].types[i] = "+str(p[3].types[i])
       if not equalcheck(p[1].types[i],p[3].types[i]):
         raise TypeError("Types of expressions on both sides of = don't match")
+      else:
+        if p[1].types[i].startswith('*type'):
+          # print "ohh -----------------------------------------"
+          scopeDict[curScope].updateExtra(p[1].idlist[i],'*struct')
     else:
       if not opTypeCheck(p[1].types[i],p[3].types[i],p[2][0]):
         raise TypeError("Types of expressions on both sides of ()= don't match")
@@ -2019,8 +2052,10 @@ print "Successfully Done <---------------->"
 # info1 = findinfo('i',2)
 # print info1.mysize
 
+
+
 # print "FINAL CODE:"
-print_list(result.code)
+# print_list(result.code)
 
 
 # print scopeDict[2].__dict__
@@ -2028,3 +2063,5 @@ print_list(result.code)
 # info2 = findinfo('age',2)
 # print "Offset of age in rect :"
 # print info2.offset
+
+
