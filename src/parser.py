@@ -1625,14 +1625,22 @@ def p_switch_statement(p):
   p[0] = p[1]
 
 def p_ExprSwitchStmt(p):
-  '''ExprSwitchStmt : SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL '''
+  '''ExprSwitchStmt : SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL EndScope'''
   p[0]=p[2]
   dLabel = None
+  # print "ExprSwitchStmt:"
+  # print p[6].extra['labels']
   l1 = newlabel()
   p[0].code += [['goto',l1]]
+  # print p[6].code
   p[0].code += p[6].code
   p[0].code += [['label',l1]]
-  p[0].code += p[6].extra['exprList']
+  p_6_rep = []
+  for i in p[6].extra['exprList']:
+    if len(i)!=0:
+      p_6_rep.append(i)
+  p[0].code += p_6_rep
+  # print p[6].extra['exprList']
   for i in range(len(p[6].extra['labels'])):
     if p[6].extra['labeltype'][i] == 'default':
       dLabel = p[6].extra['labels'][i]
@@ -1654,6 +1662,9 @@ def p_start_switch(p):
   l2 = newlabel()
   scopeDict[curScope].updateExtra('endofAll',l2)
   p[0].extra['end'] = l2
+  par = scopeDict[curScope].parent
+  poff = scopeDict[par].extra['curOffset']
+  scopeDict[curScope].updateExtra('curOffset',poff)
 
 def findLabel(name):
   for scope in scopeStack[::-1]:
@@ -1681,11 +1692,21 @@ def p_ExprCaseClauseList(p):
 def p_ExprCaseClause(p):
     '''ExprCaseClause : ExprSwitchCase COLON StatementList '''
     p[0] = node()
-    l = newlabel()
+    # print "ExprCaseClauseList"
+    if p[1].extra['labeltype'][0]=='default':
+      l = newlabel()
+      v = [l]
+    else:
+      l = p[1].extra['labels'][0]
+      v =[]
+      for i in range(len(p[1].extra['labels'])):
+        v.append(p[1].extra['labels'][i])
+      # print p[1].extra['labels']
     p[0].code = [['label',l]]
     p[0].code += p[3].code
-    p[0].extra['labels'] = [l]
+    p[0].extra['labels'] = v
     lend = findLabel('endofAll')
+    # print lend
     p[0].code.append(['goto',lend])
     p[0].extra['exprList'] = p[1].extra['exprList']
     p[0].place = p[1].place
@@ -1701,8 +1722,9 @@ def p_ExprSwitchCase(p):
         p[0].extra['exprList'] = p[2].code
         p[0].extra['labels'] =[]
         p[0].extra['labeltype'] = []
+        l = newlabel()
+        # print l
         for i in range(len(p[2].place)):
-          l = newlabel()
           (p[0].extra['labels']).append(l)
           (p[0].extra['labeltype']).append('case')
     else:
