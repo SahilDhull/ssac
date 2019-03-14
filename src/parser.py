@@ -158,7 +158,7 @@ def newvar():
 
 def newconst():
   global constNum
-  val = 'c'+str(constNum)
+  val = 'temp_c'+str(constNum)
   constNum+=1
   return val
 
@@ -469,6 +469,21 @@ def p_params(p):
                   | LPAREN RPAREN'''
     if len(p) == 4:
       p[0] = p[2]
+      # print "Parameters:"
+      # print p[0].idlist
+      # print p[0].types
+      scopeDict[curScope].updateExtra('parOffset',0)
+      l = len(p[0].idlist)-1
+      for i in range(len(p[0].idlist)):
+        ind = l-i
+        # print "->"
+        x = p[0].idlist[ind]
+        info = findinfo(x)
+        y = scopeDict[curScope].extra['parOffset']
+        z = info.mysize
+        scopeDict[curScope].extra['parOffset'] -= z
+        info.offset = scopeDict[curScope].extra['parOffset']
+
     else:
       p[0] = node()
 
@@ -491,6 +506,10 @@ def p_param_decl(p):
       for x in p[1].idlist:
         scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
         p[0].types.append(p[2].types[0])
+        # print "=>"
+        # print p[2].bytesize
+        info = findinfo(x)
+        info.mysize = p[2].bytesize
         # if pointer
         if (p[2].types[0]).startswith('*'):
           t = p[2].types[0]
@@ -517,6 +536,8 @@ def p_stat_rep(p):
     if len(p) == 4:
         p[0] = p[1]
         p[0].code += p[2].code
+        # print p[0].__dict__
+        p[0].idlist += p[2].idlist
     else:
         p[0] = node()
 # -------------------------------------------------------
@@ -645,6 +666,7 @@ def p_expr_list(p):
     p[0].code = p[1].code+p[0].code
     p[0].place = p[1].place + p[0].place
     p[0].types = p[1].types + p[0].types
+    p[0].idlist = p[1].idlist + p[0].idlist
     if 'AddrList' not in p[1].extra:
       p[1].extra['AddrList'] = ['None']
     p[0].extra['AddrList'] += p[1].extra['AddrList']
@@ -657,6 +679,7 @@ def p_expr_rep(p):
         p[0].code+=p[3].code
         p[0].types+=p[3].types
         p[0].place+=p[3].place
+        p[0].idlist += p[3].idlist
         if 'AddrList' not in p[3].extra:
           p[3].extra['AddrList'] = ['None']
         p[0].extra['AddrList'] += p[3].extra['AddrList']
@@ -780,6 +803,7 @@ def p_var_spec(p):
         info.mysize = p[2].bytesize
         info.offset = scopeDict[curScope].extra['curOffset']
         scopeDict[curScope].extra['curOffset'] += p[2].bytesize
+        # p[0].code.append(['=',x,p[1].place[i]])
         # print x
         # print scopeDict[curScope].extra['curOffset']
     return
@@ -857,6 +881,9 @@ def p_func_decl(p):
   '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope
                   | FUNC FunctionName CreateScope Signature EndScope'''
   p[0]=node()
+  # print "FunctionDecl: "+p[2]
+  # print curScope
+  # print scopeDict[curScope].extra['curOffset']
   if len(p[4].code):
     global mainFunc
     if mainFunc:
@@ -864,12 +891,14 @@ def p_func_decl(p):
       p[0].code = [["goto","main"]]
     p[0].code.append(['label',p[2]])
     p[0].code += p[4].code
+    # print p[4].__dict__
     # print print_list(p[0].code)
   p[0].idlist += [p[2]]
 
 def p_create_scope(p):
   '''CreateScope : '''
   addscope()
+  # print curScope
 
 def p_end_scope(p):
   '''EndScope : '''
@@ -893,6 +922,10 @@ def checksignature(name):
 def p_func(p):
     '''Function : Signature RetTypeSet FunctionBody'''
     p[0] = p[3]
+    # print "Function: "
+    # print curScope
+    scopeDict[curScope].updateExtra('curOffset',0)
+    # print p[3].__dict__
     for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
       info = findinfo(x)
@@ -1106,7 +1139,7 @@ def p_prim_expr(p):
     for key,value in enumerate(scopeDict[curScope].table):
       cur = findinfo(value,curScope)
       listval.append(value)
-      p[0].code.append(['push',cur.place])
+      # p[0].code.append(['push',cur.place])
 
     info = findinfo(p[1].idlist[0],0)
     functionDict = info.child
@@ -1122,25 +1155,33 @@ def p_prim_expr(p):
     # print "PrimaryExpr (Function):"
     name = p[1].idlist[0]
     info.label = name
+    # print p[0].place
     if len(info.retType)==1:
+      v1 = 'temp_'+name+'_1'
       if info.retType[0]=='void':
         p[0].code.append(['call_void',info.label])
       elif info.retType[0]=='int':
-        v1 = newvar()
         p[0].place = [v1]
         p[0].code.append(['call_int',v1,info.label])
       elif info.retType[0]=='float':
-        v1 = newvar()
         p[0].place = [v1]
         p[0].code.append(['call_float',v1,info.label])
+      elif info.retType[0]=='string':
+        p[0].place = [v1]
+        p[0].code.append(['call_string',v1,info.label])
       p[0].types = [p[1].types[0]]
+      # print p[0].place
     else:
       # print info.retType
+      p[0].place = []
       p[0].types = info.retType
       r = []
+      k = 1
       for i in range(len(info.retType)):
-        r.append(newvar())
-        p[0].place += r[i]
+        s = 'temp_' + name+'_'+str(i+1)
+        r.append(s)
+        p[0].place.append(s)
+      # print p[0].place
       a = ['call_mult'] + r + [info.label]
       p[0].code.append(a)
 
@@ -1153,14 +1194,18 @@ def p_prim_expr(p):
     for val in listval[::-1]:
       # print val
       cur = findinfo(val,curScope)
-      p[0].code.append(['pop',cur.place])
+      # p[0].code.append(['pop',cur.place])
 
 
   #RESUME
+  # ------------------   SELECTOR  -------------------------
   else:
+    # print p[2].__dict__
     if not len(p[2].place):
       p[0] =node()
     else:
+      # print "Selector:"
+      # print 
       p[0] = p[1]
       p[0].place = p[2].place
       p[0].types = p[2].types
@@ -1725,22 +1770,32 @@ def p_return(p):
   else:
     if len(p[2].types)!=len(retType):
       raise TypeError("Number of return argument doesn't match for "+fName)
+    r = []
+    # print "Return Stmt :"
+    # print p[2].types
+    # print retType
+    # print p[2].place
     for i in range(len(p[2].types)):
       if not equalcheck(retType[i],p[2].types[i]):
         raise TypeError("Function "+fname+" has return type "+retType[i]+" which doesnt match that in stmt i.e. "+p[2].types[i] )
-      if p[2].types[i]=='int' or p[2].types[i]=='cint':
-        p[0].code.append(['retint',p[2].place[i]])
-      elif p[2].types[i]=='float' or p[2].types[i]=='cfloat':
-        p[0].code.append(['retfloat',p[2].place[0]])
-      elif p[2].types[i]=='string' or p[2].types[i]=='cstring':
-        p[0].code.append(['retstring',p[2].place[i]])
-      elif p[2].types[i]=='bool' or p[2].types[i]=='cbool':
-        p[0].code.append(['retbool',p[2].place[i]])
+      # if p[2].types[i]=='int' or p[2].types[i]=='cint':
+      #   p[0].code.append(['retint',p[2].place[i]])
+      # elif p[2].types[i]=='float' or p[2].types[i]=='cfloat':
+      #   p[0].code.append(['retfloat',p[2].place[0]])
+      # elif p[2].types[i]=='string' or p[2].types[i]=='cstring':
+      #   p[0].code.append(['retstring',p[2].place[i]])
+      # elif p[2].types[i]=='bool' or p[2].types[i]=='cbool':
+      #   p[0].code.append(['retbool',p[2].place[i]])
+      r.append(p[2].place[i])
+      p[0].place += r[i]
+    a = ['ret_mult'] + r + []
+    p[0].code.append(a)
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList
              | epsilon'''
   p[0] = p[1]
+  # print p[1].idlist
 
 def p_break(p):
   '''BreakStmt : BREAK LabelOpt'''
@@ -1897,4 +1952,4 @@ print "Successfully Done <---------------->"
 # print info1.mysize
 
 # print "FINAL CODE:"
-# print_list(result.code)
+print_list(result.code)
