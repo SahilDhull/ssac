@@ -15,4 +15,6 @@ func main(){
 	c[0] = 1.0;
 	c[1] = 2.0;
 	var d *string;
+	var e [2][3][4] int;
+	e[1][2][1]=1;
 };

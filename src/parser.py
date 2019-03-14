@@ -1115,14 +1115,15 @@ def p_prim_expr(p):
     # print "PrimaryExpr(Array) : "+name + ", layer = "+ str(k)
     # print lsize
     # check on index range
+    if p[1].extra['layerNum'] == len(lsize)-1:
+      raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
+
     if 'operandValue' in p[3].extra:
       z = p[3].extra['operandValue'][0]
       y = scopeDict[curScope].extra[p[1].extra['operand']]
       if z>=y[k]:
         raise IndexError("Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
-    if p[1].extra['layerNum'] == len(lsize)-1:
-      raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
-
+    
     v1 = newvar()
     p[0].code.append(['=',v1,p[3].place[0]])
     for i in lsize[p[1].extra['layerNum']+1:]:
@@ -1156,8 +1157,16 @@ def p_prim_expr(p):
       listval.append(value)
       # p[0].code.append(['push',cur.place])
 
+    # print "Function in PrimaryExpr"
+    x = p[1].idlist[0]
+    # print x
+
     info = findinfo(p[1].idlist[0],0)
+    # print info.__dict__
     functionDict = info.child
+    # print "---"
+    if len(functionDict.extra['types'])!=len(p[3].place):
+      raise IndexError("Function "+x+" passed with Unequal number of arguments")
     paramTypes = functionDict.extra['types']
     if len(p[3].place):
       for x in p[3].place:
@@ -1332,6 +1341,13 @@ def p_expr(p):
       p[0].idlist = p[1].idlist + p[3].idlist
       if p[2]=='<<' or p[2]=='>>'and p[3].types[0]!='int' and p[3].types[0]!='cint':
           raise TypeError("RHS of shift operator is not integer")
+      if p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/':
+        if (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
+          p[0].code.append(['typecast','float',p[1].place[0]])
+          p[1].types = ['float']
+        elif (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
+          p[0].code.append(['typecast','float',p[3].place[0]])
+          p[3].types = ['float']
       if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
         raise TypeError("Types of expressions does not match")
       else:
@@ -2043,16 +2059,63 @@ result = parser.parse(s,debug=0)
 
 # print result.__dict__
 
-print "Successfully Done <---------------->"
+# print "Successfully Done <---------------->"
 
 
 # print_scope_Dict()
 
 
+def print_in_format():
+  print "Scope,\t\tName,\t\tType,\t\tChild"
+  for i in range(len(scopeDict)):
+    # print "Level "+str(i)+" :"
+    # print scopeDict[i].__dict__
+    symtab = scopeDict[i]
+    # print ""
+    for j in symtab.symbols:
+      s = ""
+      t = symtab.table[j].type
+      if type(t) is list:
+        for k in t:
+          # print k[:4]
+          if k[:4]=="type":
+            k = 'struct'
+          if k[:5]=='*type':
+            k='*struct'
+          s += str(k)+"_"
+        s = s[:-1]
+      else:
+        k = t
+        if k[:4]=="type":
+          k = 'struct'
+        if k[:5]=='*type':
+          k='*struct'
+        s = k
+      if symtab.table[j].child:
+        print str(i)+",\t\t"+j + ",\t\t"+s+",\t\t"+ str(symtab.table[j].child.val)
+      else:
+        print str(i)+",\t\t"+j + ",\t\t"+s+",\t\t"
+    # info = scopeDict[i].retrieve()
+    # print " <----------------------------------> "
+
+# csv_name = file_name[:-3]
+# print csv_name
+sys.stdout =  open("Table.csv", "w+")
+print_in_format()
+
 # info1 = findinfo('i',2)
 # print info1.mysize
 
+def print_3AC(l):
+  for i in l:
+    s = ""
+    for j in i:
+      s+=str(j)+" "
+    print s
 
+
+sys.stdout =  open("3AC.txt", "w+")
+print_3AC(result.code)
 
 # print "FINAL CODE:"
 # print_list(result.code)

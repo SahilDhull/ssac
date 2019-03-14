@@ -1,7 +1,14 @@
 package math;
 import "fmt";
 
+var a int;
+
+func f(a int) int {
+	return a;
+};
+
 func main(){
-	var a [2][3][4] int;
-	a[1][2][1]=1;
+	var a int = 1;
+	var f,g float;
+	f = g+a;
 };
