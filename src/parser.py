@@ -411,8 +411,15 @@ def p_field_decl(p):
     x = p[0].idlist[i]
     # print p[1].idlist[i]
     # print p[2].size[0]
+    info = findinfo(x)
     scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
     y = scopeDict[curScope].extra['curOffset']
+    info.offset = y
+    scopeDict[curScope].extra['curOffset'] += p[2].bytesize
+    # print y
+    info.mysize = p[2].bytesize
+    # print x
+    # print info.mysize
     # print y
     # print p[2].size
     # scopeDict[curScope].updateExtra('curOffset',y+p[2].size[0])
@@ -741,6 +748,7 @@ def p_var_decl(p):
                | VAR LPAREN VarSpecRep RPAREN'''
     if len(p) == 3:
         p[0] = p[2]
+        # print p[0].bytesize
     else:
         p[0] = p[3]
 
@@ -751,6 +759,7 @@ def p_var_spec_rep(p):
         p[0] = p[1]
         p[0].code+=p[2].code
         p[0].bytesize += p[2].bytesize
+        # print p[0].bytesize
     else:
         p[0]=p[1]
 
@@ -800,6 +809,7 @@ def p_var_spec(p):
       else:
         scopeDict[s].updateAttr(x,'type',p[2].types[0])
         p[0].bytesize += p[2].bytesize
+        # print p[0].bytesize
         info.mysize = p[2].bytesize
         info.offset = scopeDict[curScope].extra['curOffset']
         scopeDict[curScope].extra['curOffset'] += p[2].bytesize
@@ -1205,7 +1215,11 @@ def p_prim_expr(p):
       p[0] =node()
     else:
       # print "Selector:"
-      # print 
+      # print p[1].idlist
+      info = findinfo(p[1].idlist[0])
+      # print info.mysize
+      # print p[1].bytesize
+      # print info.offset
       p[0] = p[1]
       p[0].place = p[2].place
       p[0].types = p[2].types
@@ -1215,6 +1229,7 @@ def p_selector(p):
     '''Selector : DOT IDENTIFIER'''
     p[0] = node()
     info = findinfo(p[-1].idlist[0])
+    # print p[2]
     structname=info.type
     # print "Selector"
     # print structname
@@ -1291,6 +1306,7 @@ def p_expr(p):
     else:
       p[0]=node()
       p[0].code = p[1].code + p[3].code
+      p[0].idlist = p[1].idlist + p[3].idlist
       if p[2]=='<<' or p[2]=='>>'and p[3].types[0]!='int' and p[3].types[0]!='cint':
           raise TypeError("RHS of shift operator is not integer")
       if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
@@ -1564,7 +1580,7 @@ def p_AssignOp(p):
 # -------------   IF STMT   ------------------------
 
 def p_if_statement(p):
-  ''' IfStmt : IF Expression CreateScope Block EndScope ElseOpt '''
+  ''' IfStmt : IF Expression CreateScope IFSYM Block EndScope ElseOpt '''
   p[0] = node()
   p[0].code = p[2].code
   l1 = newlabel()
@@ -1578,11 +1594,17 @@ def p_if_statement(p):
   p[0].code += [['=',v3,'1']]
   p[0].code += [['-',v1,v1,v3]]
   p[0].code += [['ifgoto',v1,l1]]
-  p[0].code += p[4].code
+  p[0].code += p[5].code
   p[0].code += [['goto',l2]]
   p[0].code += [['label',l1]]
-  p[0].code += p[6].code
+  p[0].code += p[7].code
   p[0].code += [['label',l2]]
+
+def p_if_sym(p):
+  '''IFSYM : '''
+  par = scopeDict[curScope].parent
+  poff = scopeDict[par].extra['curOffset']
+  scopeDict[curScope].updateExtra('curOffset',poff)
 
 def p_else_opt(p):
   ''' ElseOpt : ELSE IfStmt
@@ -1703,21 +1725,44 @@ def p_for(p):
   p[0].code += [['goto',l1]]
   l2 = p[3].extra['after']
   p[0].code += [['label',l2]]
+  # print "For:"
+  # print curScope
+  # print scopeDict[curScope].extra['curOffset']
+  # print scopeStack
+  # vnew = newvar()
+  # for x in p[3].idlist:
+  #   inf = findinfo(x)
+  #   print inf.offset
+  #   p[0].code.append(['pop',vnew])
 
 def p_conditionblockopt(p):
   '''ConditionBlockOpt : epsilon
              | Condition
              | ForClause'''
   p[0] = p[1]
+  # print "=========="
+  # print curScope
+  par = scopeDict[curScope].parent
+  poff = scopeDict[par].extra['curOffset']
+  scopeDict[curScope].updateExtra('curOffset',poff)
 
 def p_condition(p):
   '''Condition : Expression '''
   p[0]=p[1]
+  # print p[0].idlist
 
 def p_forclause(p):
   '''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
   p[0] = p[1]
   l1 = newlabel()
+  # print p[3].idlist
+  # for x in p[3].idlist:
+  #   if x not in p[0].idlist:
+  #     p[0].idlist.append(x)
+  #   inf = findinfo(x)
+  #   print inf.offset
+  #   p[0].code.append(['push','off_'+str(inf.offset)])
+  # p[0].code +=
   p[0].code += [['label',l1]]
   p[0].extra['before'] = l1
   p[0].code += p[3].code
@@ -1733,6 +1778,7 @@ def p_forclause(p):
     p[0].code += [['-',v1,v2,v2]]
     p[0].code += [['ifgoto',v1,l2]]
   p[0].extra['incr'] = p[5].code
+
 
 def p_conditionopt(p):
   '''ConditionOpt : epsilon
@@ -1953,3 +1999,10 @@ print "Successfully Done <---------------->"
 
 # print "FINAL CODE:"
 print_list(result.code)
+
+
+# print scopeDict[2].__dict__
+
+# info2 = findinfo('age',2)
+# print "Offset of age in rect :"
+# print info2.offset
