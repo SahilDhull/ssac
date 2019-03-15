@@ -99,9 +99,9 @@ def addscope(name=None):
   scopeDict[scopeLevel] = st(scopeLevel)
   scopeDict[scopeLevel].setParent(curScope)
   scopeDict[scopeLevel].updateExtra('curOffset',0)
-  if mainFunc:
-    y = scopeDict[0].extra['curOffset']
-    scopeDict[scopeLevel].updateExtra('curOffset',y)
+  # if mainFunc:
+  #   y = scopeDict[0].extra['curOffset']
+  #   scopeDict[scopeLevel].updateExtra('curOffset',y)
   if name is not None:
     # Not sure if correct
     # print name
@@ -1341,15 +1341,15 @@ def p_expr(p):
       p[0].idlist = p[1].idlist + p[3].idlist
       if p[2]=='<<' or p[2]=='>>'and p[3].types[0]!='int' and p[3].types[0]!='cint':
           raise TypeError("RHS of shift operator is not integer")
-      if p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/':
-        if (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
-          p[0].code.append(['typecast','float',p[1].place[0]])
-          p[1].types = ['float']
-        elif (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
-          p[0].code.append(['typecast','float',p[3].place[0]])
-          p[3].types = ['float']
       if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
-        raise TypeError("Types of expressions does not match")
+        # print p[2] + p[1].types[0] + p[3].types[0]
+        if (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
+          x=1
+        elif (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
+          x=2
+        else:
+          # print "why"
+          raise TypeError("Types of expressions does not match")
       else:
         p[0].types=p[1].types
       if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
@@ -1377,6 +1377,17 @@ def p_expr(p):
         p[0].code.append(['=',t,'4'])
         p[0].code.append(['x',t,t,p[3].place[0]])
         p[0].code.append(['+',v,t,p[1].place[0]])
+      elif p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/':
+        if (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
+          p[0].code.append(['typecast','float',p[1].place[0]])
+          p[1].types = ['float']
+          p[0].types = ['float']
+          p[0].code.append([p[2]+'f',v,p[1].place[0],p[3].place[0]])
+        elif (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
+          p[0].code.append(['typecast','float',p[3].place[0]])
+          p[3].types = ['float']
+          p[0].types = ['float']
+          p[0].code.append([p[2]+'f',v,p[1].place[0],p[3].place[0]])
       else:
         p[0].code.append([p[2],v,p[1].place[0],p[3].place[0]])
       p[0].place = [v]
@@ -2066,7 +2077,9 @@ result = parser.parse(s,debug=0)
 
 
 def print_in_format():
-  print "Scope,\t\tName,\t\tType,\t\tChild"
+  # print "Scope,\t\t\tName,\t\t\tType,\t\t\tOffset,\t\t\tChild"
+  tab = [[]]
+  tab[0] = ['Scope,','Name,','Type,','Offset,','Child']
   for i in range(len(scopeDict)):
     # print "Level "+str(i)+" :"
     # print scopeDict[i].__dict__
@@ -2091,12 +2104,23 @@ def print_in_format():
         if k[:5]=='*type':
           k='*struct'
         s = k
+      scope = str(i)
+      name = j
+      typ = s
+      off = str(symtab.table[j].offset)
       if symtab.table[j].child:
-        print str(i)+",\t\t"+j + ",\t\t"+s+",\t\t"+ str(symtab.table[j].child.val)
+        child = str(symtab.table[j].child.val)
       else:
-        print str(i)+",\t\t"+j + ",\t\t"+s+",\t\t"
+        child = ""
+      # print scope+",\t\t\t"+name+ ",\t\t\t"+typ+",\t\t\t"+off+",\t\t\t"+ child
+      tab.append([scope+',',name+',',typ+',',off+',',child])
     # info = scopeDict[i].retrieve()
     # print " <----------------------------------> "
+  # print tab
+  col_width = max(len(word) for row in tab for word in row) + 5
+  flag = 0
+  for row in tab:
+    print "".join(word.ljust(col_width) for word in row)
 
 # csv_name = file_name[:-3]
 # print csv_name

@@ -1,0 +1,9 @@
+goto main 
+label f 
+retint off_0 
+label main 
+= temp_c0 1 
+= a temp_c0 
+typecast float off_0 
+-f v5 off_8 off_0 
+= off_4 v5 
