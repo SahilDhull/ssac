@@ -1,9 +1,19 @@
 goto main 
 label f 
-retint off_0 
+movsi 20 0(%ebp) 
+movs 8(%ebp) 16(%ebp) 
+movs 4(%ebp) 12(%ebp) 
+= v3 off_-4 
+jump v3(%ebp) 
+label g 
+movsi 16 0(%ebp) 
+movs 8(%ebp) 12(%ebp) 
+= v6 off_-4 
+jump v6(%ebp) 
 label main 
-= temp_c0 1 
-= a temp_c0 
-typecast float off_0 
--f v5 off_8 off_0 
-= off_4 v5 
+movsi 4 0(%ebp) 
+jal f 
+movs -20(%ebp) ret_f_1 
+movs -24(%ebp) ret_f_2 
+jal g 
+movs -20(%ebp) ret_g_1 
