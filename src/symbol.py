@@ -5,6 +5,7 @@ class symnode:
 		self.name = None
 		self.type = None
 		self.retType = []
+		self.retsize = []
 		self.label = None
 		self.listsize = None
 		self.place = None
@@ -101,3 +102,4 @@ class node:
 		self.limits=[]
 		self.bytesize = 0
 		self.extra={}
+		self.retsize=[]

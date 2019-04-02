@@ -1,19 +1,19 @@
 goto main 
 label f 
-movsi 20 0(%ebp) 
-movs 8(%ebp) 16(%ebp) 
-movs 4(%ebp) 12(%ebp) 
-= v3 off_-4 
-jump v3(%ebp) 
-label g 
-movsi 16 0(%ebp) 
-movs 8(%ebp) 12(%ebp) 
-= v6 off_-4 
-jump v6(%ebp) 
+= temp_c0 1 
+movs temp_c0 20(%ebp) 
+movs 4(%ebp) 16(%ebp) 
+jump 24(%ebp) 
 label main 
-movsi 4 0(%ebp) 
-jal f 
-movs -20(%ebp) ret_f_1 
-movs -24(%ebp) ret_f_2 
-jal g 
-movs -20(%ebp) ret_g_1 
+= temp_c1 "o" 
+push $ra 
+push ret1 4 
+push ret2 4 
+push temp_c1 8 
+push off_4 4 
+push 36 4 
+addi %ebp %ebp -36 
+jump f 
+addi %ebp %ebp 36 
+movs -16(%ebp) ret_f_1 
+movs -20(%ebp) ret_f_2 

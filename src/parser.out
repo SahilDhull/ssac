@@ -152,7 +152,7 @@ Rule 146   Statement -> ReturnStmt
 Rule 147   Statement -> BreakStmt
 Rule 148   Statement -> ContinueStmt
 Rule 149   Statement -> GotoStmt
-Rule 150   Statement -> CreateScope Block EndScope_1
+Rule 150   Statement -> CreateScope IFSYM Block EndScope_1
 Rule 151   Statement -> IfStmt
 Rule 152   Statement -> SwitchStmt
 Rule 153   Statement -> ForStmt
@@ -376,7 +376,7 @@ FunctionName         : 79 80
 GoStmt               : 156
 GotoStmt             : 149
 I                    : 91
-IFSYM                : 190 193
+IFSYM                : 150 190 193
 IdentifierList       : 27 39 54 75
 IdentifierRep        : 57 58
 IfStmt               : 151 192
@@ -5497,9 +5497,9 @@ state 192
     (60) ExpressionList -> Expression ExpressionRep .
     (61) ExpressionRep -> ExpressionRep . COMMA Expression
 
+    COLON           reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
     SEMICOLON       reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
     LCURL           reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
-    COLON           reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
     RPAREN          reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
     PLUSEQUAL       reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
     MINUSEQUAL      reduce using rule 60 (ExpressionList -> Expression ExpressionRep .)
@@ -8015,7 +8015,7 @@ state 241
     (147) Statement -> . BreakStmt
     (148) Statement -> . ContinueStmt
     (149) Statement -> . GotoStmt
-    (150) Statement -> . CreateScope Block EndScope_1
+    (150) Statement -> . CreateScope IFSYM Block EndScope_1
     (151) Statement -> . IfStmt
     (152) Statement -> . SwitchStmt
     (153) Statement -> . ForStmt
@@ -9151,8 +9151,8 @@ state 283
     (62) ExpressionRep -> . epsilon
     (235) epsilon -> .
 
-    LCURL           reduce using rule 173 (ExpressionStmt -> Expression .)
     SEMICOLON       reduce using rule 173 (ExpressionStmt -> Expression .)
+    LCURL           reduce using rule 173 (ExpressionStmt -> Expression .)
     INCREMENT       shift and go to state 329
     DECREMENT       shift and go to state 330
     COMPARE_OR      shift and go to state 157
@@ -9301,12 +9301,12 @@ state 287
 
 state 288
 
-    (150) Statement -> CreateScope . Block EndScope_1
-    (41) Block -> . LCURL StatementList RCURL
+    (150) Statement -> CreateScope . IFSYM Block EndScope_1
+    (191) IFSYM -> .
 
-    LCURL           shift and go to state 228
+    LCURL           reduce using rule 191 (IFSYM -> .)
 
-    Block                          shift and go to state 333
+    IFSYM                          shift and go to state 333
 
 state 289
 
@@ -9738,7 +9738,7 @@ state 306
     (147) Statement -> . BreakStmt
     (148) Statement -> . ContinueStmt
     (149) Statement -> . GotoStmt
-    (150) Statement -> . CreateScope Block EndScope_1
+    (150) Statement -> . CreateScope IFSYM Block EndScope_1
     (151) Statement -> . IfStmt
     (152) Statement -> . SwitchStmt
     (153) Statement -> . ForStmt
@@ -10704,12 +10704,12 @@ state 332
 
 state 333
 
-    (150) Statement -> CreateScope Block . EndScope_1
-    (159) EndScope_1 -> .
+    (150) Statement -> CreateScope IFSYM . Block EndScope_1
+    (41) Block -> . LCURL StatementList RCURL
 
-    SEMICOLON       reduce using rule 159 (EndScope_1 -> .)
+    LCURL           shift and go to state 228
 
-    EndScope_1                     shift and go to state 349
+    Block                          shift and go to state 349
 
 state 334
 
@@ -11119,10 +11119,12 @@ state 348
 
 state 349
 
-    (150) Statement -> CreateScope Block EndScope_1 .
+    (150) Statement -> CreateScope IFSYM Block . EndScope_1
+    (159) EndScope_1 -> .
 
-    SEMICOLON       reduce using rule 150 (Statement -> CreateScope Block EndScope_1 .)
+    SEMICOLON       reduce using rule 159 (EndScope_1 -> .)
 
+    EndScope_1                     shift and go to state 355
 
 state 350
 
@@ -11131,7 +11133,7 @@ state 350
 
     LCURL           reduce using rule 191 (IFSYM -> .)
 
-    IFSYM                          shift and go to state 355
+    IFSYM                          shift and go to state 356
 
 state 351
 
@@ -11256,17 +11258,17 @@ state 352
     Conversion                     shift and go to state 92
     UnaryOp                        shift and go to state 93
     I                              shift and go to state 104
-    epsilon                        shift and go to state 357
+    epsilon                        shift and go to state 358
     F                              shift and go to state 103
     UnaryExpr                      shift and go to state 105
     Operand                        shift and go to state 114
-    ConditionOpt                   shift and go to state 358
+    ConditionOpt                   shift and go to state 359
     C                              shift and go to state 102
     BasicLit                       shift and go to state 98
     PrimaryExpr                    shift and go to state 106
     Literal                        shift and go to state 110
-    Expression                     shift and go to state 359
-    Condition                      shift and go to state 356
+    Expression                     shift and go to state 360
+    Condition                      shift and go to state 357
 
 state 353
 
@@ -11275,7 +11277,7 @@ state 353
 
     SEMICOLON       reduce using rule 159 (EndScope_1 -> .)
 
-    EndScope_1                     shift and go to state 360
+    EndScope_1                     shift and go to state 361
 
 state 354
 
@@ -11286,39 +11288,46 @@ state 354
     CASE            reduce using rule 197 (StartSwitch -> .)
     DEFAULT         reduce using rule 197 (StartSwitch -> .)
 
-    StartSwitch                    shift and go to state 361
+    StartSwitch                    shift and go to state 362
 
 state 355
+
+    (150) Statement -> CreateScope IFSYM Block EndScope_1 .
+
+    SEMICOLON       reduce using rule 150 (Statement -> CreateScope IFSYM Block EndScope_1 .)
+
+
+state 356
 
     (190) IfStmt -> IF Expression CreateScope IFSYM . Block EndScope_1 ElseOpt
     (41) Block -> . LCURL StatementList RCURL
 
     LCURL           shift and go to state 228
 
-    Block                          shift and go to state 362
+    Block                          shift and go to state 363
 
-state 356
+state 357
 
     (210) ConditionOpt -> Condition .
 
     SEMICOLON       reduce using rule 210 (ConditionOpt -> Condition .)
 
 
-state 357
+state 358
 
     (209) ConditionOpt -> epsilon .
 
     SEMICOLON       reduce using rule 209 (ConditionOpt -> epsilon .)
 
 
-state 358
+state 359
 
     (208) ForClause -> SimpleStmt SEMICOLON ConditionOpt . SEMICOLON SimpleStmt
 
-    SEMICOLON       shift and go to state 363
+    SEMICOLON       shift and go to state 364
 
 
-state 359
+state 360
 
     (207) Condition -> Expression .
     (114) Expression -> Expression . COMPARE_OR Expression
@@ -11363,14 +11372,14 @@ state 359
     AND             shift and go to state 155
 
 
-state 360
+state 361
 
     (203) ForStmt -> FOR CreateScope ConditionBlockOpt Block EndScope_1 .
 
     SEMICOLON       reduce using rule 203 (ForStmt -> FOR CreateScope ConditionBlockOpt Block EndScope_1 .)
 
 
-state 361
+state 362
 
     (196) ExprSwitchStmt -> SWITCH Expression CreateScope LCURL StartSwitch . ExprCaseClauseList RCURL EndScope_1
     (198) ExprCaseClauseList -> . epsilon
@@ -11381,10 +11390,10 @@ state 361
     CASE            reduce using rule 235 (epsilon -> .)
     DEFAULT         reduce using rule 235 (epsilon -> .)
 
-    epsilon                        shift and go to state 364
-    ExprCaseClauseList             shift and go to state 365
+    epsilon                        shift and go to state 365
+    ExprCaseClauseList             shift and go to state 366
 
-state 362
+state 363
 
     (190) IfStmt -> IF Expression CreateScope IFSYM Block . EndScope_1 ElseOpt
     (159) EndScope_1 -> .
@@ -11392,9 +11401,9 @@ state 362
     ELSE            reduce using rule 159 (EndScope_1 -> .)
     SEMICOLON       reduce using rule 159 (EndScope_1 -> .)
 
-    EndScope_1                     shift and go to state 366
+    EndScope_1                     shift and go to state 367
 
-state 363
+state 364
 
     (208) ForClause -> SimpleStmt SEMICOLON ConditionOpt SEMICOLON . SimpleStmt
     (166) SimpleStmt -> . epsilon
@@ -11476,7 +11485,7 @@ state 363
     S                              shift and go to state 107
     PrimaryExpr                    shift and go to state 106
     Conversion                     shift and go to state 92
-    SimpleStmt                     shift and go to state 367
+    SimpleStmt                     shift and go to state 368
     ExpressionStmt                 shift and go to state 255
     Operand                        shift and go to state 114
     OperandName                    shift and go to state 97
@@ -11493,7 +11502,7 @@ state 363
     Literal                        shift and go to state 110
     BasicLit                       shift and go to state 98
 
-state 364
+state 365
 
     (198) ExprCaseClauseList -> epsilon .
 
@@ -11502,7 +11511,7 @@ state 364
     DEFAULT         reduce using rule 198 (ExprCaseClauseList -> epsilon .)
 
 
-state 365
+state 366
 
     (196) ExprSwitchStmt -> SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList . RCURL EndScope_1
     (199) ExprCaseClauseList -> ExprCaseClauseList . ExprCaseClause
@@ -11510,14 +11519,14 @@ state 365
     (201) ExprSwitchCase -> . CASE ExpressionList
     (202) ExprSwitchCase -> . DEFAULT
 
-    RCURL           shift and go to state 371
-    CASE            shift and go to state 368
-    DEFAULT         shift and go to state 370
+    RCURL           shift and go to state 372
+    CASE            shift and go to state 369
+    DEFAULT         shift and go to state 371
 
-    ExprSwitchCase                 shift and go to state 369
-    ExprCaseClause                 shift and go to state 372
+    ExprSwitchCase                 shift and go to state 370
+    ExprCaseClause                 shift and go to state 373
 
-state 366
+state 367
 
     (190) IfStmt -> IF Expression CreateScope IFSYM Block EndScope_1 . ElseOpt
     (192) ElseOpt -> . ELSE IfStmt
@@ -11525,20 +11534,20 @@ state 366
     (194) ElseOpt -> . epsilon
     (235) epsilon -> .
 
-    ELSE            shift and go to state 374
+    ELSE            shift and go to state 375
     SEMICOLON       reduce using rule 235 (epsilon -> .)
 
-    epsilon                        shift and go to state 373
-    ElseOpt                        shift and go to state 375
+    epsilon                        shift and go to state 374
+    ElseOpt                        shift and go to state 376
 
-state 367
+state 368
 
     (208) ForClause -> SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt .
 
     LCURL           reduce using rule 208 (ForClause -> SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt .)
 
 
-state 368
+state 369
 
     (201) ExprSwitchCase -> CASE . ExpressionList
     (60) ExpressionList -> . Expression ExpressionRep
@@ -11612,37 +11621,37 @@ state 368
     UnaryExpr                      shift and go to state 105
     Operand                        shift and go to state 114
     Conversion                     shift and go to state 92
-    ExpressionList                 shift and go to state 376
+    ExpressionList                 shift and go to state 377
     C                              shift and go to state 102
     BasicLit                       shift and go to state 98
     PrimaryExpr                    shift and go to state 106
     Literal                        shift and go to state 110
     Expression                     shift and go to state 135
 
-state 369
+state 370
 
     (200) ExprCaseClause -> ExprSwitchCase . COLON StatementList
 
-    COLON           shift and go to state 377
+    COLON           shift and go to state 378
 
 
-state 370
+state 371
 
     (202) ExprSwitchCase -> DEFAULT .
 
     COLON           reduce using rule 202 (ExprSwitchCase -> DEFAULT .)
 
 
-state 371
+state 372
 
     (196) ExprSwitchStmt -> SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL . EndScope_1
     (159) EndScope_1 -> .
 
     SEMICOLON       reduce using rule 159 (EndScope_1 -> .)
 
-    EndScope_1                     shift and go to state 378
+    EndScope_1                     shift and go to state 379
 
-state 372
+state 373
 
     (199) ExprCaseClauseList -> ExprCaseClauseList ExprCaseClause .
 
@@ -11651,14 +11660,14 @@ state 372
     DEFAULT         reduce using rule 199 (ExprCaseClauseList -> ExprCaseClauseList ExprCaseClause .)
 
 
-state 373
+state 374
 
     (194) ElseOpt -> epsilon .
 
     SEMICOLON       reduce using rule 194 (ElseOpt -> epsilon .)
 
 
-state 374
+state 375
 
     (192) ElseOpt -> ELSE . IfStmt
     (193) ElseOpt -> ELSE . CreateScope IFSYM Block EndScope_1
@@ -11668,24 +11677,24 @@ state 374
     IF              shift and go to state 290
     LCURL           reduce using rule 81 (CreateScope -> .)
 
-    CreateScope                    shift and go to state 379
-    IfStmt                         shift and go to state 380
+    CreateScope                    shift and go to state 380
+    IfStmt                         shift and go to state 381
 
-state 375
+state 376
 
     (190) IfStmt -> IF Expression CreateScope IFSYM Block EndScope_1 ElseOpt .
 
     SEMICOLON       reduce using rule 190 (IfStmt -> IF Expression CreateScope IFSYM Block EndScope_1 ElseOpt .)
 
 
-state 376
+state 377
 
     (201) ExprSwitchCase -> CASE ExpressionList .
 
     COLON           reduce using rule 201 (ExprSwitchCase -> CASE ExpressionList .)
 
 
-state 377
+state 378
 
     (200) ExprCaseClause -> ExprSwitchCase COLON . StatementList
     (42) StatementList -> . StatementRep
@@ -11728,32 +11737,32 @@ state 377
 
     epsilon                        shift and go to state 242
     StatementRep                   shift and go to state 241
-    StatementList                  shift and go to state 381
+    StatementList                  shift and go to state 382
 
-state 378
+state 379
 
     (196) ExprSwitchStmt -> SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL EndScope_1 .
 
     SEMICOLON       reduce using rule 196 (ExprSwitchStmt -> SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL EndScope_1 .)
 
 
-state 379
+state 380
 
     (193) ElseOpt -> ELSE CreateScope . IFSYM Block EndScope_1
     (191) IFSYM -> .
 
     LCURL           reduce using rule 191 (IFSYM -> .)
 
-    IFSYM                          shift and go to state 382
+    IFSYM                          shift and go to state 383
 
-state 380
+state 381
 
     (192) ElseOpt -> ELSE IfStmt .
 
     SEMICOLON       reduce using rule 192 (ElseOpt -> ELSE IfStmt .)
 
 
-state 381
+state 382
 
     (200) ExprCaseClause -> ExprSwitchCase COLON StatementList .
 
@@ -11762,25 +11771,25 @@ state 381
     DEFAULT         reduce using rule 200 (ExprCaseClause -> ExprSwitchCase COLON StatementList .)
 
 
-state 382
+state 383
 
     (193) ElseOpt -> ELSE CreateScope IFSYM . Block EndScope_1
     (41) Block -> . LCURL StatementList RCURL
 
     LCURL           shift and go to state 228
 
-    Block                          shift and go to state 383
+    Block                          shift and go to state 384
 
-state 383
+state 384
 
     (193) ElseOpt -> ELSE CreateScope IFSYM Block . EndScope_1
     (159) EndScope_1 -> .
 
     SEMICOLON       reduce using rule 159 (EndScope_1 -> .)
 
-    EndScope_1                     shift and go to state 384
+    EndScope_1                     shift and go to state 385
 
-state 384
+state 385
 
     (193) ElseOpt -> ELSE CreateScope IFSYM Block EndScope_1 .
 
