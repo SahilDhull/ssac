@@ -1,5 +1,6 @@
+//Malloc
+
 package math;
-import "fmt";
 
 type rect struct {
     name string;
@@ -7,7 +8,7 @@ type rect struct {
     next *type rect;
 };
 
-func main() {
+func main(){
 	var x *type rect = malloc(2);
 	var l *int = malloc(1);
 };

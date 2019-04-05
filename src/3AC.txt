@@ -1,19 +1,4 @@
 goto main 
-label f 
-= temp_c0 1 
-movs temp_c0 20(%ebp) 
-movs 4(%ebp) 16(%ebp) 
-jump 24(%ebp) 
 label main 
-= temp_c1 "o" 
-push $ra 
-push ret1 4 
-push ret2 4 
-push temp_c1 8 
-push off_4 4 
-push 36 4 
-addi %ebp %ebp -36 
-jump f 
-addi %ebp %ebp 36 
-movs -16(%ebp) ret_f_1 
-movs -20(%ebp) ret_f_2 
+call_malloc x 8 
+call_malloc l 4 

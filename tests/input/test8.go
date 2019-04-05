@@ -6,8 +6,7 @@ import "fmt";
 
 type X int;
 
-func f(a int, b int) float
-{
+func f(a int, b int) float{
 	var c,d float;
 	a = b;
 	return c;

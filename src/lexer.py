@@ -31,7 +31,8 @@ keywords = {
 	'string' : 'STRING',
 	'bool' : 'BOOL',
 	'print' : 'PRINT',
-	'scan' : 'SCAN'
+	'scan' : 'SCAN',
+	'malloc' : 'MALLOC'
 }
 
 tokens = [

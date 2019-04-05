@@ -17,10 +17,7 @@ type rect struct {
 func main(){
 	var b type rect;
 	var k type side;
-	// var d int;
-	// d =1;
 	b.next = &k;
-	// b.age = 1;
 	b.next.l=1;
 	b.next.k = 1;
 	var c int;

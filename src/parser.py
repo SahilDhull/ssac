@@ -12,9 +12,9 @@ def size_calculate(s):
   if s=='int' or s=='cint' or s=='float' or s=='cfloat' :
     return 4
   if s=='string' or s == 'cstring':
-    return 8
+    return 32
   if s=='bool':
-    return 1
+    return 4
   return 0
 
 
@@ -252,10 +252,10 @@ def p_type_token(p):
           p[0].bytesize = 4
         elif p[1]=='bool':
           p[0].size=[1]
-          p[0].bytesize = 1
+          p[0].bytesize = 4
         else:
-          p[0].size = [8]
-          p[0].bytesize = 8
+          p[0].size = [32]
+          p[0].bytesize = 32
           # maximum size of string set to 8 bytes
     else:
         if not definedcheck(p[2]):
@@ -340,26 +340,20 @@ def p_array_type(p):
     if 'operandValue' in p[2].extra:
       p[0].limits = p[2].extra['operandValue']
       p[0].limits += p[4].limits
-    a = p[4].size[0][:4]
   else:
     p[0].types = ['arr'] + p[4].types
     if 'operandValue' in p[2].extra:
-      p[0].limits = p[2].extra['operandValue']
-    a = newarray()
-
-  
-  
-  a += '_'+str(len(p[0].limits))
-  p[0].code.append(['=',a,p[2].place[0]])
-  
-  
-  
-  p[0].size = [a] + p[4].size
+      x = p[2].extra['operandValue']
+      p[0].limits = x
+      x = int(x[0])
+  p[0].size = [int(x)] + p[4].size
 
 
 def p_array_length(p):
-  ''' ArrayLength : Expression '''
-  p[0]=p[1]
+  ''' ArrayLength : I INT_LIT '''
+  p[0]=node()
+  p[0].extra['operandValue'] = [p[2]]
+  p[0].types = ['cint']
 
 def p_element_type(p):
   ''' ElementType : Type '''
@@ -487,8 +481,8 @@ def p_result(p):
     '''Result : Parameters
               | Type'''
     p[0]=p[1]
-    
-
+    if not p[1].retsize :
+      p[0].retsize = [p[1].bytesize]
 
 def p_params(p):
     '''Parameters : LPAREN ParametersList RPAREN
@@ -534,21 +528,31 @@ def p_param_decl(p):
     if len(p)==2:
       p[0].retsize.append(p[1].bytesize)
     if len(p) == 3:
-      for x in p[1].idlist:
-        scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
-        p[0].types.append(p[2].types[0])
-        info = findinfo(x)
-        info.mysize = p[2].bytesize
-        p[0].bytesize += p[2].bytesize
-        # if pointer
-        if (p[2].types[0]).startswith('*'):
-          t = p[2].types[0]
-          for i in range(len(t)):
-            if t[i]!='*':
-              break
-          if t[i:] == 'int' or t[i:]=='float':
-            scopeDict[curScope].updateAttr(x,'size',['inf',4])
-          #TODO if time permits: typedef pointers
+      if (p[2].types[0]).startswith('arr'):
+        for x in p[1].idlist:
+          scopeDict[curScope].updateExtra(x,p[2].limits)
+          scopeDict[curScope].updateAttr(x,'type',p[2].types)
+          scopeDict[curScope].updateAttr(x,'size',p[2].size)
+          p[0].types += [p[2].types]
+          info = findinfo(x)
+          info.mysize = p[2].bytesize
+          p[0].bytesize += p[2].bytesize
+          info.listsize = p[2].limits + [p[2].size[len(p[2].types)-1]]
+      else:
+        for x in p[1].idlist:
+          scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
+          p[0].types.append(p[2].types[0])
+          info = findinfo(x)
+          info.mysize = p[2].bytesize
+          p[0].bytesize += p[2].bytesize
+          # if pointer
+          if (p[2].types[0]).startswith('*'):
+            t = p[2].types[0]
+            for i in range(len(t)):
+              if t[i]!='*':
+                break
+            if t[i:] == 'int' or t[i:]=='float':
+              scopeDict[curScope].updateAttr(x,'size',['inf',4])
 
 
 #-----------------------BLOCKS---------------------------
@@ -776,7 +780,6 @@ def p_var_decl(p):
                | VAR LPAREN VarSpecRep RPAREN'''
     if len(p) == 3:
         p[0] = p[2]
-        
     else:
         p[0] = p[3]
 
@@ -794,46 +797,35 @@ def p_var_spec_rep(p):
 def p_var_spec(p):
   '''VarSpec : IdentifierList Type ExpressionListOpt'''
   if len(p[3].place)==0:
+    a=0
+    if 'malloc' in p[3].extra:
+      if p[2].types[0].startswith('*'):
+        a=1
+      else:
+        raise TypeError("Malloc done to a non-pointer type")
+        return
     p[0]=p[1]
     p[0].code+=p[2].code
     # p[0].bytesize = p[2].bytesize
     
-    
-    if p[2].types[0]=='arr':
-      v = p[2].size[0]
-      for i in range(len(v)):
-        if v[i]=='_':
-          break
-      v = v[:i+1] + 'size'
-      
-      p[0].code.append(['=',v,1])
-      
-      for i in p[2].size:
-        if p[2].size[0]!='inf':
-          p[0].code.append(['x=',v,i])
-    
     for i in range(len(p[1].idlist)):
       x = p[1].idlist[i]
       s = findscope(x)
-      
-      
       info = findinfo(x)
-      
-      #For arrays
+      #For arraysDeclaration
       if p[2].types[0] == 'arr':
         scopeDict[curScope].updateExtra(x,p[2].limits)
         scopeDict[s].updateAttr(x,'type',p[2].types)
-        p[0].code.append(['array',x,v])
-        
-        
         scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
         p[0].bytesize += p[2].bytesize
         info.mysize = p[2].bytesize
         info.offset = scopeDict[curScope].extra['curOffset']
-        
         scopeDict[curScope].extra['curOffset'] += p[2].bytesize
-        
-        
+      elif a==1:
+        if p[2].types[0]=='*arr':
+          raise TypeError("Malloc for array must be in a loop")
+        p[0].code.append(['call_malloc',x,str(p[3].bytesize)])
+        scopeDict[s].updateAttr(x,'type',p[2].types)
       else:
         scopeDict[s].updateAttr(x,'type',p[2].types[0])
         p[0].bytesize += p[2].bytesize
@@ -845,6 +837,7 @@ def p_var_spec(p):
         
         
     return
+  
   p[0]=node()
   p[0].code = p[1].code + p[3].code
   if len(p[1].place)!=len(p[3].place):
@@ -879,9 +872,14 @@ def p_var_spec(p):
 
 def p_expr_list_opt(p):
     '''ExpressionListOpt : EQUALS ExpressionList
-                         | epsilon'''
+                         | epsilon
+                         | EQUALS MALLOC LPAREN I INT_LIT RPAREN'''
     if len(p) == 3:
         p[0] = p[2]
+    elif len(p) == 7:
+      p[0] = node()
+      p[0].bytesize = 4*int(p[5])
+      p[0].extra['malloc'] = 1
     else:
         p[0]=p[1]
 # -------------------------------------------------------
@@ -926,8 +924,6 @@ def p_func_decl(p):
     p[0].code += p[4].code
   p[0].idlist += [p[2]]
   p[0].retsize = p[4].retsize
-
-
 
 def p_create_scope(p):
   '''CreateScope : '''
@@ -975,7 +971,6 @@ def p_ret_type_set(p):
   info.mysize = p[-1].bytesize
   info.retsize = p[-1].retsize
   scopeDict[curScope].updateExtra('fName',fname)
-  # print p[-1].size
   if len(p[-1].types)==1:
     scopeDict[curScope].updateExtra('retType',p[-1].types[0])
   elif len(p[-1].types)>1:
@@ -1012,10 +1007,8 @@ def p_basic_lit(p):
   p[0]=p[1]
   c = newconst()
   p[0].code.append(["=",c,p[2]])
-  # print_list(p[0].code)
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
-  # p[0].types.append('c'+p[1].types[0])
 
 def p_I(p):
   '''I : '''
@@ -1049,10 +1042,6 @@ def p_operand_name(p):
   info = findinfo(p[1])
   
   p[0].bytesize = info.mysize
-  
-  
-  
-  
   if type(info.type) is list:
     s = info.type[0]
   else:
@@ -1061,10 +1050,6 @@ def p_operand_name(p):
     p[0].types = [info.retType]
     p[0].place.append(info.label)
   else:
-    
-    
-    
-    
     # if type(info.type) is list:
     #   p[0].types = info.type
     # else:
@@ -1126,13 +1111,11 @@ def p_prim_expr(p):
     p[0] = p[1]
     p[0].code+=p[3].code
     name = p[1].extra['operand']
-    info = findinfo(p[1].extra['operand'])
+    info = findinfo(name)
     lsize = info.listsize
     if p[3].types[0]!='int' and p[3].types[0]!='cint':
       raise IndexError("Array index of array " + p[1].extra['operand'] + " is not integer")
     k = p[1].extra['layerNum']
-    
-    
     # check on index range
     if p[1].extra['layerNum'] == len(lsize)-1:
       raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
@@ -1149,13 +1132,19 @@ def p_prim_expr(p):
       p[0].code.append(['x=',v1,i])
     # ----------------------------------------------
     v2 = newvar()
-    
-    p[0].code.append(['+',v2,p[0].place[0],v1])
-    p[0].place = [v2]
+
+    if p[1].extra['layerNum']>0:
+      p[0].code.append(['+',v2,p[0].place[0],v1])
+      p[0].place = [v2]
+    else:
+      p[0].place = [v1]
     if p[1].extra['layerNum'] == len(lsize)-2:
       v3 = newvar()
-      p[0].code.append(['load',v3,v2])
-      p[0].place = [v3]
+      p[0].code.append(['+',v3,v2,str(info.offset)])
+      v4 = newvar()
+      p[0].code.append(['-',v4,'-4',v3])
+      # p[0].code.append(['load',v3,v2])
+      p[0].place = [v4+'(%ebp)']
     p[0].extra['AddrList'] = [v2]
     if k==0:
       p[0].types = info.type[1:]
@@ -1189,10 +1178,10 @@ def p_prim_expr(p):
     ebp_off = funcsize + curval + 8
     # p[0].code.append(['movr',str(ebp_off),'%r9 \t//ebp offset pushed'])
     p[0].code.append(['push','$ra'])
-    # print p[3].extra['ParamSize']
     if len(info.retType)==1:
       v1 = 'ret_'+name+'_1'
-      p[0].code.append(['push','ret1',str(info.retsize[0])])
+      if info.retType[0]!='void':
+        p[0].code.append(['push','ret1',str(info.retsize[0])])
       for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][0]])
       p[0].code.append(['push',str(ebp_off),'4'])
@@ -1217,7 +1206,6 @@ def p_prim_expr(p):
       for i in range(len(info.retType)):
         p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
       for i in range(len(p[3].place)):
-        # print p[3].idlist
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
       p[0].code.append(['push',str(ebp_off),'4'])
       p[0].code.append(['addi','%ebp','%ebp',str(-ebp_off)])
@@ -1410,6 +1398,8 @@ def p_unary_expr(p):
       p[0].place = [v]
     else:
       p[0] = p[2]
+      if p[1][0]=='&' or p[1][0]=='*':
+        p[0].bytesize = 4
       v = newvar()
       if p[1][0]=='+' or p[1][0]=='-':
         v1=newvar()
@@ -1418,17 +1408,13 @@ def p_unary_expr(p):
       elif p[1][0]=='*':
         p[0].code.append(['load',v,p[2].place[0]])
         if p[2].types[0][0]!='*':
-          raise TypeError("Cannot refernce a non pointer")
+          raise TypeError("Cannot reference a non pointer")
         p[0].types[0]=p[2].types[0][1:]
       else:
         if 'AddrList' in p[0].extra:
           p[0].code.append(['addr',v,p[0].extra['AddrList'][0]])
         else:
           p[0].code.append(['addr',v,p[2].place[0]])
-        
-        # p[0].types = []
-        
-        
         p[0].types = ['*' + p[2].types[0]]
       p[0].place=[v]
 
@@ -1579,7 +1565,7 @@ def p_assignment(p):
   p[0].code+=p[3].code
   for i in range(len(p[1].place)):
     if p[1].types[i].startswith('c'):
-      raise TypeError("Cannot assin to a const variable ")
+      raise TypeError("Cannot assin toassign_op a const variable ")
     if p[2]=='/=':
       p[0].code.append(['/',p[1].place[i],p[1].place[i],p[3].place[i]])
     elif p[2]=='%=':
@@ -1593,8 +1579,8 @@ def p_assignment(p):
       if p[3].types[i]!='int' and p[3].types[i]!='cint':
         raise TypeError("Operand for right/left shift is not integer")
 
-    if p[1].extra['AddrList'][i]!='None':
-      p[0].code.append(['store',p[1].extra['AddrList'][i],p[1].place[i]])
+    # if p[1].extra['AddrList'][i]!='None':
+    #   p[0].code.append(['store',p[1].extra['AddrList'][i],p[1].place[i]])
 
     if p[2]=='=':
       if not equalcheck(p[1].types[i],p[3].types[i]):
@@ -2032,7 +2018,6 @@ result = parser.parse(s,debug=0)
 
 
 def print_in_format():
-  
   tab = [[]]
   tab[0] = ['Scope,','Name,','Type,','Offset,','Child']
   for i in range(len(scopeDict)):
@@ -2050,6 +2035,9 @@ def print_in_format():
         s = s[:-1]
       else:
         k = t
+        if not t:
+          t=""
+          k=""
         if k[:4]=="type":
           k = 'struct'
         if k[:5]=='*type':
