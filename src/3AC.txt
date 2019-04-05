@@ -1,4 +1,0 @@
-goto main 
-label main 
-call_malloc x 8 
-call_malloc l 4 
