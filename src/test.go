@@ -1,6 +1,8 @@
 package math;
 import "fmt";
 
+var a int;
+
 type rect struct {
     name string;
     age  int;

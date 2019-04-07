@@ -1,0 +1,11 @@
+Scope,       Name,        Type,        Offset,      Child        
+0,           math,        package,     None,                     
+0,           fmt,         import,      None,                     
+0,           a,           int,         0,                        
+0,           rect,        struct,      None,        1            
+0,           main,        func,        None,        2            
+1,           name,        string,      0,                        
+1,           age,         int,         32,                       
+1,           next,        *struct,     36,                       
+2,           x,           *struct,     None,                     
+2,           l,           *int,        None,                     

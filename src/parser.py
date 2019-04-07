@@ -2077,6 +2077,11 @@ def print_3AC(l):
 sys.stdout =  open("3AC.txt", "w+")
 print_3AC(result.code)
 
+Symbol_Table = scopeDict
+Code = result.code
+
+sys.stdout = sys.__stdout__
+
 
 # print_list(result.code)
 
