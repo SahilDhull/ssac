@@ -1338,7 +1338,7 @@ def p_expr(p):
         p[0].types = ['bool']
       v = newvar()
       if p[2]=='*':
-        p[0].code.append(['x',v,p[1].place[0],p[3].place[0]])
+        p[0].code.append(['*',v,p[1].place[0],p[3].place[0]])
       elif p[2]=='&&':
         p[0].code.append(['&',v,p[1].place[0],p[3].place[0]])
       elif p[2]=='||':
@@ -1352,12 +1352,12 @@ def p_expr(p):
       elif (p[2]=='+'or p[2]=='-') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]).startswith('*'):
         t = newvar()
         p[0].code.append(['=',t,'4'])
-        p[0].code.append(['x',t,t,p[1].place[0]])
+        p[0].code.append(['*',t,t,p[1].place[0]])
         p[0].code.append(['+',v,t,p[3].place[0]])
       elif (p[2]=='+'or p[2]=='-') and (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]).startswith('*'):
         t = newvar()
         p[0].code.append(['=',t,'4'])
-        p[0].code.append(['x',t,t,p[3].place[0]])
+        p[0].code.append(['*',t,t,p[3].place[0]])
         p[0].code.append(['+',v,t,p[1].place[0]])
       elif p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/':
         if (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
@@ -1996,7 +1996,7 @@ def p_empty(p):
 
 def p_error(p):
     if p:
-      print("Syntax error at line no:", (p.lineno-13), "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
+      print("Syntax error at line no:", (p.lineno), "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
       parser.errok()
     else:
       print("Syntax error at EOF")

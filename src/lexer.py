@@ -204,7 +204,7 @@ file_name = sys.argv[1]
 
 with open(file_name) as fp:
     data = fp.read()
-    data += '\n'
+    # data += '\n'
     lexer.input(data)
 
     
