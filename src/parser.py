@@ -147,6 +147,8 @@ def findinfo(name, S=-1):
   if S > -1:
     if scopeDict[S].retrieve(name) is not None:
         return scopeDict[S].retrieve(name)
+    if name.startswith('temp_c'):
+      return -1
     raise NameError("Identifier " + name + " is not defined!")
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
@@ -157,11 +159,18 @@ def findinfo(name, S=-1):
 
 # -------------  SOME OTHER FUNCTIONS ---------------------
 
+def v_decl(v,s):
+  scopeDict[s].insert(v,None)
+  vinfo = findinfo(v)
+  vinfo.offset = scopeDict[s].extra['curOffset']
+  scopeDict[s].extra['curOffset'] += 4
+  vinfo.mysize = 4
+
 
 def newvar():
   global varNum
   val = 'v'+str(varNum)
-  scopeDict[curScope].insert(val,None)
+  # scopeDict[curScope].insert(val,None)
   varNum+=1
   return val
 
@@ -381,7 +390,7 @@ def p_func_scope(p):
   scopeDict[curScope].updateExtra('structPscope',x)
 
 def p_field_decl_rep(p):
-  ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
+  ''' FieldDeclRep : FieldDeclRep FieldDecl Semi
                   | epsilon '''
   if len(p) == 4:
     # addinstance(p[0],p[1],p[2])
@@ -562,7 +571,7 @@ def p_stat_list(p):
     p[0] = p[1]
 
 def p_stat_rep(p):
-    '''StatementRep : StatementRep Statement SEMICOLON
+    '''StatementRep : StatementRep Statement Semi
                     | epsilon'''
     if len(p) == 4:
         p[0] = p[1]
@@ -598,7 +607,7 @@ def p_const_decl(p):
         p[0]=p[3]
 
 def p_const_spec_rep(p):
-    '''ConstSpecRep : ConstSpecRep ConstSpec SEMICOLON
+    '''ConstSpecRep : ConstSpecRep ConstSpec Semi
                     | epsilon'''
     if len(p) == 4:
         p[0]=p[1]
@@ -734,7 +743,7 @@ def p_type_decl(p):
         p[0] = p[2]
 
 def p_type_spec_rep(p):
-    '''TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
+    '''TypeSpecRep : TypeSpecRep TypeSpec Semi
                    | epsilon'''
     if len(p) == 4:
         p[0] = node()
@@ -780,7 +789,7 @@ def p_var_decl(p):
         p[0] = p[3]
 
 def p_var_spec_rep(p):
-    '''VarSpecRep : VarSpecRep VarSpec SEMICOLON
+    '''VarSpecRep : VarSpecRep VarSpec Semi
                   | epsilon'''
     if len(p) == 4:
         p[0] = p[1]
@@ -992,18 +1001,32 @@ def p_literal(p):
     '''Literal : BasicLit'''
     p[0] = p[1]
 
-
+stringNum = 0
 def p_basic_lit(p):
   '''BasicLit : I INT_LIT
               | F FLOAT_LIT
               | C IMAGINARY_LIT
               | S STRING_LIT'''
   p[0]=p[1]
-  c = newconst()
-  # info = findinfo(c)
-  # info.offset = scopeDict[curScope].extra['curOffset']
-  # info.mysize = p[1].bytesize
-  # scopeDict[curScope].extra['curOffset'] += p[1].bytesize
+  
+  if p[1].types[0]=='cstring':
+    global stringNum
+    c = 'temp_str'+str(stringNum)
+    stringNum += 1
+    scopeDict[curScope].insert(c,None)
+    info = findinfo(c,curScope)
+    info.offset = scopeDict[curScope].extra['curOffset']
+    info.mysize = 32
+    scopeDict[curScope].extra['curOffset'] += 32
+  else:
+    c = newconst()
+    info = findinfo(c,curScope)
+    if info == -1:
+      scopeDict[curScope].insert(c,None)
+      info = findinfo(c,curScope)
+      info.offset = scopeDict[curScope].extra['curOffset']
+      info.mysize = 4
+      scopeDict[curScope].extra['curOffset'] += 4
   p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
@@ -1125,12 +1148,21 @@ def p_prim_expr(p):
         raise IndexError("Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
     
     v1 = newvar()
+    scopeDict[curScope].insert(v1,None)
+    vinfo = findinfo(v1)
+    vinfo.offset = scopeDict[curScope].extra['curOffset']
+    scopeDict[curScope].extra['curOffset'] += 4
+    vinfo.mysize = 4
     p[0].code.append(['=',v1,p[3].place[0]])
     for i in lsize[p[1].extra['layerNum']+1:]:
       p[0].code.append(['x=',v1,i])
     # ----------------------------------------------
     v2 = newvar()
-
+    scopeDict[curScope].insert(v2,None)
+    vinfo = findinfo(v2)
+    vinfo.offset = scopeDict[curScope].extra['curOffset']
+    scopeDict[curScope].extra['curOffset'] += 4
+    vinfo.mysize = 4
     if p[1].extra['layerNum']>0:
       p[0].code.append(['+',v2,p[0].place[0],v1])
       p[0].place = [v2]
@@ -1138,8 +1170,18 @@ def p_prim_expr(p):
       p[0].place = [v1]
     if p[1].extra['layerNum'] == len(lsize)-2:
       v3 = newvar()
+      scopeDict[curScope].insert(v3,None)
+      vinfo = findinfo(v3)
+      vinfo.offset = scopeDict[curScope].extra['curOffset']
+      scopeDict[curScope].extra['curOffset'] += 4
+      vinfo.mysize = 4
       p[0].code.append(['+',v3,v2,str(info.offset)])
       v4 = newvar()
+      scopeDict[curScope].insert(v4,None)
+      vinfo = findinfo(v4)
+      vinfo.offset = scopeDict[curScope].extra['curOffset']
+      scopeDict[curScope].extra['curOffset'] += 4
+      vinfo.mysize = 4
       p[0].code.append(['-',v4,'-4',v3])
       # p[0].code.append(['load',v3,v2])
       p[0].place = [v4+'(%ebp)']
@@ -1148,9 +1190,8 @@ def p_prim_expr(p):
       p[0].types = info.type[1:]
     else:
       p[0].types = p[1].types[1:]
-    
     p[0].extra['layerNum'] += 1
-    # print_list(p[0].code)
+    
   # -------------------function case ------------------------
   elif p[2]=='(':
     p[0]=p[1]
@@ -1335,6 +1376,11 @@ def p_expr(p):
       if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
         p[0].types = ['bool']
       v = newvar()
+      scopeDict[curScope].insert(v,None)
+      vinfo = findinfo(v)
+      vinfo.offset = scopeDict[curScope].extra['curOffset']
+      scopeDict[curScope].extra['curOffset'] += 4
+      vinfo.mysize = 4
       if p[2]=='*':
         p[0].code.append(['*',v,p[1].place[0],p[3].place[0]])
       elif p[2]=='&&':
@@ -1349,11 +1395,21 @@ def p_expr(p):
         p[0].code.append(['>>=',v,p[3].place[0]])
       elif (p[2]=='+'or p[2]=='-') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]).startswith('*'):
         t = newvar()
+        scopeDict[curScope].insert(t,None)
+        vinfo = findinfo(t)
+        vinfo.offset = scopeDict[curScope].extra['curOffset']
+        scopeDict[curScope].extra['curOffset'] += 4
+        vinfo.mysize = 4
         p[0].code.append(['=',t,'4'])
         p[0].code.append(['*',t,t,p[1].place[0]])
         p[0].code.append(['+',v,t,p[3].place[0]])
       elif (p[2]=='+'or p[2]=='-') and (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]).startswith('*'):
         t = newvar()
+        scopeDict[curScope].insert(t,None)
+        vinfo = findinfo(t)
+        vinfo.offset = scopeDict[curScope].extra['curOffset']
+        scopeDict[curScope].extra['curOffset'] += 4
+        vinfo.mysize = 4
         p[0].code.append(['=',t,'4'])
         p[0].code.append(['*',t,t,p[3].place[0]])
         p[0].code.append(['+',v,t,p[1].place[0]])
@@ -1392,6 +1448,11 @@ def p_unary_expr(p):
     elif p[1] == "!":
       p[0] = p[2]
       v = newvar()
+      scopeDict[curScope].insert(v,None)
+      vinfo = findinfo(v)
+      vinfo.offset = scopeDict[curScope].extra['curOffset']
+      scopeDict[curScope].extra['curOffset'] += 4
+      vinfo.mysize = 4
       p[0].code.append(["!",v,p[2].place[0]])
       p[0].place = [v]
     else:
@@ -1399,8 +1460,14 @@ def p_unary_expr(p):
       if p[1][0]=='&' or p[1][0]=='*':
         p[0].bytesize = 4
       v = newvar()
+      scopeDict[curScope].insert(v,None)
+      vinfo = findinfo(v)
+      vinfo.offset = scopeDict[curScope].extra['curOffset']
+      scopeDict[curScope].extra['curOffset'] += 4
+      vinfo.mysize = 4
       if p[1][0]=='+' or p[1][0]=='-':
         v1=newvar()
+        v_decl(v1,curScope)
         p[0].code.append(['=',v1,0])
         p[0].code.append(['=',v,v1,p[2].place[0]])
       elif p[1][0]=='*':
@@ -1620,6 +1687,9 @@ def p_if_statement(p):
   v1 = newvar()
   v2 = newvar()
   v3 = newvar()
+  v_decl(v1,curScope)
+  v_decl(v2,curScope)
+  v_decl(v3,curScope)
   l2 = newlabel()
   p[0].code += [['=',v1,p[2].place[0]]]
   p[0].code += [['=',v2,'0']]
@@ -1677,6 +1747,7 @@ def p_ExprSwitchStmt(p):
       dLabel = p[6].extra['labels'][i]
     else:
       v = newvar()
+      v_decl(v,curScope)
       p[0].code += [['==',v,p[2].place[0],p[6].place[i]]]
       p[0].code += [['ifgoto',v,p[6].extra['labels'][i]]]
   if dLabel is not None:
@@ -1794,7 +1865,7 @@ def p_condition(p):
   
 
 def p_forclause(p):
-  '''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
+  '''ForClause : SimpleStmt Semi ConditionOpt Semi SimpleStmt'''
   p[0] = p[1]
   l1 = newlabel()
   p[0].code += [['label',l1]]
@@ -1807,6 +1878,8 @@ def p_forclause(p):
   if len(p[3].place)!=0:
     v1 = newvar()
     v2 = newvar()
+    v_decl(v1,curScope)
+    v_decl(v2,curScope)
     p[0].code += [['=',v1,p[3].place[0]]]
     p[0].code += [['=',v2,1]]
     p[0].code += [['-',v1,v2,v2]]
@@ -1898,7 +1971,7 @@ def p_goto(p):
 
 # ----------------  SOURCE FILE --------------------------------
 def p_source_file(p):
-    '''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
+    '''SourceFile : PackageClause Semi ImportDeclRep TopLevelDeclRep'''
     p[0] = p[1]
     p[0].code+=p[3].code
     p[0].code+=p[4].code
@@ -1907,7 +1980,7 @@ def p_source_file(p):
 
 def p_import_decl_rep(p):
   '''ImportDeclRep : epsilon
-           | ImportDeclRep ImportDecl SEMICOLON'''
+           | ImportDeclRep ImportDecl Semi'''
   if len(p) == 4:
     p[0] = p[1]
     p[0].code +=p[2].code
@@ -1916,7 +1989,7 @@ def p_import_decl_rep(p):
     p[0] = p[1]
 
 def p_toplevel_decl_rep(p):
-  '''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
+  '''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl Semi
                      | epsilon'''
   if len(p) == 4:
     p[0] = p[1]
@@ -1952,7 +2025,7 @@ def p_import_decl(p):
     p[0] = p[3]
 
 def p_import_spec_rep(p):
-  ''' ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
+  ''' ImportSpecRep : ImportSpecRep ImportSpec Semi
             | epsilon '''
   if len(p) == 4:
     p[0] = p[1]
@@ -1984,6 +2057,13 @@ def p_import_path(p):
   p[0].idlist.append(str(p[1]).replace('\"',''))
   scopeDict[0].insert(str(p[1]).replace('\"',''),"import")
   
+# ----------------- Semicolon  --------------------
+
+def p_SemiColon(p):
+  '''Semi : SEMICOLON'''
+  p[0] = ";"
+  global constNum
+  constNum = 0
 
 # ---------------   EMPTY and SYNTAX ERROR --------------
 
