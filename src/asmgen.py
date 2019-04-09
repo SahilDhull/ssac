@@ -15,7 +15,6 @@ def findscope(name):
 			return s
 	return -1
 
-
 def off_cal(varname):
 	s = findscope(varname)
 	if s==-1:
@@ -50,7 +49,6 @@ def get_reg():
 	off = off_cal(varname)
 	asmCode.append('sw '+reg_to_rep+', '+str(off)+'($fp)')
 	return reg_to_rep
-
 
 # ---------------------------------------------
 

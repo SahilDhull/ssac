@@ -475,7 +475,7 @@ def p_sign(p):
     
     
     p[0].bytesize = p[1].bytesize+p[2].bytesize
-    # p[0].code.append(['move',str(p[0].bytesize),'0(%ebp)'])
+    # p[0].code.append(['move',str(p[0].bytesize),'0($fp)'])
 
 def p_result_opt(p):
     '''ResultOpt : Result
@@ -921,7 +921,7 @@ def p_func_decl(p):
       p[0].code = [["goto","main"]]
     p[0].code.append(['label',p[2]])
     # if p[2]!='main':
-      # p[0].code.append(['movs',"%r9",'0(%ebp)'])
+      # p[0].code.append(['movs',"%r9",'0($fp)'])
     info.mysize = p[4].bytesize
     p[0].code += p[4].code
   p[0].idlist += [p[2]]
@@ -1183,7 +1183,7 @@ def p_prim_expr(p):
       vinfo.mysize = 4
       p[0].code.append(['-',v4,'-4',v3])
       # p[0].code.append(['load',v3,v2])
-      p[0].place = [v4+'(%ebp)']
+      p[0].place = [v4+'($fp)']
     p[0].extra['AddrList'] = [v2]
     if k==0:
       p[0].types = info.type[1:]
@@ -1223,9 +1223,9 @@ def p_prim_expr(p):
       for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][0]])
       p[0].code.append(['push',str(ebp_off),'4'])
-      p[0].code.append(['addi','%ebp','%ebp',str(-ebp_off)])
+      p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
       p[0].code.append(['jump',info.label])
-      p[0].code.append(['addi','%ebp','%ebp',str(ebp_off)])
+      p[0].code.append(['addi','$fp','$fp',str(ebp_off)])
       flag=0
       if info.retType[0]=='void':
         flag=1
@@ -1234,7 +1234,7 @@ def p_prim_expr(p):
       if flag==0:
         start -= p[3].bytesize
         s = str(start)
-        p[0].code.append(['movs',s+'(%ebp)',v1])
+        p[0].code.append(['movs',s+'($fp)',v1])
       p[0].types = [p[1].types[0]]
     else:
       p[0].place = []
@@ -1246,16 +1246,16 @@ def p_prim_expr(p):
       for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
       p[0].code.append(['push',str(ebp_off),'4'])
-      p[0].code.append(['addi','%ebp','%ebp',str(-ebp_off)])
+      p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
       p[0].code.append(['jump',info.label])
-      p[0].code.append(['addi','%ebp','%ebp',str(ebp_off)])
+      p[0].code.append(['addi','$fp','$fp',str(ebp_off)])
       for i in range(len(info.retType)):
         s = 'ret_' + name+'_'+str(i+1)
         # r.append(s)
         info1 = findinfo(p[3].idlist[0])
         start -= info1.mysize
         st = str(start)
-        p[0].code.append(['movs',st+'(%ebp)',s])
+        p[0].code.append(['movs',st+'($fp)',s])
         p[0].place.append(s)
 
   # ------------------   SELECTOR  -------------------------
@@ -1914,9 +1914,9 @@ def p_return(p):
       s = s[4:]
       k = int(s)
       a = -4-k
-      p[0].code.append(['movs',str(a)+"(%ebp)",str(-return_off)+"(%ebp)"])
+      p[0].code.append(['movs',str(a)+"($fp)",str(-return_off)+"($fp)"])
     else:
-      p[0].code.append(['movs',s,str(-return_off)+"(%ebp)"])
+      p[0].code.append(['movs',s,str(-return_off)+"($fp)"])
   elif len(p[2].types) == 0:
     if retType!='void':
       raise TypeError("function "+fname+" has return type "+retType+" , but returned void in the stmt")
@@ -1937,11 +1937,11 @@ def p_return(p):
         s = s[4:]
         k = int(s)
         a = -4-k
-        p[0].code.append(['movs',str(a)+"(%ebp)",str(x)+"(%ebp)"])
+        p[0].code.append(['movs',str(a)+"($fp)",str(x)+"($fp)"])
       else:
-        p[0].code.append(['movs',s,str(x)+"(%ebp)"])
+        p[0].code.append(['movs',s,str(x)+"($fp)"])
   jumpval = funcinfo.mysize + 4
-  p[0].code.append(['jump',str(jumpval)+'(%ebp)'])
+  p[0].code.append(['jump',str(jumpval)+'($fp)'])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList
