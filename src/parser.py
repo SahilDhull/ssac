@@ -133,13 +133,8 @@ def addscope(name=None):
 
 def endscope():
   global curScope
-  
-  
-  
   curScope = scopeStack.pop()
-  
   curScope = scopeStack[-1]
-  
 
 def findscope(name):
   for s in scopeStack[::-1]:
@@ -166,12 +161,14 @@ def findinfo(name, S=-1):
 def newvar():
   global varNum
   val = 'v'+str(varNum)
+  scopeDict[curScope].insert(val,None)
   varNum+=1
   return val
 
 def newconst():
   global constNum
   val = 'temp_c'+str(constNum)
+  # scopeDict[curScope].insert(val,None)
   constNum+=1
   return val
 
@@ -619,16 +616,16 @@ def p_const_spec(p):
     for i in range(len(p[1].place)):
       x = p[1].idlist[i]
       info = findinfo(x)
+      p[0].code.append(['=',x,p[2].place[i]])
       p[1].place[i] = p[2].place[i]
       p[0].bytesize += p[2].bytesize
       info.mysize = p[2].bytesize
       info.offset = scopeDict[curScope].extra['curOffset']
-      
       scopeDict[curScope].extra['curOffset'] += p[2].bytesize
       scope = findscope(x)
       scopeDict[scope].updateAttr(x,'place',p[1].place[i])
       if p[2].types[i]==i:
-        raise TypeError('Type of ' + p[0].idlist[i] + 'does not match that of expr')
+        raise TypeError('Type of ' + p[1].idlist[i] + ' does not match that of expr')
       scopeDict[scope].updateAttr(x,'type','c'+p[2].types[i])
 
 
@@ -661,7 +658,6 @@ def p_identifier_list(p):
         v = newvar()
         p[0].place = [v]
         scopeDict[curScope].updateAttr(p[1],'place',v)
-
 
 def p_identifier_rep(p):
     '''IdentifierRep : IdentifierRep COMMA IDENTIFIER
@@ -846,8 +842,6 @@ def p_var_spec(p):
   
   for i in range(len(p[1].place)):
     x = p[1].idlist[i]
-    
-    
     p[1].place[i] = x
     scope = findscope(x)
     info = findinfo(x)
@@ -1006,6 +1000,10 @@ def p_basic_lit(p):
               | S STRING_LIT'''
   p[0]=p[1]
   c = newconst()
+  # info = findinfo(c)
+  # info.offset = scopeDict[curScope].extra['curOffset']
+  # info.mysize = p[1].bytesize
+  # scopeDict[curScope].extra['curOffset'] += p[1].bytesize
   p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
@@ -1032,7 +1030,7 @@ def p_S(p):
   '''S : '''
   p[0]=node()
   p[0].types.append('cstring')
-  p[0].bytesize = 8
+  p[0].bytesize = 32
 
 def p_operand_name(p):
   '''OperandName : IDENTIFIER'''

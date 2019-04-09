@@ -12,9 +12,7 @@ global_extra = ['package','import','func','struct','*struct']
 
 class Registers(object):
 	def __init__(self):
-		self.tempRegs = ['$8', '$9', '$10', '$11', '$12', '$13', '$14', '$15']
-		self.saveRegs = ['$16', '$17', '$18', '$19', '$20', '$21', '$22', '$23']
-		self.regs = self.tempRegs + self.saveRegs
+		self.regs = ["$r"+str(i) for i in range(2,26)]
 		self.regsState = dict((elem, 0) for elem in self.regs)
 		self.lastUsed = dict((elem, -1) for elem in self.regs)
 
@@ -33,7 +31,6 @@ class Registers(object):
 		freereg = free_reg()
 		set_reg(freereg,1)
 		# INCOMPLETE
-
 
 
 # ---------------------------------------------
