@@ -140,9 +140,12 @@ def findscope(name):
   for s in scopeStack[::-1]:
     if scopeDict[s].retrieve(name) is not None:
       return s
-  raise NameError(name+ "is not defined in any scope")
+  print scopeStack
+  raise NameError(name+ " is not defined in any scope")
 
 def findinfo(name, S=-1):
+  # if name.startswith('temp_c'):
+    # print "ok"
   if S > -1:
     if scopeDict[S].retrieve(name) is not None:
         return scopeDict[S].retrieve(name)
@@ -152,6 +155,10 @@ def findinfo(name, S=-1):
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
         info = scopeDict[scope].retrieve(name)
+#     for s in scopeStack[::-1]:
+#         if Symbol_Table[s].retrieve(name) is not None:
+#             return s
+#     return -1
         return info
   raise NameError("Identifier " + name + " is not defined!")
 
@@ -1074,10 +1081,8 @@ def p_operand_name(p):
     #   p[0].types = info.type
     # else:
     p[0].types = [s]
-    
-    
-    off = 'off_'+str(info.offset)
-    p[0].place.append(off)
+    # off = 'off_'+str(info.offset)
+    p[0].place.append(p[1])
     p[0].extra['layerNum'] = 0
     p[0].extra['operand'] = p[1]
     if info.listsize is not None:
@@ -1298,11 +1303,11 @@ def p_prim_expr(p):
     else:
       varinfo = sScope.retrieve(p[3])
       curoff = info.offset + varinfo.offset
-      v = 'off_'+str(curoff)
+      # v = 'off_'+str(curoff)
       p[0].types = [varinfo.type]
-      p[0].place = [v]
+      p[0].place = [varname]
       scopeDict[curScope].insert(varname,p[0].types[0])
-      scopeDict[curScope].updateAttr(varname,'place',v)
+      scopeDict[curScope].updateAttr(varname,'place',varname)
       scopeDict[curScope].updateAttr(varname,'offset',curoff)
       # scopeDict[curScope].updateExtra(varname,'defined',False)
     p[0].idlist = [varname]
@@ -1631,11 +1636,11 @@ def p_assignment(p):
     if p[1].types[i].startswith('c'):
       raise TypeError("Cannot assin toassign_op a const variable ")
     if p[2]=='/=':
-      p[0].code.append(['/',p[1].place[i],p[1].place[i],p[3].place[i]])
+      p[0].code.append(['/=',p[1].place[i],p[3].place[i]])
     elif p[2]=='%=':
-      p[0].code.append(['%',p[1].place[i],p[1].place[i],p[3].place[i]])
+      p[0].code.append(['%=',p[1].place[i],p[3].place[i]])
     elif p[2]=='*=':
-      p[0].code.append(['x=',p[1].place[i],p[3].place[i]])
+      p[0].code.append(['*=',p[1].place[i],p[3].place[i]])
     else:
       p[0].code.append([p[2],p[1].place[i],p[3].place[i]])
 
