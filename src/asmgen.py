@@ -1,4 +1,4 @@
-from parser import Symbol_Table, Code
+from parser import Symbol_Table, Code, scopeStack, findinfo
 
 # print Code
 
@@ -8,29 +8,48 @@ asmCode = []
 globalDecl = []
 global_extra = ['package','import','func','struct','*struct']
 
+
+def findscope(name):
+	for s in scopeStack[::-1]:
+		if Symbol_Table[s].retrieve(name) is not None:
+			return s
+	return -1
+
+
+def off_cal(varname):
+	s = findscope(varname)
+	if s==-1:
+		print "Some Error"
+	info = findinfo(varname,s)
+	off = info.offset
+	return -4-off
+
 # Registers:----------------------------------
 
-class Registers(object):
-	def __init__(self):
-		self.regs = ["$r"+str(i) for i in range(2,26)]
-		self.regsState = dict((elem, 0) for elem in self.regs)
-		self.lastUsed = dict((elem, -1) for elem in self.regs)
+regs = ["$r"+str(i) for i in range(2,26)]
+regsState = dict((i, 0) for i in regs)
+rnum = 0
+regTovar = {}
+varToreg = {}
 
-	def free_reg(self):
-		for i in self.regs:
-			if self.regsState[i]==0:
-				return i
-		# INCOMPLETE
+def free_reg():
+	for i in regs:
+		if regsState[i]==0:
+			return i
+	return -1
 
-	def set_reg(self,regval,val):
-		self.regsState[regval] = 1
-		# INCOMPLETE
-
-
-	def get_reg(self,val):
-		freereg = free_reg()
-		set_reg(freereg,1)
-		# INCOMPLETE
+def get_reg():
+	freereg = free_reg()
+	if freereg != -1:
+		regsState[freereg] = 1
+		return freereg
+	global rnum
+	reg_to_rep = regs[rnum%len(regs)]
+	rnum += 1
+	varname = regTovar[reg_to_rep]
+	off = off_cal(varname)
+	asmCode.append('sw '+reg_to_rep+', '+str(off)+'($fp)')
+	return reg_to_rep
 
 
 # ---------------------------------------------
@@ -62,12 +81,14 @@ asmCode.append('.text')
 asmCode.append('main:')
 
 def gen_assembly(line):
-	destReg = '$r8'
+	# src1 = get_reg()
+	# src2 = get_reg()
 	# get temporary reg
 
 	if line[0]=='=':
 		if line[1].startswith('temp_c'):
-			asmCode.append('li '+destReg+' '+line[2])
+			dest = get_reg()
+			asmCode.append('li '+dest+', '+line[2])
 		else:
 			asmCode.append('move')
 

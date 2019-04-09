@@ -140,7 +140,6 @@ def findscope(name):
   for s in scopeStack[::-1]:
     if scopeDict[s].retrieve(name) is not None:
       return s
-
   raise NameError(name+ "is not defined in any scope")
 
 def findinfo(name, S=-1):
