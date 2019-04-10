@@ -138,6 +138,7 @@ def gen_assembly(line):
 		src = get_reg(line[1])
 		reg_replace('$2')
 		if len(test)==9:
+			reg_replace('$4')
 			asmCode.append('li $2, 1')
 			asmCode.append('move $4, '+src)
 			asmCode.append('syscall')
