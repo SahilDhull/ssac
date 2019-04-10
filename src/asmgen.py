@@ -135,6 +135,10 @@ asmCode.append('main:')
 def gen_assembly(line):
 	test = line[0]
 
+	# If Statement
+	if test=='ifgoto':
+		
+
 	# Print Statement except string
 	if test.startswith('print'):
 		src = get_reg(line[1])

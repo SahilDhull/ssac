@@ -1691,20 +1691,21 @@ def p_if_statement(p):
   ''' IfStmt : IF Expression CreateScope IFSYM Block EndScope_1 ElseOpt '''
   p[0] = node()
   p[0].code = p[2].code
+  if p[2].types[0]!='bool' and p[2].types[0]!='cbool' and p[2].types[0]!='int' and p[2].types[0]!='cint':
+    raise TypeError("Type of expression is not bool or integer for IF Statement")
+    return
+  v = newvar()
+  if p[2].types[0]!='bool' or p[2].types[0]!='cbool':
+    p[0].code.append(['!',v,p[2].place[0]])
+  elif p[2].types[0]=='int' or p[2].types[0]=='cint':
+    v2 = newvar()
+    v_decl(v2,curScope)
+    p[0].code += [['=',v2,'0']]
+    p[0].code.append(['==',v,p[2].place[0],v2])
   l1 = newlabel()
-  v1 = newvar()
-  v2 = newvar()
-  v3 = newvar()
-  v_decl(v1,curScope)
-  v_decl(v2,curScope)
-  v_decl(v3,curScope)
+  v_decl(v,curScope)
   l2 = newlabel()
-  p[0].code += [['=',v1,p[2].place[0]]]
-  p[0].code += [['=',v2,'0']]
-  p[0].code += [['!=',v1,v1,v2]]
-  p[0].code += [['=',v3,'1']]
-  p[0].code += [['-',v1,v1,v3]]
-  p[0].code += [['ifgoto',v1,l1]]
+  p[0].code += [['ifgoto',v,l1]]
   p[0].code += p[5].code
   p[0].code += [['goto',l2]]
   p[0].code += [['label',l1]]
