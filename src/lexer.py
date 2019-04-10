@@ -159,74 +159,8 @@ def t_error(t):
 	print("Illegal character '%s'" % t.value[0])
 	t.lexer.skip(1)
 
-# colors = ['1C0122', '043904', '530B22', '000000', '196286', '7D541F', '1C0D54']
-# shuffle(colors)
-# # for x in range(len(tokens)):
-# # 	print(tokens[x],",",uuid.uuid4().hex.upper()[0:6])
-# # # print(uuid.uuid4().hex.upper()[0:6])
-
-# print("NEWLINE,000000")
-# print("ERROR,000000")
-# print("IDENTIFIERS,",colors[4])
-# print("STRING,",colors[5])
-# print("COMMENT,",colors[6])
-
-# for x in range(len(key)):
-# 	print(key[x],",",colors[0])
-
-# for x in range(len(punc)):
-# 	print(punc[x],",",colors[1])
-
-# for x in range(len(op)):
-# 	print(op[x],",",colors[2])
-
-# for x in range(len(integer)):
-# 	print(integer[x],",",colors[3])
-# sys.exit()
-
 #  Build the lexer
 lexer = lex.lex()
 
 
-Toks={}
-for a in tokens:
-    Toks[a]=[a,0]
-
 file_name = sys.argv[1]	
-
-# ------ output check ----------------
-# check2 = sys.argv[2][:6]
-# # print(check2)
-# if check2!='--out=':
-# 	print ("wrong command")
-# 	print("Type last argument as '--out=...'")
-# 	sys.exit()
-# out_name = sys.argv[2][6:]
-
-with open(file_name) as fp:
-    data = fp.read()
-    # data += '\n'
-    lexer.input(data)
-
-    
-    while True:
-        tok = lexer.token()
-        if not tok:
-            break
-        # print (tok)
-        Toks[tok.type][1]=Toks[tok.type][1]+1
-        if tok.value in Toks[tok.type][2:]:
-            continue
-        Toks[tok.type].append(tok.value)
-
-    # print "TOKEN\t\t\tOCCURRENCES\t\tLEXEMES"
-    # print "-"*64
-    # for i in Toks:
-    #     if Toks[i][1]==0:
-    #         continue
-    #     if len(Toks[i][0]) <= 6:
-    #         print Toks[i][0], "\t\t\t", Toks[i][1], "\t\t\t", Toks[i][2]
-    #     else:
-    #         print Toks[i][0], "\t\t", Toks[i][1], "\t\t\t", Toks[i][2]
-    #     for x in range(3, len(Toks[i])):
-    #         print "\t\t\t\t\t\t", Toks[i][x]

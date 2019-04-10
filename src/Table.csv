@@ -1,5 +1,12 @@
-Scope,       Name,        Type,        Offset,      Child        
-0,           math,        package,     None,                     
-0,           main,        func,        None,        1            
-1,           b,           int,         4,                        
-1,           temp_c0,     ,            0,                        
+Scope,         Name,          Type,          Offset,        Child          
+0,             math,          package,       None,                         
+0,             main,          func,          None,          1              
+1,             b,             int,           4,                            
+1,             temp_c0,       ,              0,                            
+1,             temp_c1,       ,              8,                            
+1,             v1,            ,              12,                           
+1,             v2,            ,              80,                           
+1,             v3,            ,              84,                           
+1,             v4,            ,              88,                           
+2,             temp_str0,     ,              16,                           
+3,             temp_str1,     ,              48,                           

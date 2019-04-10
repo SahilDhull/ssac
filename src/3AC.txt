@@ -2,4 +2,19 @@ goto main
 label main 
 = temp_c0 1 
 = b temp_c0 
-print4 b 
+= temp_c0 1 
+= temp_c1 0 
+== v1 temp_c0 temp_c1 
+= v2 v1 
+= v3 0 
+!= v2 v2 v3 
+= v4 1 
+- v2 v2 v4 
+ifgoto v2 l2 
+= temp_str0 "ohh" 
+print_str temp_str0 
+goto l3 
+label l2 
+= temp_str1 "okay\n" 
+print_str temp_str1 
+label l3 

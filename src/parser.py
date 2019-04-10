@@ -2082,7 +2082,7 @@ def p_empty(p):
 
 def p_error(p):
     if p:
-      print("Syntax error at line no:", (p.lineno), "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
+      print("Syntax error at line no:", str(p.lineno), "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
       parser.errok()
     else:
       print("Syntax error at EOF")
@@ -2090,17 +2090,10 @@ def p_error(p):
 parser = yacc.yacc()
 
 
-try:
-  s = data
-except EOFError:
-  print("EOF Error")
-if not s:
-  print("Not found")
-result = parser.parse(s,debug=0)
+with open(file_name,'r') as f:
+    input_str = f.read()
+result=parser.parse(input_str,tracking=True)
 
-
-# print_list(result.code)
-# print_scope_Dict()
 
 
 def print_in_format():
