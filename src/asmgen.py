@@ -123,8 +123,8 @@ global_variables()
 
 # print_list(globalDecl)
 
-binaryop = ['+','-','*','/','%','&&','||','^','!=','<=','>=','==','<','>','!','<<','>>']
-eqop = ['+=','-=','*=','/=','%=','<<=','>>=',':=']	
+binaryop = ['+','-','*','/','%','&&','||','^','!=','<=','>=','==','<','>','<<','>>']
+eqop = ['!','+=','-=','*=','/=','%=','<<=','>>=',':=']	
 op = binaryop + eqop
 
 # Start of MIPS
@@ -137,16 +137,16 @@ def gen_assembly(line):
 
 	# If Statement
 	if test=='ifgoto':
-        dest = get_reg(line[1])
-        asmCode.append('bgtz '+dest+', '+line[2])		
+		dest = get_reg(line[1])
+		asmCode.append('bgtz '+dest+', '+line[2])		
 
-    # Label
-    if test == 'label':
-        asmCode.append(line[1]+':')
+	# Label
+	if test == 'label':
+		asmCode.append(line[1]+':')
 
-    # goto
-    if test == 'goto':
-        asmCode.append('j '+line[1])
+	# goto
+	if test == 'goto':
+		asmCode.append('j '+line[1])
 
 
 	# Print Statement except string
@@ -232,6 +232,9 @@ def gen_assembly(line):
 		
 		if (x == ':='):
 			asmCode.append('move ' + dest + ', ' + src1)
+
+		if x == '!':
+			asmCode.append('nor ' + dest + ', ' + src1 + ', $0')
 			
 		regsState[src1] = 0
 		return 1
@@ -288,10 +291,6 @@ def gen_assembly(line):
 			
 		if x == '>':
 			asmCode.append('sgt '+dest+', '+src1+', '+src2)
-			
-		if x == '!':
-			asmCode.append('li ' + src1 + ', 1')
-			asmCode.append('xor ' + dest + ', ' + src2 + ', ' + src1)
 		
 		if x == '<<':
 			asmCode.append('sllv '+dest+', '+src1+', '+src2)
