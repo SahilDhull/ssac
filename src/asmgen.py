@@ -49,21 +49,36 @@ def free_reg():
             return i
     return -1
 
+def reg_replace(reg_to_rep,newVar=None):
+	oldVar = regTovar[reg_to_rep]
+	old_off = off_cal(oldVar)
+	asmCode.append('sw '+reg_to_rep+', '+str(old_off)+'($fp)')
+	if newVar:
+		regTovar[reg_to_rep] = newVar
+		varToreg[newVar] = reg_to_rep
+		off = off_cal(newVar)
+		asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
+
 def get_reg(var,load=0):
 	s = findscope(var)
 	info = findinfo(var,s)
 	off = off_cal(var)
 	c = 0
-	if var.startswith('off_'):
+	
+    if var.startswith('off_'):
 		num = [int(s) for s in (line[2]).split() if s.isdigit()]
 		o = str(- 4 - num[0])
 		return o+"($fp)"
-	if var.startswith('temp_c'):
+	
+    if var.startswith('temp_c'):
 		c = 1
-	if var in varToreg and regsState[varToreg[var]]==1:
+	
+    if var in varToreg and regsState[varToreg[var]]==1:
 	    return varToreg[var]
-	freereg = free_reg()
-	if freereg != -1:
+	
+    freereg = free_reg()
+	
+    if freereg != -1:
 	    varToreg[var] = freereg
 	    regTovar[freereg] = var
 	    regsState[freereg] = 1
@@ -74,11 +89,7 @@ def get_reg(var,load=0):
 	reg_to_rep = regs[rnum%len(regs)]
 	rnum += 1
 	varname = regTovar[reg_to_rep]
-	old_off = off_cal(varname)
-	asmCode.append('sw '+reg_to_rep+', '+str(old_off)+'($fp)')
-	regTovar[reg_to_rep] = var
-	varToreg[var] = reg_to_rep
-	asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
+	reg_replace(reg_to_rep,varname)
 	return reg_to_rep
 
 def free_all_reg():
@@ -130,12 +141,13 @@ def gen_assembly(line):
 	# Print Statement except string
 	if test.startswith('print'):
 		src = get_reg(line[1])
-		if len(test)==9: ## print_int
-			asmCode.append('li $v0, 1')
-			asmCode.append('move $a0, '+src)
+		reg_replace('$2')
+		if len(test)==9: #print int
+			asmCode.append('li $2, 1')
+			asmCode.append('move $4, '+src)
 			asmCode.append('syscall')
-		if len(test)==11: ## print_float
-			asmCode.append('li $v0, 2')
+		elif len(test)==11: # print float
+			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
 		else:		# string case
