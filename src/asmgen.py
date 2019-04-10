@@ -37,7 +37,7 @@ def off_cal(varname):
 
 # Registers:----------------------------------
 
-regs = ["$"+str(i) for i in range(2,26)]
+regs = ["$"+str(i) for i in range(5,26)]
 regsState = dict((i, 0) for i in regs)
 rnum = 0
 regTovar = {}
@@ -64,16 +64,21 @@ def get_reg(var,load=0):
 	info = findinfo(var,s)
 	off = off_cal(var)
 	c = 0
-	if var.startswith('off_'):
+	
+    if var.startswith('off_'):
 		num = [int(s) for s in (line[2]).split() if s.isdigit()]
 		o = str(- 4 - num[0])
 		return o+"($fp)"
-	if var.startswith('temp_c'):
+	
+    if var.startswith('temp_c'):
 		c = 1
-	if var in varToreg and regsState[varToreg[var]]==1:
+	
+    if var in varToreg and regsState[varToreg[var]]==1:
 	    return varToreg[var]
-	freereg = free_reg()
-	if freereg != -1:
+	
+    freereg = free_reg()
+	
+    if freereg != -1:
 	    varToreg[var] = freereg
 	    regTovar[freereg] = var
 	    regsState[freereg] = 1
@@ -129,26 +134,34 @@ asmCode.append('main:')
 
 def gen_assembly(line):
 	test = line[0]
-	# src1 = get_reg()
-	# src2 = get_reg()
-	# get temporary reg
 
 	# Print Statement except string
 	if test.startswith('print'):
 		src = get_reg(line[1])
-		reg_replace('$2')
-		if len(test)==9:
-			reg_replace('$4')
+		if len(test)==9: #print int
 			asmCode.append('li $2, 1')
 			asmCode.append('move $4, '+src)
 			asmCode.append('syscall')
-		elif len(test)==11:
+		elif len(test)==11: # print float
 			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
 		else:		# string case
 			asmCode.append('Print String not Implemented')
 		regsState[src] = 0
+
+    if test.startswith('scan'):
+        dest = get_reg(line[1])
+        if len(test)==8:
+            asmCode.append('li $2, 5')
+            asmCode.append('syscall')
+            asmCode.append('move '+dest+', $2')
+        elif len(test) = 11:
+            asmCode.append('li $2, 6')
+            asmCode.append('syscall')
+            asmCode.append('move '+dest+', $f0')
+        else:
+            asmCode.append('Scan string not Implemented')
 
 
     if line[0]=='=':
