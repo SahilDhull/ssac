@@ -136,12 +136,13 @@ def gen_assembly(line):
 	# Print Statement except string
 	if test.startswith('print'):
 		src = get_reg(line[1])
+		reg_replace('$2')
 		if len(test)==9:
-			asmCode.append('li $v0, 1')
-			asmCode.append('move $a0, '+src)
+			asmCode.append('li $2, 1')
+			asmCode.append('move $4, '+src)
 			asmCode.append('syscall')
-		if len(test)==11:
-			asmCode.append('li $v0, 2')
+		elif len(test)==11:
+			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
 		else:		# string case
