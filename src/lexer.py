@@ -49,11 +49,12 @@ tokens = [
 		#PUNCTUATION
 		'LPAREN','RPAREN','LSQUARE','RSQUARE','LCURL','RCURL',
 		'COMMA','DOT','SEMICOLON','COLON',
-		'PD','PS'
+		'PD','PS','PF'
 ] + list(keywords.values())
 
 t_PD = r'%d'
 t_PS = r'%s'
+t_PF = r'%f'
 
 #operators
 t_INCREMENT                = r'\+\+'

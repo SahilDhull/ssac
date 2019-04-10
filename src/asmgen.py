@@ -60,7 +60,7 @@ def get_reg(var,load=0):
 		return o+"($fp)"
 	if var.startswith('temp_c'):
 		c = 1
-	if var in varToreg:
+	if var in varToreg and regsState[varToreg[var]]==1:
 	    return varToreg[var]
 	freereg = free_reg()
 	if freereg != -1:
@@ -122,9 +122,26 @@ asmCode.append('.text')
 asmCode.append('main:')
 
 def gen_assembly(line):
-    # src1 = get_reg()
-    # src2 = get_reg()
-    # get temporary reg
+	test = line[0]
+	# src1 = get_reg()
+	# src2 = get_reg()
+	# get temporary reg
+
+	# Print Statement except string
+	if test.startswith('print'):
+		src = get_reg(line[1])
+		if len(test)==9:
+			asmCode.append('li $v0, 1')
+			asmCode.append('move $a0, '+src)
+			asmCode.append('syscall')
+		if len(test)==11:
+			asmCode.append('li $v0, 2')
+			asmCode.append('move $f12, '+src)
+			asmCode.append('syscall')
+		else:		# string case
+			asmCode.append('Print String not Implemented')
+		regsState[src] = 0
+
 
     if line[0]=='=':
 		if line[1].startswith('temp_c'):
@@ -186,7 +203,6 @@ def gen_assembly(line):
         
         
     if line[0] in binaryop:
-    	asmCode.append("***********"+line[0])
         dest = get_reg(line[1])
         src1 = get_reg(line[2])
         src2 = get_reg(line[3])

@@ -1545,17 +1545,21 @@ def p_end_scope_new(p):
 
 def p_print_stmt(p):
   '''PrintStmt : PRINT PD Expression
-               | PRINT PS Expression'''
+               | PRINT PS Expression
+               | PRINT PF Expression'''
   p[0] = p[3]
   if p[2]=="%d":
-    # if p[3].types[0]!='int' and p[3].types[0]!='cint':
-    #   raise TypeError("Can't Print Expr of type other than int using '%d'")
-    # else:
-    p[0].code.append(['printint',p[3].place[0]])
+    if p[3].types[0]!='int' and p[3].types[0]!='cint':
+      raise TypeError("Can't Print Expr of type other than int using '%d'")
+    p[0].code.append(['print_int',p[3].place[0]])
+  if p[2]=="%f":
+    if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
+      raise TypeError("Can't Print Expr of type other than float using '%f'")
+    p[0].code.append(['print_float',p[3].place[0]])
   if p[2]=="%s":
-    # if p[3].types[0]!='string' and p[3].types[0]!='cstring':
-    #   raise TypeError("Can't Print Expr of type other than string using '%s'")
-    p[0].code.append(['printstr',p[3].place[0]])
+    if p[3].types[0]!='string' and p[3].types[0]!='cstring':
+      raise TypeError("Can't Print Expr of type other than string using '%s'")
+    p[0].code.append(['print_str',p[3].place[0]])
 
 def p_scan_stmt(p):
   '''ScanStmt : SCAN Expression'''
