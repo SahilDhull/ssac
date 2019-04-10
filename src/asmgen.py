@@ -137,7 +137,17 @@ def gen_assembly(line):
 
 	# If Statement
 	if test=='ifgoto':
-		
+        dest = get_reg(line[1])
+        asmCode.append('bgtz '+dest+', '+line[2])		
+
+    # Label
+    if test == 'label':
+        asmCode.append(line[1]+':')
+
+    # goto
+    if test == 'goto':
+        asmCode.append('j '+line[1])
+
 
 	# Print Statement except string
 	if test.startswith('print'):
