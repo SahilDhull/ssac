@@ -1709,6 +1709,7 @@ def p_if_statement(p):
   p[0].code += [['goto',l2]]
   p[0].code += [['label',l1]]
   p[0].code += p[7].code
+  p[0].code += [['goto',l2]]
   p[0].code += [['label',l2]]
 
 def p_if_sym(p):
