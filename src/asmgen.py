@@ -130,17 +130,30 @@ def gen_assembly(line):
 	# Print Statement except string
 	if test.startswith('print'):
 		src = get_reg(line[1])
-		if len(test)==9:
+		if len(test)==9: ## print_int
 			asmCode.append('li $v0, 1')
 			asmCode.append('move $a0, '+src)
 			asmCode.append('syscall')
-		if len(test)==11:
+		if len(test)==11: ## print_float
 			asmCode.append('li $v0, 2')
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
 		else:		# string case
 			asmCode.append('Print String not Implemented')
 		regsState[src] = 0
+
+    if test.startswith('scan'):
+        dest = get_reg(line[1])
+        if len(test)==8:
+            asmCode.append('li $v0, 5')
+            asmCode.append('syscall')
+            asmCode.append('move '+dest+', $v0')
+        elif len(test) = 11:
+            asmCode.append('li $v0, 6')
+            asmCode.append('syscall')
+            asmCode.append('move '+dest+', $f0')
+        else:
+            asmCode.append('Scan string not Implemented')
 
 
     if line[0]=='=':
