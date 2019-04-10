@@ -49,6 +49,16 @@ def free_reg():
             return i
     return -1
 
+def reg_replace(reg_to_rep,newVar=None):
+	oldVar = regTovar[reg_to_rep]
+	old_off = off_cal(oldVar)
+	asmCode.append('sw '+reg_to_rep+', '+str(old_off)+'($fp)')
+	if newVar:
+		regTovar[reg_to_rep] = newVar
+		varToreg[newVar] = reg_to_rep
+		off = off_cal(newVar)
+		asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
+
 def get_reg(var,load=0):
 	s = findscope(var)
 	info = findinfo(var,s)
@@ -74,11 +84,7 @@ def get_reg(var,load=0):
 	reg_to_rep = regs[rnum%len(regs)]
 	rnum += 1
 	varname = regTovar[reg_to_rep]
-	old_off = off_cal(varname)
-	asmCode.append('sw '+reg_to_rep+', '+str(old_off)+'($fp)')
-	regTovar[reg_to_rep] = var
-	varToreg[var] = reg_to_rep
-	asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
+	reg_replace(reg_to_rep,varname)
 	return reg_to_rep
 
 def free_all_reg():

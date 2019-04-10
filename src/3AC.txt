@@ -1,4 +1,5 @@
 goto main 
 label main 
-call_malloc x 8 
-call_malloc l 4 
+= temp_c0 1 
+= b temp_c0 
+print4 b 
