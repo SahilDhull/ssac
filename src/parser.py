@@ -144,9 +144,13 @@ def findscope(name):
   raise NameError(name+ " is not defined in any scope")
 
 def findinfo(name, S=-1):
+  # if name.startswith('temp_c'):
+    # print "ok"
   if S > -1:
     if scopeDict[S].retrieve(name) is not None:
         return scopeDict[S].retrieve(name)
+    # if name.startswith('temp_c'):
+    #   return -1
     raise NameError("Identifier " + name + " is not defined!")
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
@@ -250,7 +254,7 @@ def p_type_token(p):
                  | FLOAT
                  | BOOL
                  | STRING
-                 | TYPE Identifier'''
+                 | TYPE IDENTIFIER'''
     if len(p) == 2:
         p[0]=node()
         p[0].types.append(p[1])
@@ -655,7 +659,7 @@ def p_type_expr_list(p):
 
 
 def p_identifier_list(p):
-    '''IdentifierList : Identifier 
+    '''IdentifierList : IDENTIFIER 
                       | IdentifierRep'''
     if hasattr(p[1],'idlist'):
       p[0]=p[1]
@@ -671,8 +675,8 @@ def p_identifier_list(p):
         scopeDict[curScope].updateAttr(p[1],'place',v)
 
 def p_identifier_rep(p):
-    '''IdentifierRep : IdentifierRep COMMA Identifier
-                     | Identifier COMMA Identifier'''
+    '''IdentifierRep : IdentifierRep COMMA IDENTIFIER
+                     | IDENTIFIER COMMA IDENTIFIER'''
     if hasattr(p[1],'idlist'):
       p[0]=p[1]
       p[0].idlist = p[0].idlist + [p[3]]
@@ -758,7 +762,7 @@ def p_type_spec(p):
     p[0]=p[1]
 
 def p_alias_decl(p):
-    '''AliasDecl : Identifier EQUALS Type'''
+    '''AliasDecl : IDENTIFIER EQUALS Type'''
     if checkid(p[1],'andsand'):
       raise NameError("Name "+p[1]+" already defined")
     else:
@@ -770,7 +774,7 @@ def p_alias_decl(p):
 
 # -------------------TYPE DEFINITIONS--------------------
 def p_type_def(p):
-    '''TypeDef : Identifier Type'''
+    '''TypeDef : IDENTIFIER Type'''
     if checkid(p[1],'andsand'):
       raise NameError("Name "+p[1]+" already defined")
     else:
@@ -892,7 +896,7 @@ def p_expr_list_opt(p):
 
 # ----------------SHORT VARIABLE DECL-------------
 def p_short_var_decl(p):
-  ''' ShortVarDecl : Identifier SHORT_ASSIGNMENT Expression '''
+  ''' ShortVarDecl : IDENTIFIER SHORT_ASSIGNMENT Expression '''
   p[0] = node()
   if checkid(p[1],'e'):
     raise NameError("Variable"+p[1]+"already exists.")
@@ -939,7 +943,7 @@ def p_end_scope(p):
   endscope()
 
 def p_func_name(p):
-  '''FunctionName : Identifier'''
+  '''FunctionName : IDENTIFIER'''
   p[0] = p[1]
 
 def checksignature(name):
@@ -1056,7 +1060,7 @@ def p_S(p):
   p[0].bytesize = 32
 
 def p_operand_name(p):
-  '''OperandName : Identifier'''
+  '''OperandName : IDENTIFIER'''
   if not definedcheck(p[1]):
     raise NameError("identifier " + p[1] + " is not defined")
   p[0] = node()
@@ -1093,7 +1097,7 @@ def p_operand_name(p):
 # ---------------------------------------------------------
 
 
-# -------------------QUALIFIED Identifier----------------
+# -------------------QUALIFIED IDENTIFIER----------------
 def packageimport(name):
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
@@ -1104,7 +1108,7 @@ def packageimport(name):
   return False
 
 def p_qualified_ident(p):
-    '''QualifiedIdent : Identifier DOT TypeName'''
+    '''QualifiedIdent : IDENTIFIER DOT TypeName'''
     p[0] = node()
     if packageimport(p[1]):
       raise NameError("package"+p[1]+"not included")
@@ -1117,7 +1121,7 @@ def p_qualified_ident(p):
 # ------------------PRIMARY EXPRESSIONS--------------------
 def p_prim_expr(p):
   '''PrimaryExpr : Operand
-                 | PrimaryExpr DOT Identifier
+                 | PrimaryExpr DOT IDENTIFIER
                  | Conversion
                  | PrimaryExpr LSQUARE Expression RSQUARE
                  | PrimaryExpr Slice
@@ -1605,7 +1609,7 @@ def p_labeled_statements(p):
   p[0].code = [['label',new1]] + p[0].code
 
 def p_label(p):
-  ''' Label : Identifier '''
+  ''' Label : IDENTIFIER '''
   p[0]=p[1]
 
 
@@ -2010,13 +2014,13 @@ def p_package_clause(p):
 
 
 def p_package_name(p):
-    '''PackageName : Identifier'''
+    '''PackageName : IDENTIFIER'''
     p[0]=node()
     p[0].idlist.append(str(p[1]))
     if checkid(p[1],'e'):
       raise NameError("Package Name"+p[1]+"already exists")
-    else:
-      scopeDict[0].insert(p[1],"package")
+    # else:
+      # scopeDict[0].insert(p[1],"package")
 
 
 # --------- IMPORT DECLARATIONS ---------------
@@ -2068,10 +2072,6 @@ def p_SemiColon(p):
   p[0] = ";"
   # global constNum
   # constNum = 0
-
-def p_Identifier(p):
-  '''Identifier : IDENTIFIER'''
-  p[0] = newvar()
 
 # ---------------   EMPTY and SYNTAX ERROR --------------
 
