@@ -1,4 +1,4 @@
-from parser import Symbol_Table, Code, findinfo
+from parser import Symbol_Table, Code
 import sys
 
 asmCode = []
@@ -26,14 +26,29 @@ def findscope(name):
 			return j
 	return -1
 
+def findinfo(name):
+	S = findscope(name)
+	if Symbol_Table[S].retrieve(name) is not None:
+		return Symbol_Table[S].retrieve(name)
+	print "Identifier " + name + " is not defined!"
+
 def off_cal(varname):
-	s = findscope(varname)
-	# print str(s) + " : "+varname
-	if s==-1:
-		print "Some Error"
-	info = findinfo(varname,s)
+	info = findinfo(varname)
 	off = info.offset
 	return -4-off
+
+def update_symbol_table():
+	for j in range(len(Symbol_Table)):
+		i = Symbol_Table[j]
+		for x in range(len(i.symbols)):
+			symbol = i.symbols[x]
+			sym = i.table[i.symbols[x]]
+			if sym.place is not None:
+				# print sym.place
+				i.symbols[x] = sym.place
+				i.table[sym.place] = sym
+				del i.table[symbol]
+
 
 # Registers:----------------------------------
 
@@ -60,8 +75,7 @@ def reg_replace(reg_to_rep,newVar=None):
 		asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
 
 def get_reg(var,load=0):
-	s = findscope(var)
-	info = findinfo(var,s)
+	info = findinfo(var)
 	off = off_cal(var)
 	c = 0
 
@@ -299,8 +313,11 @@ def gen_assembly(line):
 		regsState[src2] = 0
 		return 1
 
-		
-		
+
+# Updating symbol table
+update_symbol_table()	
+
+
 for i in range(len(Code)):
 	gen_assembly(Code[i])
 
@@ -308,6 +325,7 @@ free_all_reg()
 
 sys.stdout =  open("mips", "w+")
 
+# print_Symbol_Table()
 
 print_list(asmCode)
 

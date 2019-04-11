@@ -264,5 +264,5 @@ _lr_productions = [
   ('PackageNameDotOpt -> epsilon','PackageNameDotOpt',1,'p_package_name_dot_opt','parser.py',2055),
   ('ImportPath -> STRING_LIT','ImportPath',1,'p_import_path','parser.py',2063),
   ('Semi -> SEMICOLON','Semi',1,'p_SemiColon','parser.py',2071),
-  ('epsilon -> <empty>','epsilon',0,'p_empty','parser.py',2079),
+  ('epsilon -> <empty>','epsilon',0,'p_empty','parser.py',2084),
 ]

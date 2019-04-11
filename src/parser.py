@@ -93,11 +93,13 @@ def opTypeCheck(a,b,op):
 curScope = 0
 scopeLevel = 0
 varNum = 0
+cvarNum = 0
 arrNum = 0
 labelNum = 1
 constNum = 0
 mainFunc = True
 
+cname = {}
 labelDict = {}
 scopeDict = {}
 scopeDict[0] = st(0)
@@ -172,10 +174,15 @@ def v_decl(v,s):
   scopeDict[s].extra['curOffset'] += 4
   vinfo.mysize = 4
 
+def newcvar():
+  global cvarNum
+  val = 'cv'+str(cvarNum)
+  cvarNum += 1
+  return val
 
 def newvar():
   global varNum
-  val = 'v'+str(varNum)
+  val = 'var'+str(varNum)
   # scopeDict[curScope].insert(val,None)
   varNum+=1
   return val
@@ -631,14 +638,14 @@ def p_const_spec(p):
     for i in range(len(p[1].place)):
       x = p[1].idlist[i]
       info = findinfo(x)
-      p[0].code.append(['=',x,p[2].place[i]])
+      p[0].code.append(['=',p[1].place[i],p[2].place[i]])
       p[1].place[i] = p[2].place[i]
       p[0].bytesize += p[2].bytesize
       info.mysize = p[2].bytesize
       info.offset = scopeDict[curScope].extra['curOffset']
       scopeDict[curScope].extra['curOffset'] += p[2].bytesize
       scope = findscope(x)
-      scopeDict[scope].updateAttr(x,'place',p[1].place[i])
+      # scopeDict[scope].updateAttr(x,'place',p[1].place[i])
       if p[2].types[i]==i:
         raise TypeError('Type of ' + p[1].idlist[i] + ' does not match that of expr')
       scopeDict[scope].updateAttr(x,'type','c'+p[2].types[i])
@@ -665,6 +672,8 @@ def p_identifier_list(p):
       p[0]=p[1]
     else:
       p[0]=node()
+      # cv = newcvar()
+      # cname[p[1]] = cv
       p[0].idlist+=[p[1]]
       if checkid(p[1],"e"):
         raise NameError(p[1]+" : This name already exists")
@@ -685,6 +694,7 @@ def p_identifier_rep(p):
       else:
         scopeDict[curScope].insert(p[3],None)
         v = newvar()
+        cname[p[1]] = v
         p[0].place = p[0].place + [v]
         scopeDict[curScope].updateAttr(p[3],'place',v)
     else:
@@ -857,10 +867,10 @@ def p_var_spec(p):
   
   for i in range(len(p[1].place)):
     x = p[1].idlist[i]
-    p[1].place[i] = x
+    # p[1].place[i] = p[3].place[i]
     scope = findscope(x)
     info = findinfo(x)
-    p[0].code.append(['=',x,p[3].place[i]])
+    p[0].code.append(['=',p[1].place[i],p[3].place[i]])
     scopeDict[scope].updateAttr(x,'place',p[1].place[i])
     scopeDict[scope].updateAttr(x,'type',p[2].types[0])
     p[0].bytesize += p[2].bytesize
@@ -890,7 +900,7 @@ def p_expr_list_opt(p):
       p[0].bytesize = 4*int(p[5])
       p[0].extra['malloc'] = 1
     else:
-        p[0]=p[1]
+      p[0]=p[1]
 # -------------------------------------------------------
 
 
@@ -904,7 +914,7 @@ def p_short_var_decl(p):
     scopeDict[curScope].insert(p[1],None)
   v = newvar()
   p[0].code = p[3].code
-  p[0].code.append(['=',p[1],p[3].place[0]])
+  p[0].code.append(['=',v,p[3].place[0]])
   x = p[3].types[0]
   if x=='int' or x=='cint':
     p[0].bytesize = 4
@@ -912,7 +922,7 @@ def p_short_var_decl(p):
   info.offset = scopeDict[curScope].extra['curOffset']
   info.mysize = p[0].bytesize
   scopeDict[curScope].extra['curOffset'] += p[0].bytesize
-  scopeDict[curScope].updateAttr(p[1],'place',p[1])
+  scopeDict[curScope].updateAttr(p[1],'place',v)
   scopeDict[curScope].updateAttr(p[1],'type',p[3].types[0])
 
 # ----------------FUNCTION DECLARATIONS------------------
@@ -1065,7 +1075,6 @@ def p_operand_name(p):
     raise NameError("identifier " + p[1] + " is not defined")
   p[0] = node()
   info = findinfo(p[1])
-  
   p[0].bytesize = info.mysize
   if type(info.type) is list:
     s = info.type[0]
@@ -1075,12 +1084,8 @@ def p_operand_name(p):
     p[0].types = [info.retType]
     p[0].place.append(info.label)
   else:
-    # if type(info.type) is list:
-    #   p[0].types = info.type
-    # else:
     p[0].types = [s]
-    # off = 'off_'+str(info.offset)
-    p[0].place.append(p[1])
+    p[0].place.append(info.place)
     p[0].extra['layerNum'] = 0
     p[0].extra['operand'] = p[1]
     if info.listsize is not None:
@@ -2073,6 +2078,11 @@ def p_SemiColon(p):
   # global constNum
   # constNum = 0
 
+# def p_identifier(p):
+#   '''Identifier : IDENTIFIER'''
+#   p[0] = newvar()
+#   v_decl(p[0],curScope)
+
 # ---------------   EMPTY and SYNTAX ERROR --------------
 
 def p_empty(p):
@@ -2098,7 +2108,7 @@ result=parser.parse(input_str,tracking=True)
 
 def print_in_format():
   tab = [[]]
-  tab[0] = ['Scope,','Name,','Type,','Offset,','Child']
+  tab[0] = ['Scope,','Name,','Type,','Comp_Name','Offset,','Child']
   for i in range(len(scopeDict)):
     symtab = scopeDict[i]
     for j in symtab.symbols:
@@ -2125,12 +2135,13 @@ def print_in_format():
       scope = str(i)
       name = j
       typ = s
+      lab = str(symtab.table[j].place)
       off = str(symtab.table[j].offset)
       if symtab.table[j].child:
         child = str(symtab.table[j].child.val)
       else:
         child = ""
-      tab.append([scope+',',name+',',typ+',',off+',',child])
+      tab.append([scope+',',name+',',typ+',',lab+',',off+',',child])
     # info = scopeDict[i].retrieve()
   col_width = max(len(word) for row in tab for word in row) + 5
   flag = 0
@@ -2166,5 +2177,3 @@ sys.stdout = sys.__stdout__
 
 
 # info2 = findinfo('age',2)
-
-
