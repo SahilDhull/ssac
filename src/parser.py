@@ -1924,17 +1924,10 @@ def p_return(p):
     if not equalcheck(retType,p[2].types[0]):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
     s = p[2].place[0]
-    if s[:4]=='off_':
-      s = s[4:]
-      k = int(s)
-      a = -4-k
-      p[0].code.append(['movs',str(a)+"($fp)",str(-return_off)+"($fp)"])
-    else:
-      p[0].code.append(['movs',s,str(-return_off)+"($fp)"])
+    p[0].code.append(['movs',s,str(-return_off)+"($fp)"])
   elif len(p[2].types) == 0:
     if retType!='void':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"function "+fname+" has return type "+retType+" , but returned void in the stmt")
-    # p[0].code.append(['retvoid'])
   else:
     return_off = -return_off
     return_off += p[2].bytesize
@@ -1947,13 +1940,7 @@ def p_return(p):
       s = p[2].place[i]
       x = return_off
       return_off -= funcinfo.retsize[i]
-      if s[:4]=='off_':
-        s = s[4:]
-        k = int(s)
-        a = -4-k
-        p[0].code.append(['movs',str(a)+"($fp)",str(x)+"($fp)"])
-      else:
-        p[0].code.append(['movs',s,str(x)+"($fp)"])
+      p[0].code.append(['movs',s,str(x)+"($fp)"])
   jumpval = funcinfo.mysize + 4
   p[0].code.append(['jr','$ra'])
 
