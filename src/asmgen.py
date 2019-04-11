@@ -175,10 +175,6 @@ def gen_assembly(line):
 	if test == 'goto':
 		asmCode.append('j '+line[1])
 
-	# goto
-	if test == 'goto':
-		asmCode.append('j '+line[1])
-
 	# Print Statement except string
 	if test.startswith('print'):
 		src = get_reg(line[1])
