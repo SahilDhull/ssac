@@ -4,8 +4,6 @@ import sys
 asmCode = []
 globalDecl = []
 global_extra = ['package','import','func','struct','*struct']
-curFunc = 'main'
-
 
 def print_list(l):
 	for i in l:
@@ -48,7 +46,6 @@ def update_symbol_table():
 				i.symbols[x] = sym.place
 				i.table[sym.place] = sym
 				del i.table[symbol]
-
 
 # Registers:----------------------------------
 
@@ -106,11 +103,24 @@ def get_reg(var,load=0):
 	reg_replace(reg_to_rep,varname)
 	return reg_to_rep
 
+def empty_reg(reg):
+	if regsState[reg] == 0:
+		return
+	regsState[reg] = 0
+	if reg not in regTovar:
+		return
+	varname = regTovar[reg]
+	old_off = off_cal(varname)
+	asmCode.append('sw '+reg+', '+str(old_off)+'($fp)')
+	del regTovar[reg]
+	del varToreg[varname]
+
 def free_all_reg():
 	for i in range(len(regs)):
 		reg = regs[i]
+		regsState[reg] = 0
 		if reg not in regTovar:
-			break
+			continue
 		varname = regTovar[reg]
 		old_off = off_cal(varname)
 		asmCode.append('sw '+reg+', '+str(old_off)+'($fp)')
@@ -329,9 +339,11 @@ sys.stdout =  open("mips", "w+")
 
 print_list(asmCode)
 
+# ----------- To remove on function implementation
 print "li $v0, 1"
 print "move $a0, $3"
 print "syscall"
 
 print "li $v0, 10"
 print "syscall"
+# ----------------
