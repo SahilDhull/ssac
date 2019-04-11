@@ -124,7 +124,7 @@ global_variables()
 # print_list(globalDecl)
 
 binaryop = ['+','-','*','/','%','&&','||','^','!=','<=','>=','==','<','>','!','<<','>>']
-eqop = ['+=','-=','*=','/=','%=','<<=','>>=',':=']	
+eqop = ['+=','-=','*=','/=','%=','<<=','>>=',':=']  
 op = binaryop + eqop
 
 # Start of MIPS
@@ -137,17 +137,16 @@ def gen_assembly(line):
 
 	# If Statement
 	if test=='ifgoto':
-        dest = get_reg(line[1])
-        asmCode.append('bgtz '+dest+', '+line[2])		
+		dest = get_reg(line[1])
+		asmCode.append('bgtz '+dest+', '+line[2])       
 
-    # Label
-    if test == 'label':
-        asmCode.append(line[1]+':')
+	# Label
+	if test == 'label':
+		asmCode.append(line[1]+':')
 
-    # goto
-    if test == 'goto':
-        asmCode.append('j '+line[1])
-
+	# goto
+	if test == 'goto':
+		asmCode.append('j '+line[1])
 
 	# Print Statement except string
 	if test.startswith('print'):
@@ -160,7 +159,7 @@ def gen_assembly(line):
 			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
-		else:		# string case
+		else:       # string case
 			asmCode.append('Print String not Implemented')
 		regsState[src] = 0
 
@@ -176,7 +175,6 @@ def gen_assembly(line):
 			asmCode.append('move '+dest+', $f0')
 		else:
 			asmCode.append('Scan string not Implemented')
-
 
 	if line[0]=='=':
 		if line[1].startswith('temp_c'):
