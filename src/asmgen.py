@@ -204,13 +204,16 @@ def gen_assembly(line):
 			asmCode.append('Scan string not Implemented')
 
 	if test=='memt':
-		src = get_reg(line[2])
+		src = get_reg(line[2],1)
 		offset = off_cal(line[2])
 		asmCode.append('lw '+src+', '+line[1])
-		asmCode.append('sw '+src+', '+off_cal+'($fp)')
+		asmCode.append('sw '+src+', '+str(offset)+'($fp)')
+
+	if test=='loadra':
+		asmCode.append('lw $ra, '+line[2])
 
 	if test == 'jal':
-		asmCode.append('jal'+line[1])
+		asmCode.append('jal '+line[1])
 
 	if test=='addi':
 		asmCode.append('addi '+line[1]+', '+line[2]+', '+line[3])
@@ -218,7 +221,7 @@ def gen_assembly(line):
 	if test == 'push':
 		if line[1] == '$ra':
 			asmCode.append('sw $ra, '+line[2]+'($fp)')
-		elif isdigit(line[1]):
+		elif (line[1]).lstrip('-+').isdigit():
 			asmCode.append('li $3, '+line[1])
 			asmCode.append('sw $3, '+line[2]+'($fp)')
 		else:

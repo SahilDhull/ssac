@@ -1218,8 +1218,8 @@ def p_prim_expr(p):
     start = curval
     funcinfo = findinfo(p[1].idlist[0])
     funcsize = funcinfo.mysize
-    return_off = start
     start -= 4
+    return_off = start
     p[0].code.append(['push','$ra',str(start)])
     if len(info.retType)==1:
       start -= info.retsize[0]
@@ -1231,6 +1231,7 @@ def p_prim_expr(p):
       p[0].code.append(['addi','$fp','$fp',str(start)])
       p[0].code.append(['jal',info.label])
       p[0].code.append(['addi','$fp','$fp',str(-start)])
+      p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
       flag=0
       if info.retType[0]=='void':
         flag=1
@@ -1238,8 +1239,8 @@ def p_prim_expr(p):
         v1 = newvar()
         v_decl(v1,curScope)
         p[0].place.append(v1)
-        start -= p[3].bytesize
-        p[0].code.append(['memt',str(scopeDict[curScope].extra['curOffset'])+'($fp)',v1])
+        return_off -= p[3].bytesize
+        p[0].code.append(['memt',str(return_off)+'($fp)',v1])
       p[0].types = [p[1].types[0]]
     else:
       p[0].place = []
@@ -1257,10 +1258,12 @@ def p_prim_expr(p):
       p[0].code.append(['addi','$fp','$fp',str(start)])
       p[0].code.append(['jal',info.label])
       p[0].code.append(['addi','$fp','$fp',str(-start)])
+      p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
       for i in range(len(info.retType)):
         s = newvar()
         v_decl(s,curScope)
-        p[0].code.append(['memt',str(scopeDict[curScope].extra['curOffset'])+'($fp)',s])
+        return_off -= info.retsize[i]
+        p[0].code.append(['memt',str(return_off)+'($fp)',s])
         p[0].place.append(s)
 
   # ------------------   SELECTOR  -------------------------
@@ -1952,7 +1955,7 @@ def p_return(p):
       else:
         p[0].code.append(['movs',s,str(x)+"($fp)"])
   jumpval = funcinfo.mysize + 4
-  p[0].code.append(['jump',str(jumpval)+'($fp)'])
+  p[0].code.append(['jr','$ra'])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList
