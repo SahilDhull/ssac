@@ -506,7 +506,7 @@ def p_params(p):
     if len(p) == 4:
       p[0] = p[2]
       if 'parOffset' not in scopeDict[curScope].extra:
-        scopeDict[curScope].updateExtra('parOffset',-4)
+        scopeDict[curScope].updateExtra('parOffset',4)
       # total_size=0
       l = len(p[0].idlist)-1
       for i in range(len(p[0].idlist)):
@@ -517,12 +517,12 @@ def p_params(p):
         y = scopeDict[curScope].extra['parOffset']
         z = info.mysize
         # total_size+=z
-        scopeDict[curScope].extra['parOffset'] -= z
         info.offset = scopeDict[curScope].extra['parOffset']
+        scopeDict[curScope].extra['parOffset'] += z
 
     else:
       p[0] = node()
-      scopeDict[curScope].updateExtra('parOffset',-4)
+      scopeDict[curScope].updateExtra('parOffset',4)
 
 def p_param_list(p):
     '''ParametersList : ParameterDecl
@@ -932,8 +932,12 @@ def p_func_decl(p):
     global mainFunc
     if mainFunc:
       mainFunc = False
-      p[0].code = [["goto","main"]]
+      # p[0].code = [["goto","main"]]
     p[0].code.append(['label',p[2]])
+    x = scopeDict[info.child.val].extra['funcOffset']
+    p[0].code.append(['$sp',str(x)])
+    # print scopeDict[curScope].extra['funcOffset']
+    # p[0].code.append()
     # if p[2]!='main':
       # p[0].code.append(['movs',"%r9",'0($fp)'])
     info.mysize = p[4].bytesize
@@ -997,6 +1001,10 @@ def p_ret_type_set(p):
 def p_func_body(p):
     '''FunctionBody : Block'''
     p[0] = p[1]
+    scopeDict[curScope].extra['funcOffset'] =  scopeDict[curScope].extra['curOffset']
+    x = scopeDict[curScope].extra['curOffset']
+    p[0].code.append(['$sp',str(-x)])
+    p[0].code.append(['jr','$ra'])
 # -------------------------------------------------------
 
 
@@ -1220,11 +1228,15 @@ def p_prim_expr(p):
     funcsize = funcinfo.mysize
     start -= 4
     return_off = start
-    p[0].code.append(['push','$ra',str(start)])
+    
     if len(info.retType)==1:
       start -= info.retsize[0]
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
+      diff = start - curval -4
+      p[0].code.append(['addi','$sp','$sp',str(diff)])
+      p[0].code.append(['push','$ra',str(return_off)])
+      for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
       start -= 4
       p[0].code.append(['push',str(start),str(start)])
@@ -1241,17 +1253,20 @@ def p_prim_expr(p):
         p[0].place.append(v1)
         return_off -= p[3].bytesize
         p[0].code.append(['memt',str(return_off)+'($fp)',v1])
+      p[0].code.append(['addi','$sp','$sp',str(-diff)])
       p[0].types = [p[1].types[0]]
     else:
       p[0].place = []
       p[0].types = info.retType
-      r = []
-      k = 1
       for i in range(len(info.retType)):
         start-=info.retsize[i]
       #   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
+      diff = start - curval -4
+      p[0].code.append(['addi','$sp','$sp',str(diff)])
+      p[0].code.append(['push','$ra',str(return_off)])
+      for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i],str(start)])
       start-=4
       p[0].code.append(['push',str(start),str(start)])
@@ -1265,6 +1280,7 @@ def p_prim_expr(p):
         return_off -= info.retsize[i]
         p[0].code.append(['memt',str(return_off)+'($fp)',s])
         p[0].place.append(s)
+      p[0].code.append(['addi','$sp','$sp',str(-diff)])
 
   # ------------------   SELECTOR  -------------------------
   elif len(p) == 4:
@@ -1917,32 +1933,27 @@ def p_return(p):
       fname = scopeDict[scope].extra['fName']
       retType = scopeDict[scope].extra['retType']
   funcinfo = findinfo(fname)
-  
-  
   return_off = scopeDict[curScope].extra['parOffset']
   if len(p[2].types) == 1:
     if not equalcheck(retType,p[2].types[0]):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
     s = p[2].place[0]
-    p[0].code.append(['movs',s,str(-return_off)+"($fp)"])
+    p[0].code.append(['movs',s,str(return_off)+"($fp)"])
   elif len(p[2].types) == 0:
     if retType!='void':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"function "+fname+" has return type "+retType+" , but returned void in the stmt")
   else:
-    return_off = -return_off
-    return_off += p[2].bytesize
-    return_off -= 4
     if len(p[2].types)!=len(retType):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Number of return argument doesn't match for "+fname)
+    leng = len(p[2].types)
     for i in range(len(p[2].types)):
       if not equalcheck(retType[i],p[2].types[i]):
         raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType[i]+" which doesnt match that in stmt i.e. "+p[2].types[i] )
-      s = p[2].place[i]
+      s = p[2].place[leng-i-1]
       x = return_off
-      return_off -= funcinfo.retsize[i]
       p[0].code.append(['movs',s,str(x)+"($fp)"])
+      return_off += funcinfo.retsize[i]
   jumpval = funcinfo.mysize + 4
-  p[0].code.append(['jr','$ra'])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList

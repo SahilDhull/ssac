@@ -143,21 +143,19 @@ def global_variables():
 			# Check if declared or not from 3AC
 			globalDecl.append(j+":\t.space "+str(s))
 
-global_variables()
 
 # print_list(globalDecl)
 
-
 binaryop = ['+','-','*','/','%','&&','||','^','!=','<=','>=','==','<','>','!','<<','>>']
 eqop = ['+=','-=','*=','/=','%=','<<=','>>=',':=']  
-
-
 op = binaryop + eqop
 
 # Start of MIPS
-asmCode.append('.globl main')
+asmCode.append('.data')
+global_variables()
 asmCode.append('.text')
-asmCode.append('main:')
+asmCode.append('.globl main')
+
 
 def gen_assembly(line):
 	test = line[0]
@@ -170,6 +168,8 @@ def gen_assembly(line):
 	# Label
 	if test == 'label':
 		asmCode.append(line[1]+':')
+		if line[1]=='main':
+			asmCode.append('addi $fp, $sp, $0')
 
 	# goto
 	if test == 'goto':
@@ -209,8 +209,18 @@ def gen_assembly(line):
 		asmCode.append('lw '+src+', '+line[1])
 		asmCode.append('sw '+src+', '+str(offset)+'($fp)')
 
+	if test=='$sp':
+		asmCode.append('addi $sp, $sp, '+line[1])
+
 	if test=='loadra':
 		asmCode.append('lw $ra, '+line[2])
+
+	if test == 'jr':
+		asmCode.append(line[0]+' '+line[1])
+
+	if test =='movs':
+		src = get_reg(line[1])
+		asmCode.append('sw '+src+', '+line[2])
 
 	if test == 'jal':
 		asmCode.append('jal '+line[1])
@@ -352,7 +362,14 @@ update_symbol_table()
 for i in range(len(Code)):
 	gen_assembly(Code[i])
 
-free_all_reg()
+for i in range(len(asmCode)):
+	line = asmCode[i]
+	if line.endswith(':'):
+		continue
+	else:
+		asmCode[i] = '\t'+line
+
+# free_all_reg()
 
 sys.stdout =  open("mips", "w+")
 
@@ -361,10 +378,12 @@ sys.stdout =  open("mips", "w+")
 print_list(asmCode)
 
 # ----------- To remove on function implementation
+"""
 print "li $v0, 1"
 print "move $a0, $3"
 print "syscall"
 
 print "li $v0, 10"
 print "syscall"
+"""
 # ----------------
