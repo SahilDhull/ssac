@@ -1223,10 +1223,10 @@ def p_prim_expr(p):
     p[0].code.append(['push','$ra'])
     if len(info.retType)==1:
       v1 = 'ret_'+name+'_1'
-      if info.retType[0]!='void':
-        p[0].code.append(['push','ret1',str(info.retsize[0])])
+      # if info.retType[0]!='void':
+      #   p[0].code.append(['push','ret1',str(info.retsize[0])])
       for i in range(len(p[3].place)):
-        p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][0]])
+        p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
       p[0].code.append(['push',str(ebp_off),'4'])
       p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
       p[0].code.append(['jump',info.label])
@@ -1246,8 +1246,8 @@ def p_prim_expr(p):
       p[0].types = info.retType
       r = []
       k = 1
-      for i in range(len(info.retType)):
-        p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
+      # for i in range(len(info.retType)):
+      #   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
       for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
       p[0].code.append(['push',str(ebp_off),'4'])
