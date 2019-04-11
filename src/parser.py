@@ -248,10 +248,7 @@ def p_type_name(p):
     p[0]=p[1]
 
 def definedcheck(name):
-  
-  
   for scope in scopeStack[::-1]:
-    
     if scopeDict[scope].retrieve(name) is not None:
       return True
   return False
@@ -278,7 +275,7 @@ def p_type_token(p):
           # maximum size of string set to 8 bytes
     else:
         if not definedcheck(p[2]):
-          raise TypeError("TypeName " + p[2] + " not defined anywhere")
+          raise TypeError("Line "+str(p.lineno(1))+" : "+"TypeName " + p[2] + " not defined anywhere")
         else:
           p[0]=node()
           var = findinfo(p[2],0)
@@ -351,7 +348,7 @@ def p_array_type(p):
   p[0].code = p[2].code + p[4].code
   p[0].bytesize = p[4].bytesize
   if p[2].types[0]!='int' and p[2].types[0]!='cint':
-    raise IndexError("Index of array "+p[-1].idlist[0]+" is not integer")
+    raise IndexError("Line "+str(p.lineno(1))+" : "+"Index of array "+p[-1].idlist[0]+" is not integer")
   x = p[2].extra['operandValue'][0]
   p[0].bytesize *= int(x)
   if p[4].types[0]=='arr':
@@ -427,7 +424,7 @@ def p_field_decl(p):
   s = scopeDict[sco].extra['structname']
   
   if s in p[2].types:
-    raise TypeError("Struct "+s[4:]+" recursively defind, not allowed")
+    raise TypeError("Line "+str(p.lineno(1))+" : "+"Struct "+s[4:]+" recursively defind, not allowed")
   # if x in p[2].types
   for i in range(len(p[0].idlist)):
     p[0].bytesize += p[2].bytesize
@@ -634,7 +631,7 @@ def p_const_spec(p):
     p[0] = node()
     p[0].code = p[1].code + p[2].code
     if len(p[1].place)!=len(p[2].place):
-      raise ValueError("Error: Unequal number of identifiers and Expressions")
+      raise ValueError("Line "+str(p.lineno(1))+" : "+"Error: Unequal number of identifiers and Expressions")
     for i in range(len(p[1].place)):
       x = p[1].idlist[i]
       info = findinfo(x)
@@ -647,7 +644,7 @@ def p_const_spec(p):
       scope = findscope(x)
       # scopeDict[scope].updateAttr(x,'place',p[1].place[i])
       if p[2].types[i]==i:
-        raise TypeError('Type of ' + p[1].idlist[i] + ' does not match that of expr')
+        raise TypeError("Line "+str(p.lineno(1))+" : "+'Type of ' + p[1].idlist[i] + ' does not match that of expr')
       scopeDict[scope].updateAttr(x,'type','c'+p[2].types[i])
 
 
@@ -676,7 +673,7 @@ def p_identifier_list(p):
       # cname[p[1]] = cv
       p[0].idlist+=[p[1]]
       if checkid(p[1],"e"):
-        raise NameError(p[1]+" : This name already exists")
+        raise NameError("Line "+str(p.lineno(1))+" : "+p[1]+" : This name already exists")
       else:
         scopeDict[curScope].insert(p[1],None)
         v = newvar()
@@ -690,7 +687,7 @@ def p_identifier_rep(p):
       p[0]=p[1]
       p[0].idlist = p[0].idlist + [p[3]]
       if checkid(p[3],"e"):
-        raise NameError(p[3]+" : This name already exists")
+        raise NameError("Line "+str(p.lineno(1))+" : "+p[3]+" : This name already exists")
       else:
         scopeDict[curScope].insert(p[3],None)
         v = newvar()
@@ -702,9 +699,9 @@ def p_identifier_rep(p):
       p[0].idlist = [p[1]] + [p[3]]
       if checkid(p[1],"e") or checkid(p[3],"e"):
         if checkid(p[1],"e"):
-          raise NameError(p[1]+" : This name already exists")
+          raise NameError("Line "+str(p.lineno(1))+" : "+p[1]+" : This name already exists")
         else:
-          raise NameError(p[3]+" : This name already exists")
+          raise NameError("Line "+str(p.lineno(1))+" : "+p[3]+" : This name already exists")
       else:
         scopeDict[curScope].insert(p[1],None)
         scopeDict[curScope].insert(p[3],None)
@@ -774,7 +771,7 @@ def p_type_spec(p):
 def p_alias_decl(p):
     '''AliasDecl : IDENTIFIER EQUALS Type'''
     if checkid(p[1],'andsand'):
-      raise NameError("Name "+p[1]+" already defined")
+      raise NameError("Line "+str(p.lineno(1))+" : "+"Name "+p[1]+" already defined")
     else:
       
       scopeDict[curScope].insert(p[1],p[3].types[0])
@@ -786,7 +783,7 @@ def p_alias_decl(p):
 def p_type_def(p):
     '''TypeDef : IDENTIFIER Type'''
     if checkid(p[1],'andsand'):
-      raise NameError("Name "+p[1]+" already defined")
+      raise NameError("Line "+str(p.lineno(1))+" : "+"Name "+p[1]+" already defined")
     else:
       
       
@@ -823,7 +820,7 @@ def p_var_spec(p):
       if p[2].types[0].startswith('*'):
         a=1
       else:
-        raise TypeError("Malloc done to a non-pointer type")
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"Malloc done to a non-pointer type")
         return
     p[0]=p[1]
     p[0].code+=p[2].code
@@ -844,7 +841,7 @@ def p_var_spec(p):
         scopeDict[curScope].extra['curOffset'] += p[2].bytesize
       elif a==1:
         if p[2].types[0]=='*arr':
-          raise TypeError("Malloc for array must be in a loop")
+          raise TypeError("Line "+str(p.lineno(1))+" : "+"Malloc for array must be in a loop")
         p[0].code.append(['call_malloc',x,str(p[3].bytesize)])
         scopeDict[s].updateAttr(x,'type',p[2].types)
       else:
@@ -862,7 +859,7 @@ def p_var_spec(p):
   p[0]=node()
   p[0].code = p[1].code + p[3].code
   if len(p[1].place)!=len(p[3].place):
-    raise ValueError("Mismatch in number of expressions assigned to variables")
+    raise ValueError("Line "+str(p.lineno(1))+" : "+"Mismatch in number of expressions assigned to variables")
 
   
   for i in range(len(p[1].place)):
@@ -886,7 +883,7 @@ def p_var_spec(p):
       s = p[3].types[i]
     
     if not equalcheck(p[2].types[0],s):
-      raise TypeError("Type of "+ x + " does not match that of expr")
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Type of "+ x + " does not match that of expr")
 
 
 def p_expr_list_opt(p):
@@ -909,7 +906,7 @@ def p_short_var_decl(p):
   ''' ShortVarDecl : IDENTIFIER SHORT_ASSIGNMENT Expression '''
   p[0] = node()
   if checkid(p[1],'e'):
-    raise NameError("Variable"+p[1]+"already exists.")
+    raise NameError("Line "+str(p.lineno(1))+" : "+"Variable"+p[1]+"already exists.")
   else:
     scopeDict[curScope].insert(p[1],None)
   v = newvar()
@@ -980,7 +977,7 @@ def p_func(p):
       info = findinfo(p[-2])
       info.type = 'func'
     else:
-      raise NameError('No Signature found for '+p[-2])
+      raise NameError("Line "+str(p.lineno(1))+" : "+'No Signature found for '+p[-2])
 
 
 def p_ret_type_set(p):
@@ -1072,7 +1069,7 @@ def p_S(p):
 def p_operand_name(p):
   '''OperandName : IDENTIFIER'''
   if not definedcheck(p[1]):
-    raise NameError("identifier " + p[1] + " is not defined")
+    raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[1] + " is not defined")
   p[0] = node()
   info = findinfo(p[1])
   p[0].bytesize = info.mysize
@@ -1116,7 +1113,7 @@ def p_qualified_ident(p):
     '''QualifiedIdent : IDENTIFIER DOT TypeName'''
     p[0] = node()
     if packageimport(p[1]):
-      raise NameError("package"+p[1]+"not included")
+      raise NameError("Line "+str(p.lineno(1))+" : "+"package"+p[1]+"not included")
     p[0].types.append(p[1]+p[2]+p[3].types[0])
 
 
@@ -1142,17 +1139,17 @@ def p_prim_expr(p):
     info = findinfo(name)
     lsize = info.listsize
     if p[3].types[0]!='int' and p[3].types[0]!='cint':
-      raise IndexError("Array index of array " + p[1].extra['operand'] + " is not integer")
+      raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
     k = p[1].extra['layerNum']
     # check on index range
     if p[1].extra['layerNum'] == len(lsize)-1:
-      raise IndexError('Dimension of array '+p[1].extra['operand'] + ' doesnt match')
+      raise IndexError("Line "+str(p.lineno(1))+" : "+'Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
     if 'operandValue' in p[3].extra:
       z = p[3].extra['operandValue'][0]
       y = scopeDict[curScope].extra[p[1].extra['operand']]
       if z>=y[k]:
-        raise IndexError("Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
+        raise IndexError("Line "+str(p.lineno(1))+" : "+"Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
     
     v1 = newvar()
     scopeDict[curScope].insert(v1,None)
@@ -1207,12 +1204,12 @@ def p_prim_expr(p):
     info = findinfo(p[1].idlist[0],0)
     functionDict = info.child
     if len(functionDict.extra['types'])!=len(p[3].place):
-      raise IndexError("Function "+x+" passed with Unequal number of arguments")
+      raise IndexError("Line "+str(p.lineno(1))+" : "+"Function "+x+" passed with Unequal number of arguments")
     paramTypes = functionDict.extra['types']
     if len(p[3].place):
       for i in range(len(p[3].place)):
         if not equalcheck(paramTypes[i],p[3].types[i]):
-          raise TypeError("Type Mismatch in "+p[1].idlist[0])
+          raise TypeError("Line "+str(p.lineno(1))+" : "+"Type Mismatch in "+p[1].idlist[0])
 
     # Checking Return Type
     name = p[1].idlist[0]
@@ -1279,11 +1276,11 @@ def p_prim_expr(p):
       t = t[i:][0][4:]
     elif t[0]=='*':
       if t[1:5]!='type':
-        raise TypeError(t+" does not have any attribute")
+        raise TypeError("Line "+str(p.lineno(1))+" : "+t+" does not have any attribute")
         return
       if x not in scopeDict[curScope].extra:
         
-        raise NameError(x+" is not set")
+        raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
       t = t[5:]
     else:
       t = t[4:]
@@ -1292,10 +1289,10 @@ def p_prim_expr(p):
     sScope = sinfo.child
     
     if p[3] not in sScope.table:
-      raise NameError("identifier " + p[3]+ " is not defined inside the struct " + x)
+      raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
     varname = x+'.'+p[3]
     if not checkid(x,'e'):
-      raise NameError(x+" does not exist")
+      raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
     if checkid(varname,'e'):
       
@@ -1370,14 +1367,14 @@ def p_expr(p):
       p[0].idlist = p[1].idlist + p[3].idlist
       p[0].bytesize = p[1].bytesize
       if (p[2]=='<<' or p[2]=='>>' or p[2]=='^' or p[2]=='&^' or p[2]=='%' or p[2]=='|' or p[2]=='&') and (p[3].types[0]!='int' and p[3].types[0]!='cint') or (p[1].types[0]!='int' and p[1].types[0]!='cint'):
-        raise TypeError("RHS/LHS of "+p[2]+" is not integer")
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"RHS/LHS of "+p[2]+" is not integer")
       if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
         if (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
           x=1
         elif (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
           x=2
         else:
-          raise TypeError("Types of expressions does not match")
+          raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions does not match")
       else:
         p[0].types=p[1].types
       if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
@@ -1438,7 +1435,7 @@ def p_expr(p):
       p[0].place = [v]
 
       if not opTypeCheck(p[1].types[0],p[3].types[0],p[2]):
-        raise TypeError("Expression types dont match on both side of operation "+p[2])
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"Expression types dont match on both side of operation "+p[2])
 
 
 def p_expr_opt(p):
@@ -1480,7 +1477,7 @@ def p_unary_expr(p):
       elif p[1][0]=='*':
         p[0].code.append(['load',v,p[2].place[0]])
         if p[2].types[0][0]!='*':
-          raise TypeError("Cannot reference a non pointer")
+          raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot reference a non pointer")
         p[0].types[0]=p[2].types[0][1:]
       else:
         if 'AddrList' in p[0].extra:
@@ -1553,15 +1550,15 @@ def p_print_stmt(p):
   p[0] = p[3]
   if p[2]=="%d":
     if p[3].types[0]!='int' and p[3].types[0]!='cint':
-      raise TypeError("Can't Print Expr of type other than int using '%d'")
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
     p[0].code.append(['print_int',p[3].place[0]])
   if p[2]=="%f":
     if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
-      raise TypeError("Can't Print Expr of type other than float using '%f'")
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
     p[0].code.append(['print_float',p[3].place[0]])
   if p[2]=="%s":
     if p[3].types[0]!='string' and p[3].types[0]!='cstring':
-      raise TypeError("Can't Print Expr of type other than string using '%s'")
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
     p[0].code.append(['print_str',p[3].place[0]])
 
 def p_scan_stmt(p):
@@ -1598,7 +1595,7 @@ def p_simple_stmt(p):
 def p_labeled_statements(p):
   ''' LabeledStmt : Label COLON Statement '''
   if checkid(p[1],"label"):
-    raise NameError("Label "+p[1]+" already exists")
+    raise NameError("Line "+str(p.lineno(1))+" : "+"Label "+p[1]+" already exists")
   new1 = ''
   if p[1] in labelDict:
     scopeDict[0].insert(p[1],"label")
@@ -1635,13 +1632,13 @@ def p_inc_dec(p):
 def p_assignment(p):
   ''' Assignment : ExpressionList assign_op ExpressionList'''
   if len(p[1].place)!=len(p[3].types):
-    raise ValueError("No. of expressions on both sides of assignment are not equal")
+    raise ValueError("Line "+str(p.lineno(1))+" : "+"No. of expressions on both sides of assignment are not equal")
   p[0] = node()
   p[0].code = p[1].code
   p[0].code+=p[3].code
   for i in range(len(p[1].place)):
     if p[1].types[i].startswith('c'):
-      raise TypeError("Cannot assin toassign_op a const variable ")
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot assin toassign_op a const variable ")
     if p[2]=='/=':
       p[0].code.append(['/=',p[1].place[i],p[3].place[i]])
     elif p[2]=='%=':
@@ -1653,21 +1650,21 @@ def p_assignment(p):
 
     if p[2]=='<<=' or p[2]=='>>=':
       if p[3].types[i]!='int' and p[3].types[i]!='cint':
-        raise TypeError("Operand for right/left shift is not integer")
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"Operand for right/left shift is not integer")
 
     # if p[1].extra['AddrList'][i]!='None':
     #   p[0].code.append(['store',p[1].extra['AddrList'][i],p[1].place[i]])
 
     if p[2]=='=':
       if not equalcheck(p[1].types[i],p[3].types[i]):
-        raise TypeError("Types of expressions on both sides of = don't match")
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of = don't match")
       else:
         if p[1].types[i].startswith('*type'):
           
           scopeDict[curScope].updateExtra(p[1].idlist[i],'*struct')
     else:
       if not opTypeCheck(p[1].types[i],p[3].types[i],p[2][0]):
-        raise TypeError("Types of expressions on both sides of ()= don't match")
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of ()= don't match")
 
 def p_assign_op(p):
   ''' assign_op : AssignOp'''
@@ -1695,7 +1692,7 @@ def p_if_statement(p):
   p[0] = node()
   p[0].code = p[2].code
   if p[2].types[0]!='bool' and p[2].types[0]!='cbool' and p[2].types[0]!='int' and p[2].types[0]!='cint':
-    raise TypeError("Type of expression is not bool or integer for IF Statement")
+    raise TypeError("Line "+str(p.lineno(1))+" : "+"Type of expression is not bool or integer for IF Statement")
     return
   v = newvar()
   if p[2].types[0]!='bool' or p[2].types[0]!='cbool':
@@ -1785,7 +1782,7 @@ def findLabel(name):
   for scope in scopeStack[::-1]:
     if name in scopeDict[scope].extra:
       return scopeDict[scope].extra[name]
-  raise ValueError("Not defined in any loop scope")
+  raise ValueError("Line "+str(p.lineno(1))+" : "+"Not defined in any loop scope")
 
 def p_ExprCaseClauseList(p):
     '''ExprCaseClauseList : epsilon
@@ -1922,7 +1919,7 @@ def p_return(p):
   return_off = scopeDict[curScope].extra['parOffset']
   if len(p[2].types) == 1:
     if not equalcheck(retType,p[2].types[0]):
-      raise TypeError("Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
     s = p[2].place[0]
     if s[:4]=='off_':
       s = s[4:]
@@ -1933,17 +1930,17 @@ def p_return(p):
       p[0].code.append(['movs',s,str(-return_off)+"($fp)"])
   elif len(p[2].types) == 0:
     if retType!='void':
-      raise TypeError("function "+fname+" has return type "+retType+" , but returned void in the stmt")
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"function "+fname+" has return type "+retType+" , but returned void in the stmt")
     # p[0].code.append(['retvoid'])
   else:
     return_off = -return_off
     return_off += p[2].bytesize
     return_off -= 4
     if len(p[2].types)!=len(retType):
-      raise TypeError("Number of return argument doesn't match for "+fname)
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Number of return argument doesn't match for "+fname)
     for i in range(len(p[2].types)):
       if not equalcheck(retType[i],p[2].types[i]):
-        raise TypeError("Function "+fname+" has return type "+retType[i]+" which doesnt match that in stmt i.e. "+p[2].types[i] )
+        raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType[i]+" which doesnt match that in stmt i.e. "+p[2].types[i] )
       s = p[2].place[i]
       x = return_off
       return_off -= funcinfo.retsize[i]
@@ -2023,7 +2020,7 @@ def p_package_name(p):
     p[0]=node()
     p[0].idlist.append(str(p[1]))
     if checkid(p[1],'e'):
-      raise NameError("Package Name"+p[1]+"already exists")
+      raise NameError("Line "+str(p.lineno(1))+" : "+"Package Name"+p[1]+"already exists")
     # else:
       # scopeDict[0].insert(p[1],"package")
 
