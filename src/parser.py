@@ -1218,11 +1218,11 @@ def p_prim_expr(p):
     start = curval
     funcinfo = findinfo(p[1].idlist[0])
     funcsize = funcinfo.mysize
+    return_off = start
     start -= 4
     p[0].code.append(['push','$ra',str(start)])
     if len(info.retType)==1:
       start -= info.retsize[0]
-      retoff = start
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
         p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
@@ -1239,7 +1239,7 @@ def p_prim_expr(p):
         v_decl(v1,curScope)
         p[0].place.append(v1)
         start -= p[3].bytesize
-        p[0].code.append(['memt',str(retoff)+'($fp)',v1])
+        p[0].code.append(['memt',str(scopeDict[curScope].extra['curOffset'])+'($fp)',v1])
       p[0].types = [p[1].types[0]]
     else:
       p[0].place = []
@@ -1250,18 +1250,17 @@ def p_prim_expr(p):
         start-=info.retsize[i]
       #   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
       for i in range(len(p[3].place)):
-        p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
-      p[0].code.append(['push',str(ebp_off),'4'])
-      p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
+        start -= p[3].extra['ParamSize'][i]
+        p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i],str(start)])
+      start-=4
+      p[0].code.append(['push',str(start),str(start)])
+      p[0].code.append(['addi','$fp','$fp',str(start)])
       p[0].code.append(['jal',info.label])
-      p[0].code.append(['addi','$fp','$fp',str(ebp_off)])
+      p[0].code.append(['addi','$fp','$fp',str(-start)])
       for i in range(len(info.retType)):
-        s = 'ret_' + name+'_'+str(i+1)
-        # r.append(s)
-        info1 = findinfo(p[3].idlist[0])
-        start -= info1.mysize
-        st = str(start)
-        p[0].code.append(['movs',st+'($fp)',s])
+        s = newvar()
+        v_decl(s,curScope)
+        p[0].code.append(['memt',str(scopeDict[curScope].extra['curOffset'])+'($fp)',s])
         p[0].place.append(s)
 
   # ------------------   SELECTOR  -------------------------
