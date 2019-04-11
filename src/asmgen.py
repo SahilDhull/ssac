@@ -22,13 +22,13 @@ def print_Symbol_Table():
 def findscope(name):
 	for j in range(len(Symbol_Table)):
 		i = Symbol_Table[j]
-		if 'fName' in i.extra:
-			if i.extra['fName'] == curFunc:
-				return i.val
+		if name in i.symbols:
+			return j
 	return -1
 
 def off_cal(varname):
 	s = findscope(varname)
+	# print str(s) + " : "+varname
 	if s==-1:
 		print "Some Error"
 	info = findinfo(varname,s)
