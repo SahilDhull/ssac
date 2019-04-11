@@ -180,15 +180,6 @@ def gen_assembly(line):
 
 	if line[0]=='=':
 		if line[1].startswith('temp_c'):
-			if line[1]=='temp_c0':
-				for i in range(20):
-					s = 'temp_c'+str(i)
-					if s in varToreg:
-						r = varToreg[s]
-						del regTovar[r]
-						del varToreg[s]
-					else:
-						break
 			dest = get_reg(line[1])
 			asmCode.append('li '+dest+', '+line[2])
 		
