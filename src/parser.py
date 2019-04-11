@@ -144,13 +144,9 @@ def findscope(name):
   raise NameError(name+ " is not defined in any scope")
 
 def findinfo(name, S=-1):
-  # if name.startswith('temp_c'):
-    # print "ok"
   if S > -1:
     if scopeDict[S].retrieve(name) is not None:
         return scopeDict[S].retrieve(name)
-    if name.startswith('temp_c'):
-      return -1
     raise NameError("Identifier " + name + " is not defined!")
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
@@ -254,7 +250,7 @@ def p_type_token(p):
                  | FLOAT
                  | BOOL
                  | STRING
-                 | TYPE IDENTIFIER'''
+                 | TYPE Identifier'''
     if len(p) == 2:
         p[0]=node()
         p[0].types.append(p[1])
@@ -659,7 +655,7 @@ def p_type_expr_list(p):
 
 
 def p_identifier_list(p):
-    '''IdentifierList : IDENTIFIER 
+    '''IdentifierList : Identifier 
                       | IdentifierRep'''
     if hasattr(p[1],'idlist'):
       p[0]=p[1]
@@ -675,8 +671,8 @@ def p_identifier_list(p):
         scopeDict[curScope].updateAttr(p[1],'place',v)
 
 def p_identifier_rep(p):
-    '''IdentifierRep : IdentifierRep COMMA IDENTIFIER
-                     | IDENTIFIER COMMA IDENTIFIER'''
+    '''IdentifierRep : IdentifierRep COMMA Identifier
+                     | Identifier COMMA Identifier'''
     if hasattr(p[1],'idlist'):
       p[0]=p[1]
       p[0].idlist = p[0].idlist + [p[3]]
@@ -762,7 +758,7 @@ def p_type_spec(p):
     p[0]=p[1]
 
 def p_alias_decl(p):
-    '''AliasDecl : IDENTIFIER EQUALS Type'''
+    '''AliasDecl : Identifier EQUALS Type'''
     if checkid(p[1],'andsand'):
       raise NameError("Name "+p[1]+" already defined")
     else:
@@ -774,7 +770,7 @@ def p_alias_decl(p):
 
 # -------------------TYPE DEFINITIONS--------------------
 def p_type_def(p):
-    '''TypeDef : IDENTIFIER Type'''
+    '''TypeDef : Identifier Type'''
     if checkid(p[1],'andsand'):
       raise NameError("Name "+p[1]+" already defined")
     else:
@@ -896,7 +892,7 @@ def p_expr_list_opt(p):
 
 # ----------------SHORT VARIABLE DECL-------------
 def p_short_var_decl(p):
-  ''' ShortVarDecl : IDENTIFIER SHORT_ASSIGNMENT Expression '''
+  ''' ShortVarDecl : Identifier SHORT_ASSIGNMENT Expression '''
   p[0] = node()
   if checkid(p[1],'e'):
     raise NameError("Variable"+p[1]+"already exists.")
@@ -943,7 +939,7 @@ def p_end_scope(p):
   endscope()
 
 def p_func_name(p):
-  '''FunctionName : IDENTIFIER'''
+  '''FunctionName : Identifier'''
   p[0] = p[1]
 
 def checksignature(name):
@@ -1026,13 +1022,11 @@ def p_basic_lit(p):
     scopeDict[curScope].extra['curOffset'] += 32
   else:
     c = newconst()
+    scopeDict[curScope].insert(c,None)
     info = findinfo(c,curScope)
-    if info == -1:
-      scopeDict[curScope].insert(c,None)
-      info = findinfo(c,curScope)
-      info.offset = scopeDict[curScope].extra['curOffset']
-      info.mysize = 4
-      scopeDict[curScope].extra['curOffset'] += 4
+    info.offset = scopeDict[curScope].extra['curOffset']
+    info.mysize = 4
+    scopeDict[curScope].extra['curOffset'] += 4
   p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
@@ -1062,7 +1056,7 @@ def p_S(p):
   p[0].bytesize = 32
 
 def p_operand_name(p):
-  '''OperandName : IDENTIFIER'''
+  '''OperandName : Identifier'''
   if not definedcheck(p[1]):
     raise NameError("identifier " + p[1] + " is not defined")
   p[0] = node()
@@ -1099,7 +1093,7 @@ def p_operand_name(p):
 # ---------------------------------------------------------
 
 
-# -------------------QUALIFIED IDENTIFIER----------------
+# -------------------QUALIFIED Identifier----------------
 def packageimport(name):
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
@@ -1110,7 +1104,7 @@ def packageimport(name):
   return False
 
 def p_qualified_ident(p):
-    '''QualifiedIdent : IDENTIFIER DOT TypeName'''
+    '''QualifiedIdent : Identifier DOT TypeName'''
     p[0] = node()
     if packageimport(p[1]):
       raise NameError("package"+p[1]+"not included")
@@ -1123,7 +1117,7 @@ def p_qualified_ident(p):
 # ------------------PRIMARY EXPRESSIONS--------------------
 def p_prim_expr(p):
   '''PrimaryExpr : Operand
-                 | PrimaryExpr DOT IDENTIFIER
+                 | PrimaryExpr DOT Identifier
                  | Conversion
                  | PrimaryExpr LSQUARE Expression RSQUARE
                  | PrimaryExpr Slice
@@ -1611,7 +1605,7 @@ def p_labeled_statements(p):
   p[0].code = [['label',new1]] + p[0].code
 
 def p_label(p):
-  ''' Label : IDENTIFIER '''
+  ''' Label : Identifier '''
   p[0]=p[1]
 
 
@@ -2016,7 +2010,7 @@ def p_package_clause(p):
 
 
 def p_package_name(p):
-    '''PackageName : IDENTIFIER'''
+    '''PackageName : Identifier'''
     p[0]=node()
     p[0].idlist.append(str(p[1]))
     if checkid(p[1],'e'):
@@ -2072,8 +2066,12 @@ def p_import_path(p):
 def p_SemiColon(p):
   '''Semi : SEMICOLON'''
   p[0] = ";"
-  global constNum
-  constNum = 0
+  # global constNum
+  # constNum = 0
+
+def p_Identifier(p):
+  '''Identifier : IDENTIFIER'''
+  p[0] = newvar()
 
 # ---------------   EMPTY and SYNTAX ERROR --------------
 
