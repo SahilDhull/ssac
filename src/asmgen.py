@@ -212,6 +212,10 @@ def gen_assembly(line):
 	if test=='loadra':
 		asmCode.append('lw $ra, '+line[2])
 
+	if test == 'movs':
+		src = get_reg(line[1])
+		asmCode.append('sw '+src+', '+line[2])
+
 	if test == 'jal':
 		asmCode.append('jal '+line[1])
 
