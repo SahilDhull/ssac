@@ -33,7 +33,7 @@ def findinfo(name):
 def off_cal(varname):
 	info = findinfo(varname)
 	off = info.offset
-	return -4-off
+	return off
 
 def update_symbol_table():
 	for j in range(len(Symbol_Table)):
@@ -203,8 +203,19 @@ def gen_assembly(line):
 		else:
 			asmCode.append('Scan string not Implemented')
 
+	if test=='memt':
+		src = get_reg(line[2])
+		offset = off_cal(line[2])
+		asmCode.append('lw '+src+', '+line[1])
+		asmCode.append('sw '+src+', '+off_cal+'($fp)')
 
-	if test[0] == 'push':
+	if test == 'jal':
+		asmCode.append('jal'+line[1])
+
+	if test=='addi':
+		asmCode.append('addi '+line[1]+', '+line[2]+', '+line[3])
+
+	if test == 'push':
 		if line[1] == '$ra':
 			asmCode.append('sw $ra, '+line[2]+'($fp)')
 		elif isdigit(line[1]):

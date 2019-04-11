@@ -170,8 +170,8 @@ def findinfo(name, S=-1):
 def v_decl(v,s):
   scopeDict[s].insert(v,None)
   vinfo = findinfo(v)
+  scopeDict[s].extra['curOffset'] -= 4
   vinfo.offset = scopeDict[s].extra['curOffset']
-  scopeDict[s].extra['curOffset'] += 4
   vinfo.mysize = 4
 
 def newcvar():
@@ -433,9 +433,9 @@ def p_field_decl(p):
     
     info = findinfo(x)
     scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
+    scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
     y = scopeDict[curScope].extra['curOffset']
     info.offset = y
-    scopeDict[curScope].extra['curOffset'] += p[2].bytesize
     
     info.mysize = p[2].bytesize
     
@@ -639,8 +639,8 @@ def p_const_spec(p):
       p[1].place[i] = p[2].place[i]
       p[0].bytesize += p[2].bytesize
       info.mysize = p[2].bytesize
+      scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
       info.offset = scopeDict[curScope].extra['curOffset']
-      scopeDict[curScope].extra['curOffset'] += p[2].bytesize
       scope = findscope(x)
       # scopeDict[scope].updateAttr(x,'place',p[1].place[i])
       if p[2].types[i]==i:
@@ -837,8 +837,8 @@ def p_var_spec(p):
         scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
         p[0].bytesize += p[2].bytesize
         info.mysize = p[2].bytesize
+        scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
         info.offset = scopeDict[curScope].extra['curOffset']
-        scopeDict[curScope].extra['curOffset'] += p[2].bytesize
       elif a==1:
         if p[2].types[0]=='*arr':
           raise TypeError("Line "+str(p.lineno(1))+" : "+"Malloc for array must be in a loop")
@@ -849,8 +849,8 @@ def p_var_spec(p):
         p[0].bytesize += p[2].bytesize
         
         info.mysize = p[2].bytesize
+        scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
         info.offset = scopeDict[curScope].extra['curOffset']
-        scopeDict[curScope].extra['curOffset'] += p[2].bytesize
         # p[0].code.append(['=',x,p[1].place[i]])
         
         
@@ -871,9 +871,9 @@ def p_var_spec(p):
     scopeDict[scope].updateAttr(x,'place',p[1].place[i])
     scopeDict[scope].updateAttr(x,'type',p[2].types[0])
     p[0].bytesize += p[2].bytesize
+    scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
     info.offset = scopeDict[curScope].extra['curOffset']
     info.mysize = p[2].bytesize
-    scopeDict[curScope].extra['curOffset'] += p[2].bytesize
     #pointer case
     if p[2].types[0][0]=='*':
       scopeDict[scope].updateAttr(x,'size',p[2].size)
@@ -916,9 +916,9 @@ def p_short_var_decl(p):
   if x=='int' or x=='cint':
     p[0].bytesize = 4
   info = findinfo(p[1])
+  scopeDict[curScope].extra['curOffset'] -= p[0].bytesize
   info.offset = scopeDict[curScope].extra['curOffset']
   info.mysize = p[0].bytesize
-  scopeDict[curScope].extra['curOffset'] += p[0].bytesize
   scopeDict[curScope].updateAttr(p[1],'place',v)
   scopeDict[curScope].updateAttr(p[1],'type',p[3].types[0])
 
@@ -1028,16 +1028,16 @@ def p_basic_lit(p):
     stringNum += 1
     scopeDict[curScope].insert(c,None)
     info = findinfo(c,curScope)
+    scopeDict[curScope].extra['curOffset'] -= 32
     info.offset = scopeDict[curScope].extra['curOffset']
     info.mysize = 32
-    scopeDict[curScope].extra['curOffset'] += 32
   else:
     c = newconst()
     scopeDict[curScope].insert(c,None)
     info = findinfo(c,curScope)
+    scopeDict[curScope].extra['curOffset'] -= 4
     info.offset = scopeDict[curScope].extra['curOffset']
     info.mysize = 4
-    scopeDict[curScope].extra['curOffset'] += 4
   p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
@@ -1154,8 +1154,8 @@ def p_prim_expr(p):
     v1 = newvar()
     scopeDict[curScope].insert(v1,None)
     vinfo = findinfo(v1)
+    scopeDict[curScope].extra['curOffset'] -= 4
     vinfo.offset = scopeDict[curScope].extra['curOffset']
-    scopeDict[curScope].extra['curOffset'] += 4
     vinfo.mysize = 4
     p[0].code.append(['=',v1,p[3].place[0]])
     for i in lsize[p[1].extra['layerNum']+1:]:
@@ -1164,8 +1164,8 @@ def p_prim_expr(p):
     v2 = newvar()
     scopeDict[curScope].insert(v2,None)
     vinfo = findinfo(v2)
+    scopeDict[curScope].extra['curOffset'] -= 4
     vinfo.offset = scopeDict[curScope].extra['curOffset']
-    scopeDict[curScope].extra['curOffset'] += 4
     vinfo.mysize = 4
     if p[1].extra['layerNum']>0:
       p[0].code.append(['+',v2,p[0].place[0],v1])
@@ -1176,15 +1176,15 @@ def p_prim_expr(p):
       v3 = newvar()
       scopeDict[curScope].insert(v3,None)
       vinfo = findinfo(v3)
+      scopeDict[curScope].extra['curOffset'] -= 4
       vinfo.offset = scopeDict[curScope].extra['curOffset']
-      scopeDict[curScope].extra['curOffset'] += 4
       vinfo.mysize = 4
       p[0].code.append(['+',v3,v2,str(info.offset)])
       v4 = newvar()
       scopeDict[curScope].insert(v4,None)
       vinfo = findinfo(v4)
+      scopeDict[curScope].extra['curOffset'] -= 4
       vinfo.offset = scopeDict[curScope].extra['curOffset']
-      scopeDict[curScope].extra['curOffset'] += 4
       vinfo.mysize = 4
       p[0].code.append(['-',v4,'-4',v3])
       # p[0].code.append(['load',v3,v2])
@@ -1215,49 +1215,45 @@ def p_prim_expr(p):
     name = p[1].idlist[0]
     info.label = name
     curval = scopeDict[curScope].extra['curOffset']
-    start = -4-curval
+    start = curval
     funcinfo = findinfo(p[1].idlist[0])
     funcsize = funcinfo.mysize
-    ebp_off = funcsize + curval + 8
-    # p[0].code.append(['movr',str(ebp_off),'%r9 \t//ebp offset pushed'])
+    start -= 4
     p[0].code.append(['push','$ra',str(start)])
     if len(info.retType)==1:
-      v1 = newvar()
-      v_decl(v1,curScope)
-      p[0].place.append(v1)
-      # if info.retType[0]!='void':
-      #   p[0].code.append(['push','ret1',str(info.retsize[0])])
       start -= info.retsize[0]
+      retoff = start
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
         p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
       start -= 4
-      p[0].code.append(['push',str(ebp_off),str(start)])
-      p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
-      p[0].code.append(['jump',info.label])
-      p[0].code.append(['addi','$fp','$fp',str(ebp_off)])
+      p[0].code.append(['push',str(start),str(start)])
+      p[0].code.append(['addi','$fp','$fp',str(start)])
+      p[0].code.append(['jal',info.label])
+      p[0].code.append(['addi','$fp','$fp',str(-start)])
       flag=0
       if info.retType[0]=='void':
         flag=1
-      else:
-        p[0].place = [v1]
       if flag==0:
+        v1 = newvar()
+        v_decl(v1,curScope)
+        p[0].place.append(v1)
         start -= p[3].bytesize
-        s = str(start)
-        p[0].code.append(['movs',s+'($fp)',v1])
+        p[0].code.append(['memt',str(retoff)+'($fp)',v1])
       p[0].types = [p[1].types[0]]
     else:
       p[0].place = []
       p[0].types = info.retType
       r = []
       k = 1
-      # for i in range(len(info.retType)):
+      for i in range(len(info.retType)):
+        start-=info.retsize[i]
       #   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
       for i in range(len(p[3].place)):
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
       p[0].code.append(['push',str(ebp_off),'4'])
       p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
-      p[0].code.append(['jump',info.label])
+      p[0].code.append(['jal',info.label])
       p[0].code.append(['addi','$fp','$fp',str(ebp_off)])
       for i in range(len(info.retType)):
         s = 'ret_' + name+'_'+str(i+1)
@@ -1387,8 +1383,8 @@ def p_expr(p):
       v = newvar()
       scopeDict[curScope].insert(v,None)
       vinfo = findinfo(v)
+      scopeDict[curScope].extra['curOffset'] -= 4
       vinfo.offset = scopeDict[curScope].extra['curOffset']
-      scopeDict[curScope].extra['curOffset'] += 4
       vinfo.mysize = 4
       if p[2]=='*':
         p[0].code.append(['*',v,p[1].place[0],p[3].place[0]])
@@ -1406,8 +1402,8 @@ def p_expr(p):
         t = newvar()
         scopeDict[curScope].insert(t,None)
         vinfo = findinfo(t)
+        scopeDict[curScope].extra['curOffset'] -= 4
         vinfo.offset = scopeDict[curScope].extra['curOffset']
-        scopeDict[curScope].extra['curOffset'] += 4
         vinfo.mysize = 4
         p[0].code.append(['=',t,'4'])
         p[0].code.append(['*',t,t,p[1].place[0]])
@@ -1416,8 +1412,8 @@ def p_expr(p):
         t = newvar()
         scopeDict[curScope].insert(t,None)
         vinfo = findinfo(t)
+        scopeDict[curScope].extra['curOffset'] -= 4
         vinfo.offset = scopeDict[curScope].extra['curOffset']
-        scopeDict[curScope].extra['curOffset'] += 4
         vinfo.mysize = 4
         p[0].code.append(['=',t,'4'])
         p[0].code.append(['*',t,t,p[3].place[0]])
@@ -1459,8 +1455,8 @@ def p_unary_expr(p):
       v = newvar()
       scopeDict[curScope].insert(v,None)
       vinfo = findinfo(v)
+      scopeDict[curScope].extra['curOffset'] -= 4
       vinfo.offset = scopeDict[curScope].extra['curOffset']
-      scopeDict[curScope].extra['curOffset'] += 4
       vinfo.mysize = 4
       p[0].code.append(["!",v,p[2].place[0]])
       p[0].place = [v]
@@ -1471,8 +1467,8 @@ def p_unary_expr(p):
       v = newvar()
       scopeDict[curScope].insert(v,None)
       vinfo = findinfo(v)
+      scopeDict[curScope].extra['curOffset'] -= 4
       vinfo.offset = scopeDict[curScope].extra['curOffset']
-      scopeDict[curScope].extra['curOffset'] += 4
       vinfo.mysize = 4
       if p[1][0]=='+' or p[1][0]=='-':
         v1=newvar()
