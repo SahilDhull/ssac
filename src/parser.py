@@ -1220,14 +1220,19 @@ def p_prim_expr(p):
     funcsize = funcinfo.mysize
     ebp_off = funcsize + curval + 8
     # p[0].code.append(['movr',str(ebp_off),'%r9 \t//ebp offset pushed'])
-    p[0].code.append(['push','$ra'])
+    p[0].code.append(['push','$ra',str(start)])
     if len(info.retType)==1:
-      v1 = 'ret_'+name+'_1'
+      v1 = newvar()
+      v_decl(v1,curScope)
+      p[0].place.append(v1)
       # if info.retType[0]!='void':
       #   p[0].code.append(['push','ret1',str(info.retsize[0])])
+      start -= info.retsize[0]
       for i in range(len(p[3].place)):
-        p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i]])
-      p[0].code.append(['push',str(ebp_off),'4'])
+        start -= p[3].extra['ParamSize'][i]
+        p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
+      start -= 4
+      p[0].code.append(['push',str(ebp_off),str(start)])
       p[0].code.append(['addi','$fp','$fp',str(-ebp_off)])
       p[0].code.append(['jump',info.label])
       p[0].code.append(['addi','$fp','$fp',str(ebp_off)])

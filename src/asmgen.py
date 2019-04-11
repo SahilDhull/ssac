@@ -203,6 +203,17 @@ def gen_assembly(line):
 		else:
 			asmCode.append('Scan string not Implemented')
 
+
+	if test[0] == 'push':
+		if line[1] == '$ra':
+			asmCode.append('sw $ra, '+line[2]+'($fp)')
+		elif isdigit(line[1]):
+			asmCode.append('li $3, '+line[1])
+			asmCode.append('sw $3, '+line[2]+'($fp)')
+		else:
+			src = get_reg(line[1])
+			asmCode.append('sw '+src+', '+line[3]+'($fp)')
+
 	if line[0]=='=':
 		if line[1].startswith('temp_c'):
 			dest = get_reg(line[1])
