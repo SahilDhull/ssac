@@ -190,7 +190,11 @@ def newvar():
 def newconst():
   global constNum
   val = 'temp_c'+str(constNum)
-  # scopeDict[curScope].insert(val,None)
+  scopeDict[curScope].insert(val,None)
+  info = findinfo(val,curScope)
+  scopeDict[curScope].extra['curOffset'] -= 4
+  info.offset = scopeDict[curScope].extra['curOffset']
+  info.mysize = 4
   constNum+=1
   return val
 
@@ -202,7 +206,12 @@ def newlabel():
 
 def newarray():
   global arrNum
-  val = 'arr'+str(arrNum)
+  val = 'arr_'+str(arrNum)
+  scopeDict[curScope].insert(val,None)
+  info = findinfo(val,curScope)
+  scopeDict[curScope].extra['curOffset'] -= 4
+  info.offset = scopeDict[curScope].extra['curOffset']
+  info.mysize = 4
   arrNum += 1
   return val
 
@@ -1045,11 +1054,6 @@ def p_basic_lit(p):
     info.mysize = 32
   else:
     c = newconst()
-    scopeDict[curScope].insert(c,None)
-    info = findinfo(c,curScope)
-    scopeDict[curScope].extra['curOffset'] -= 4
-    info.offset = scopeDict[curScope].extra['curOffset']
-    info.mysize = 4
   p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
@@ -1169,6 +1173,10 @@ def p_prim_expr(p):
       if z>=y[k]:
         raise IndexError("Line "+str(p.lineno(1))+" : "+"Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
     
+    if p[0].extra['layerNum']==0:
+      c = newconst()
+      p[0].code.append(['=',c,str(info.offset)])
+      p[0].place = [c]
     v1 = newvar()
     scopeDict[curScope].insert(v1,None)
     vinfo = findinfo(v1)
@@ -1177,37 +1185,16 @@ def p_prim_expr(p):
     vinfo.mysize = 4
     p[0].code.append(['=',v1,p[3].place[0]])
     for i in lsize[p[1].extra['layerNum']+1:]:
-      p[0].code.append(['x=',v1,i])
-    # ----------------------------------------------
-    v2 = newvar()
-    scopeDict[curScope].insert(v2,None)
-    vinfo = findinfo(v2)
-    scopeDict[curScope].extra['curOffset'] -= 4
-    vinfo.offset = scopeDict[curScope].extra['curOffset']
-    vinfo.mysize = 4
-    if p[1].extra['layerNum']>0:
-      p[0].code.append(['+',v2,p[0].place[0],v1])
-      p[0].place = [v2]
-    else:
-      p[0].place = [v1]
+      p[0].code.append(['*=',v1,i])
+
+    # Adding previous offset
+    p[0].code.append(['+',v1,p[0].place[0]])
+
+    p[0].place = [v1]
     if p[1].extra['layerNum'] == len(lsize)-2:
-      v3 = newvar()
-      scopeDict[curScope].insert(v3,None)
-      vinfo = findinfo(v3)
-      scopeDict[curScope].extra['curOffset'] -= 4
-      vinfo.offset = scopeDict[curScope].extra['curOffset']
-      vinfo.mysize = 4
-      p[0].code.append(['+',v3,v2,str(info.offset)])
-      v4 = newvar()
-      scopeDict[curScope].insert(v4,None)
-      vinfo = findinfo(v4)
-      scopeDict[curScope].extra['curOffset'] -= 4
-      vinfo.offset = scopeDict[curScope].extra['curOffset']
-      vinfo.mysize = 4
-      p[0].code.append(['-',v4,'-4',v3])
-      # p[0].code.append(['load',v3,v2])
-      p[0].place = [v4+'($fp)']
-    p[0].extra['AddrList'] = [v2]
+      p[0].code.append(['mem+',v1,'$fp'])
+      p[0].place = ['addr_'+v1+'']
+    p[0].extra['AddrList'] = [v1]
     if k==0:
       p[0].types = info.type[1:]
     else:

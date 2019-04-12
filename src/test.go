@@ -1,11 +1,7 @@
 package main;
 
-func f(a int,b int) (int,int){
-	return 1,4;
-};
-
-func main() {
-	// var c,d int = f(2,1);
-	var k bool = !(1==0);
-	print k;
+func main(){
+	var a [3][4][3]int;
+	a[2][3][1]=1;
+	// var b int = a[1];
 };

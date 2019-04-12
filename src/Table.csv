@@ -1,12 +1,11 @@
-Scope,        Name,         Type,         Comp_Name     Offset,       Child         
-0,            f,            func,         None,         None,         1             
-0,            main,         func,         None,         None,         2             
-1,            a,            int,          var0,         8,                          
-1,            b,            int,          var1,         4,                          
-1,            temp_c0,      ,             None,         -4,                         
-1,            temp_c1,      ,             None,         -8,                         
-2,            k,            bool,         var2,         -20,                        
-2,            temp_c2,      ,             None,         -4,                         
-2,            temp_c3,      ,             None,         -8,                         
-2,            var3,         ,             None,         -12,                        
-2,            var4,         ,             None,         -16,                        
+Scope,               Name,                Type,                Comp_Name            Offset,              Child                
+0,                   main,                func,                None,                None,                1                    
+1,                   a,                   arr_arr_arr_int,     var0,                -144,                                     
+1,                   temp_c0,             ,                    None,                -148,                                     
+1,                   temp_c1,             ,                    None,                -152,                                     
+1,                   var1,                ,                    None,                -156,                                     
+1,                   temp_c2,             ,                    None,                -160,                                     
+1,                   var2,                ,                    None,                -164,                                     
+1,                   temp_c3,             ,                    None,                -168,                                     
+1,                   var3,                ,                    None,                -172,                                     
+1,                   temp_c4,             ,                    None,                -176,                                     

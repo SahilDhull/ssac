@@ -1,17 +1,22 @@
-label f 
-$sp -8 
-= temp_c0 1 
-= temp_c1 4 
-movs temp_c1 12($fp) 
-movs temp_c0 16($fp) 
-jr $ra f 
-jr $ra f 
 label main 
-$sp -20 
-= temp_c2 1 
-= temp_c3 0 
-== var3 temp_c2 temp_c3 
-! var4 var3 
-= var2 var4 
-print_int var2 
+$sp -176 
+= temp_c0 2 
+= temp_c1 -144 
+= var1 temp_c0 
+*= var1 4 
+*= var1 3 
+*= var1 4 
++ var1 temp_c1 
+= temp_c2 3 
+= var2 temp_c2 
+*= var2 3 
+*= var2 4 
++ var2 var1 
+= temp_c3 1 
+= var3 temp_c3 
+*= var3 4 
++ var3 var2 
+mem+ var3 $fp 
+= temp_c4 1 
+= addr_var3 temp_c4 
 jr $ra main 
