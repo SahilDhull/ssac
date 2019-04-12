@@ -1,15 +1,14 @@
 Scope,        Name,         Type,         Comp_Name     Offset,       Child         
-0,            a,            int,          var0,         -4,                         
 0,            f,            func,         None,         None,         1             
-0,            main,         func,         None,         None,         2             
-1,            a,            int,          var1,         8,                          
-1,            b,            int,          var2,         4,                          
+0,            main,         func,         None,         None,         3             
+1,            a,            int,          var0,         4,                          
 1,            temp_c0,      ,             None,         -4,                         
-2,            b,            int,          var3,         -8,                         
-2,            temp_c1,      ,             None,         -4,                         
-2,            c,            int,          var4,         -28,                        
-2,            d,            int,          var5,         -32,                        
-2,            temp_c2,      ,             None,         -12,                        
-2,            temp_c3,      ,             None,         -16,                        
-2,            var6,         ,             None,         -20,                        
-2,            var7,         ,             None,         -24,                        
+1,            var1,         ,             None,         -8,                         
+1,            var2,         ,             None,         -16,                        
+1,            temp_c2,      ,             None,         -20,                        
+1,            var3,         ,             None,         -24,                        
+1,            var4,         ,             None,         -28,                        
+1,            var5,         ,             None,         -32,                        
+2,            temp_c1,      ,             None,         -12,                        
+3,            a,            int,          var6,         -4,                         
+3,            var7,         ,             None,         -8,                         

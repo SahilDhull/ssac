@@ -1250,7 +1250,7 @@ def p_prim_expr(p):
       if flag==0:
         v1 = newvar()
         v_decl(v1,curScope)
-        p[0].place.append(v1)
+        p[0].place = [v1]
         return_off -= p[3].bytesize
         p[0].code.append(['memt',str(return_off)+'($fp)',v1])
       p[0].code.append(['addi','$sp','$sp',str(-diff)])
@@ -1567,25 +1567,39 @@ def p_print_stmt(p):
                | PRINT PS Expression
                | PRINT PF Expression'''
   p[0] = p[3]
+  x =  p[3].types
+  if type(p[3].types[0]) is list:
+    x = p[3].types[0][0]
   if p[2]=="%d":
-    if p[3].types[0]!='int' and p[3].types[0]!='cint':
+    if x!='int' and x!='cint':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
     p[0].code.append(['print_int',p[3].place[0]])
   if p[2]=="%f":
-    if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
+    if x!='float' and x!='cfloat':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
     p[0].code.append(['print_float',p[3].place[0]])
   if p[2]=="%s":
-    if p[3].types[0]!='string' and p[3].types[0]!='cstring':
+    if x!='string' and x!='cstring':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
     p[0].code.append(['print_str',p[3].place[0]])
 
 def p_scan_stmt(p):
-  '''ScanStmt : SCAN Expression'''
-  p[0] = p[2]
-  p[0].code.append(['scan',p[2].place[0]])
-  if 'AddrList' in p[2].extra:
-    p[0].code.append(['store',p[2].extra['AddrList'][0],p[2].place[0]])
+  '''ScanStmt : SCAN PD Expression
+              | SCAN PS Expression
+              | SCAN PF Expression'''
+  p[0] = p[3]
+  if p[2]=="%d":
+    if p[3].types[0]!='int' and p[3].types[0]!='cint':
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than int using '%d'")
+    p[0].code.append(['scan_int',p[3].place[0]])
+  if p[2]=="%f":
+    if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than float using '%f'")
+    p[0].code.append(['scan_float',p[3].place[0]])
+  if p[2]=="%s":
+    if p[3].types[0]!='string' and p[3].types[0]!='cstring':
+      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than string using '%s'")
+    p[0].code.append(['scan_str',p[3].place[0]])
 
 def p_fallthrough_stmt(p):
   '''FallThroughStmt : FALLTHROUGH'''
@@ -1932,8 +1946,8 @@ def p_return(p):
     if 'fName' in scopeDict[scope].extra:
       fname = scopeDict[scope].extra['fName']
       retType = scopeDict[scope].extra['retType']
+      return_off = scopeDict[scope].extra['parOffset']
   funcinfo = findinfo(fname)
-  return_off = scopeDict[curScope].extra['parOffset']
   if len(p[2].types) == 1:
     if not equalcheck(retType,p[2].types[0]):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )

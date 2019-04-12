@@ -2,39 +2,62 @@
 	.text
 	.globl main
 f:
-	addi $sp, $sp, -4
-	li $5, 4
-	sw $5, 12($fp)
-	lw $6, 8($fp)
-	sw $6, 16($fp)
-	addi $sp, $sp, 4
-	jr $ra
-main:
-	addi $fp, $sp, 0
 	addi $sp, $sp, -32
+	li $5, 1
+	lw $6, -8($fp)
+	lw $7, 4($fp)
+	seq $6, $7, $5
+	lw $5, -16($fp)
+	nor $5, $6, $0
+	bgtz $5, l2
+	li $6, 1
+	sw $6, 8($fp)
+	j l3
+l2:
+	j l3
+l3:
 	li $7, 1
-	move $8, $7
-	li $9, 2
-	li $10, 1
-	addi $sp, $sp, -24
-	sw $ra, -20($fp)
-	sw $9, -36($fp)
-	sw $10, -36($fp)
+	lw $8, -24($fp)
+	sub $8, $7, $7
+	addi $sp, $sp, -16
+	sw $ra, -28($fp)
+	sw $8, -36($fp)
 	li $3, -40
 	sw $3, -40($fp)
 	addi $fp, $fp, -40
 	jal f
 	addi $fp, $fp, 40
-	lw $ra, -20($fp)
-	lw $11, -24($fp)
-	sw $11, -20($fp)
-	lw $12, -28($fp)
-	sw $12, -24($fp)
-	addi $sp, $sp, 24
-	move $13, $11
-	move $14, $12
-	li $2, 1
-	move $4, $14
-	syscall
+	lw $ra, -28($fp)
+	lw $7, -32($fp)
+	sw $7, -28($fp)
+	addi $sp, $sp, 16
+	lw $9, -32($fp)
+	mult $7, $7
+	mflo $9
+	sw $9, 8($fp)
 	addi $sp, $sp, 32
+	jr $ra
+main:
+	addi $fp, $sp, 0
+	addi $sp, $sp, -8
+	lw $7, -4($fp)
+	li $2, 5
+	syscall
+	move $7, $2
+	addi $sp, $sp, -16
+	sw $ra, -8($fp)
+	sw $7, -16($fp)
+	li $3, -20
+	sw $3, -20($fp)
+	addi $fp, $fp, -20
+	jal f
+	addi $fp, $fp, 20
+	lw $ra, -8($fp)
+	lw $10, -12($fp)
+	sw $10, -8($fp)
+	addi $sp, $sp, 16
+	li $2, 1
+	move $4, $10
+	syscall
+	addi $sp, $sp, 8
 	jr $ra
