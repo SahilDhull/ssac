@@ -1,18 +1,40 @@
-.globl main
-.text
+	.data
+	.text
+	.globl main
+f:
+	addi $sp, $sp, -4
+	li $5, 4
+	sw $5, 12($fp)
+	lw $6, 8($fp)
+	sw $6, 16($fp)
+	addi $sp, $sp, 4
+	jr $ra
 main:
-li $2, 1
-move $3, $2
-li $4, 2
-div $3, $4
-mflo $3
-li $4, 3
-add $3, $3, $4
-li $4, 4
-mult $3, $4
-mflo $3
-li $v0, 1
-move $a0, $3
-syscall
-li $v0, 10
-syscall
+	addi $fp, $sp, 0
+	addi $sp, $sp, -32
+	li $7, 1
+	move $8, $7
+	li $9, 2
+	li $10, 1
+	addi $sp, $sp, -24
+	sw $ra, -20($fp)
+	sw $9, -36($fp)
+	sw $10, -36($fp)
+	li $3, -40
+	sw $3, -40($fp)
+	addi $fp, $fp, -40
+	jal f
+	addi $fp, $fp, 40
+	lw $ra, -20($fp)
+	lw $11, -24($fp)
+	sw $11, -20($fp)
+	lw $12, -28($fp)
+	sw $12, -24($fp)
+	addi $sp, $sp, 24
+	move $13, $11
+	move $14, $12
+	li $2, 1
+	move $4, $14
+	syscall
+	addi $sp, $sp, 32
+	jr $ra

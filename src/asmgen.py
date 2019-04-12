@@ -169,7 +169,7 @@ def gen_assembly(line):
 	if test == 'label':
 		asmCode.append(line[1]+':')
 		if line[1]=='main':
-			asmCode.append('addi $fp, $sp, $0')
+			asmCode.append('addi $fp, $sp, 0')
 
 	# goto
 	if test == 'goto':

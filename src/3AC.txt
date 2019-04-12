@@ -1,20 +1,30 @@
-goto main 
+label f 
+$sp -4 
+= temp_c0 4 
+movs temp_c0 12($fp) 
+movs var1 16($fp) 
+$sp 4 
+jr $ra 
 label main 
-= temp_c0 1 
-= b temp_c0 
-= temp_c0 1 
-= temp_c1 0 
-== v1 temp_c0 temp_c1 
-= v2 v1 
-= v3 0 
-!= v2 v2 v3 
-= v4 1 
-- v2 v2 v4 
-ifgoto v2 l2 
-= temp_str0 "ohh" 
-print_str temp_str0 
-goto l3 
-label l2 
-= temp_str1 "okay\n" 
-print_str temp_str1 
-label l3 
+$sp -32 
+= temp_c1 1 
+= var3 temp_c1 
+= temp_c2 2 
+= temp_c3 1 
+addi $sp $sp -24 
+push $ra -20 
+push temp_c2 4 -36 
+push temp_c3 4 -36 
+push -40 -40 
+addi $fp $fp -40 
+jal f 
+addi $fp $fp 40 
+loadra $ra -20($fp) 
+memt -24($fp) var6 
+memt -28($fp) var7 
+addi $sp $sp 24 
+= var4 var6 
+= var5 var7 
+print_int var5 
+$sp 32 
+jr $ra 
