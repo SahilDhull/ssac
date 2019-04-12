@@ -1153,7 +1153,7 @@ def p_prim_expr(p):
                  | PrimaryExpr LPAREN ExpressionListTypeOpt RPAREN'''
   if len(p) == 2:
     p[0] = p[1]
-  # Arrays:
+  # Arrays: ----------------------------------------
   elif p[2]=='[':
     p[0] = p[1]
     p[0].code+=p[3].code
@@ -1186,8 +1186,8 @@ def p_prim_expr(p):
     p[0].code.append(['=',v1,p[3].place[0]])
     for i in lsize[p[1].extra['layerNum']+1:]:
       c1 = newconst()
-      p[0].code.append(['=',c,i])
-      p[0].code.append(['*=',v1,c])
+      p[0].code.append(['=',c1,i])
+      p[0].code.append(['*=',v1,c1])
 
     # Adding previous offset
     p[0].code.append(['+',v1,v1,p[0].place[0]])
@@ -1227,7 +1227,6 @@ def p_prim_expr(p):
     funcsize = funcinfo.mysize
     start -= 4
     return_off = start
-    
     if len(info.retType)==1:
       start -= info.retsize[0]
       for i in range(len(p[3].place)):
@@ -1250,7 +1249,7 @@ def p_prim_expr(p):
         v1 = newvar()
         v_decl(v1,curScope)
         p[0].place = [v1]
-        return_off -= p[3].bytesize
+        return_off -= info.retsize[0]
         p[0].code.append(['memt',str(return_off)+'($fp)',v1])
       p[0].code.append(['addi','$sp','$sp',str(-diff)])
       p[0].types = [p[1].types[0]]
@@ -1956,6 +1955,7 @@ def p_return(p):
     if retType!='void':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"function "+fname+" has return type "+retType+" , but returned void in the stmt")
   else:
+    print len(retType)
     if len(p[2].types)!=len(retType):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Number of return argument doesn't match for "+fname)
     leng = len(p[2].types)
@@ -1967,7 +1967,7 @@ def p_return(p):
       p[0].code.append(['movs',s,str(x)+"($fp)"])
       return_off += funcinfo.retsize[i]
   jumpval = funcinfo.mysize + 4
-  p[0].code.append(['jr','$ra',fname])
+  p[0].code.append(['jret','$ra',fname])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList

@@ -233,16 +233,24 @@ def gen_assembly(line):
 		asmCode.append('lw $ra, '+line[2])
 
 	if test == 'jr':
+		free_all_reg()
 		funcinfo = findinfo(line[2])
 		asmCode.append('addi $sp, $sp, '+str(-funcinfo.funcsize))
 		asmCode.append('jr $ra')
+
+	if test == 'jret':
+		free_all_reg()
+		funcinfo = findinfo(line[2])
+		asmCode.append('addi $sp, $sp, '+str(-funcinfo.funcsize))
+		asmCode.append('jr $ra')
+		asmCode.append('addi $sp, $sp, '+str(funcinfo.funcsize))
 
 	if test =='movs':
 		src = get_reg(line[1])
 		asmCode.append('sw '+src+', '+line[2])
 
 	if test == 'jal':
-		# free_all_reg()
+		free_all_reg()
 		asmCode.append('jal '+line[1])
 
 	if test=='addi':
@@ -258,8 +266,20 @@ def gen_assembly(line):
 			asmCode.append('li $3, '+line[1])
 			asmCode.append('sw $3, '+line[2]+'($fp)')
 		else:
-			src = get_reg(line[1])
-			asmCode.append('sw '+src+', '+line[3]+'($fp)')
+			arg1 = line[1]
+			arg2 = int(line[2])
+			arg3 = int(line[3])
+			free_all_reg()
+			src = free_reg()
+			info = findinfo(arg1)
+			off = info.offset
+			num = arg2
+			while num:
+				asmCode.append('lw '+src+', '+str(off)+'($fp)')
+				asmCode.append('sw '+src+', '+str(arg3)+'($fp)')
+				arg3 += 4
+				off += 4
+				num -= 4
 
 
 	if line[0] in eqop:
