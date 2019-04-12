@@ -56,6 +56,8 @@ regTovar = {}
 varToreg = {}
 
 def free_reg():
+	# print "-------------------------------------------"
+	# print regsState
 	for i in regs:
 		if regsState[i]==0:
 			return i
@@ -76,23 +78,22 @@ def get_reg(var,load=0):
 	off = off_cal(var)
 	c = 0
 
-	if var.startswith('off_'):
-		num = [int(s) for s in (line[2]).split() if s.isdigit()]
-		o = str(- 4 - num[0])
-		return o+"($fp)"
-
 	if var.startswith('temp_c'):
 		c = 1
 
 	if var in varToreg and regsState[varToreg[var]]==1:
+		# print var
+		# print varToreg
 		return varToreg[var]
 
 	freereg = free_reg()
 
-	if freereg != -1:
+	if type(freereg) is str:
 		varToreg[var] = freereg
+		# print var + " --> " + freereg
 		regTovar[freereg] = var
 		regsState[freereg] = 1
+		# print regsState
 		if c==0 and load==0:
 			asmCode.append('lw '+freereg+', '+str(off)+'($fp)')
 		return freereg
@@ -133,6 +134,7 @@ def free_all_reg():
 def global_variables():
 	global_sym_tab = Symbol_Table[0]
 	globalDecl.append('.data')
+	globalDecl.append("str: .asciiz '-----\n' ")
 	for j in global_sym_tab.symbols:
 		sym = global_sym_tab.table[j]
 		t = sym.type
@@ -152,6 +154,7 @@ op = binaryop + eqop
 
 # Start of MIPS
 asmCode.append('.data')
+asmCode.append("\tstr1: .asciiz \"^////\" ")
 global_variables()
 asmCode.append('.text')
 asmCode.append('.globl main')
@@ -163,7 +166,7 @@ def gen_assembly(line):
 	# If Statement
 	if test=='ifgoto':
 		dest = get_reg(line[1])
-		asmCode.append('bgtz '+dest+', '+line[2])       
+		asmCode.append('beq '+dest+', $0, '+line[2])       
 
 	# Label
 	if test == 'label':
@@ -188,7 +191,6 @@ def gen_assembly(line):
 			asmCode.append('syscall')
 		else:       # string case
 			asmCode.append('Print String not Implemented')
-		regsState[src] = 0
 
 	if test.startswith('scan'):
 		dest = get_reg(line[1])
@@ -216,16 +218,22 @@ def gen_assembly(line):
 		asmCode.append('lw $ra, '+line[2])
 
 	if test == 'jr':
-		asmCode.append(line[0]+' '+line[1])
+		funcinfo = findinfo(line[2])
+		asmCode.append('addi $sp, $sp, '+str(-funcinfo.funcsize))
+		asmCode.append('jr $ra')
 
 	if test =='movs':
 		src = get_reg(line[1])
 		asmCode.append('sw '+src+', '+line[2])
 
 	if test == 'jal':
+		# free_all_reg()
 		asmCode.append('jal '+line[1])
 
 	if test=='addi':
+		# print line[1]
+		if line[1]=='$fp':
+			free_all_reg()
 		asmCode.append('addi '+line[1]+', '+line[2]+', '+line[3])
 
 	if test == 'push':
@@ -243,13 +251,10 @@ def gen_assembly(line):
 			dest = get_reg(line[1])
 			asmCode.append('li '+dest+', '+line[2])
 		
-		elif line[2].startswith('off_'):
-			src = get_reg(line[2])
-			dest = get_reg(line[1])
-			asmCode.append('lw ' + dest + ', ' + src)
 		else:
 			src = get_reg(line[2])
 			dest = get_reg(line[1],1)
+			# print line[1] +"  "+line[2]
 			asmCode.append('move '+dest+', '+src)
 	
 	if line[0] in eqop:
@@ -286,8 +291,7 @@ def gen_assembly(line):
 
 		if x == '!':
 			asmCode.append('nor ' + dest + ', ' + src1 + ', $0')
-			
-		regsState[src1] = 0
+
 		return 1
 		
 		
@@ -348,10 +352,7 @@ def gen_assembly(line):
 		
 		if x == '>>':
 			asmCode.append('srlv '+dest+', '+src1+', '+src2)
-		
-		if src1!= dest:
-			regsState[src1] = 0
-		regsState[src2] = 0
+
 		return 1
 
 
@@ -364,7 +365,7 @@ for i in range(len(Code)):
 
 for i in range(len(asmCode)):
 	line = asmCode[i]
-	if line.endswith(':'):
+	if line.endswith(':') or line.startswith('.'):
 		continue
 	else:
 		asmCode[i] = '\t'+line

@@ -928,6 +928,7 @@ def p_func_decl(p):
                   | FUNC FunctionName CreateScope Signature EndScope'''
   p[0]=node()
   info = findinfo(p[2])
+  info.name = p[2]
   if len(p[4].code):
     global mainFunc
     if mainFunc:
@@ -935,6 +936,7 @@ def p_func_decl(p):
       # p[0].code = [["goto","main"]]
     p[0].code.append(['label',p[2]])
     x = scopeDict[info.child.val].extra['funcOffset']
+    info.funcsize = x
     p[0].code.append(['$sp',str(x)])
     # print scopeDict[curScope].extra['funcOffset']
     # p[0].code.append()
@@ -1003,8 +1005,9 @@ def p_func_body(p):
     p[0] = p[1]
     scopeDict[curScope].extra['funcOffset'] =  scopeDict[curScope].extra['curOffset']
     x = scopeDict[curScope].extra['curOffset']
-    p[0].code.append(['$sp',str(-x)])
-    p[0].code.append(['jr','$ra'])
+    s = scopeDict[curScope].extra['fName']
+    # p[0].code.append(['$sp',str(-x)])
+    p[0].code.append(['jr','$ra',s])
 # -------------------------------------------------------
 
 
@@ -1567,7 +1570,7 @@ def p_print_stmt(p):
                | PRINT PS Expression
                | PRINT PF Expression'''
   p[0] = p[3]
-  x =  p[3].types
+  x =  p[3].types[0]
   if type(p[3].types[0]) is list:
     x = p[3].types[0][0]
   if p[2]=="%d":
@@ -1727,18 +1730,9 @@ def p_if_statement(p):
   if p[2].types[0]!='bool' and p[2].types[0]!='cbool' and p[2].types[0]!='int' and p[2].types[0]!='cint':
     raise TypeError("Line "+str(p.lineno(1))+" : "+"Type of expression is not bool or integer for IF Statement")
     return
-  v = newvar()
-  if p[2].types[0]!='bool' or p[2].types[0]!='cbool':
-    p[0].code.append(['!',v,p[2].place[0]])
-  elif p[2].types[0]=='int' or p[2].types[0]=='cint':
-    v2 = newvar()
-    v_decl(v2,curScope)
-    p[0].code += [['=',v2,'0']]
-    p[0].code.append(['==',v,p[2].place[0],v2])
   l1 = newlabel()
-  v_decl(v,curScope)
   l2 = newlabel()
-  p[0].code += [['ifgoto',v,l1]]
+  p[0].code += [['ifgoto',p[2].place[0],l1]]
   p[0].code += p[5].code
   p[0].code += [['goto',l2]]
   p[0].code += [['label',l1]]
@@ -1968,6 +1962,7 @@ def p_return(p):
       p[0].code.append(['movs',s,str(x)+"($fp)"])
       return_off += funcinfo.retsize[i]
   jumpval = funcinfo.mysize + 4
+  p[0].code.append(['jr','$ra',fname])
 
 def p_expressionlist_pure_opt(p):
   '''ExpressionListPureOpt : ExpressionList

@@ -12,6 +12,7 @@ class symnode:
 		self.child = None
 		self.offset = None
 		self.mysize = 0
+		self.funcsize = 0
 
 	def insertname(self,name):
 		self.name = name
