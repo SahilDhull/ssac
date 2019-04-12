@@ -249,7 +249,12 @@ def gen_assembly(line):
 	if line[0]=='=':
 		if line[1].startswith('temp_c'):
 			dest = get_reg(line[1])
-			asmCode.append('li '+dest+', '+line[2])
+			if line[2]=='true':
+				asmCode.append('li '+dest+', 0x1')
+			elif line[2]=='false':
+				asmCode.append('li '+dest+', 0x0')
+			else:
+				asmCode.append('li '+dest+', '+line[2])
 		
 		else:
 			src = get_reg(line[2])
@@ -290,7 +295,7 @@ def gen_assembly(line):
 			asmCode.append('move ' + dest + ', ' + src1)
 
 		if x == '!':
-			asmCode.append('nor ' + dest + ', ' + src1 + ', $0')
+			asmCode.append('seq ' + dest + ', ' + src1+', $0')
 
 		return 1
 		

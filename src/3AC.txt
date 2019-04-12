@@ -1,44 +1,17 @@
 label f 
-$sp -32 
+$sp -8 
 = temp_c0 1 
-== var1 var0 temp_c0 
-ifgoto var1 l2 
-= temp_c1 1 
-movs temp_c1 8($fp) 
-jr $ra f 
-goto l3 
-label l2 
-goto l3 
-label l3 
-= temp_c2 1 
-- var3 var0 temp_c2 
-addi $sp $sp -16 
-push $ra -24 
-push var3 4 -32 
-push -36 -36 
-addi $fp $fp -36 
-jal f 
-addi $fp $fp 36 
-loadra $ra -24($fp) 
-memt -28($fp) var4 
-addi $sp $sp 16 
-= var2 var4 
-* var5 var0 var2 
-movs var5 8($fp) 
+= temp_c1 4 
+movs temp_c1 12($fp) 
+movs temp_c0 16($fp) 
 jr $ra f 
 jr $ra f 
 label main 
-$sp -8 
-scan_int var6 
-addi $sp $sp -16 
-push $ra -8 
-push var6 4 -16 
-push -20 -20 
-addi $fp $fp -20 
-jal f 
-addi $fp $fp 20 
-loadra $ra -8($fp) 
-memt -12($fp) var7 
-addi $sp $sp 16 
-print_int var7 
+$sp -20 
+= temp_c2 1 
+= temp_c3 0 
+== var3 temp_c2 temp_c3 
+! var4 var3 
+= var2 var4 
+print_int var2 
 jr $ra main 

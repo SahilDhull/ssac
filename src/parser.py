@@ -1030,6 +1030,7 @@ def p_basic_lit(p):
   '''BasicLit : I INT_LIT
               | F FLOAT_LIT
               | C IMAGINARY_LIT
+              | B BOOL_LIT
               | S STRING_LIT'''
   p[0]=p[1]
   
@@ -1052,6 +1053,12 @@ def p_basic_lit(p):
   p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
+
+def p_B(p):
+  '''B : '''
+  p[0]=node()
+  p[0].types.append('cbool')
+  p[0].bytesize = 4
 
 def p_I(p):
   '''I : '''
@@ -1566,43 +1573,52 @@ def p_end_scope_new(p):
   scopeDict[curScope].extra['curOffset'] = old_off
 
 def p_print_stmt(p):
-  '''PrintStmt : PRINT PD Expression
-               | PRINT PS Expression
-               | PRINT PF Expression'''
-  p[0] = p[3]
-  x =  p[3].types[0]
-  if type(p[3].types[0]) is list:
-    x = p[3].types[0][0]
-  if p[2]=="%d":
-    if x!='int' and x!='cint':
-      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
-    p[0].code.append(['print_int',p[3].place[0]])
-  if p[2]=="%f":
-    if x!='float' and x!='cfloat':
-      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
-    p[0].code.append(['print_float',p[3].place[0]])
-  if p[2]=="%s":
-    if x!='string' and x!='cstring':
-      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
-    p[0].code.append(['print_str',p[3].place[0]])
+  '''PrintStmt : PRINT Expression'''
+  p[0] = p[2]
+  x =  p[2].types[0]
+  if type(p[2].types[0]) is list:
+    x = p[2].types[0][0]
+  if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool':
+    raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't print Expression of unknown type")
+  # if p[2]=="%d":
+  #   if x!='int' and x!='cint':
+  #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
+  if x=='int' or x=='cint' or x=='bool' or x=='cbool':
+    p[0].code.append(['print_int',p[2].place[0]])
+  # if p[2]=="%f":
+  #   if x!='float' and x!='cfloat':
+  #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
+  if x=='float' or x=='cfloat':
+    p[0].code.append(['print_float',p[2].place[0]])
+  # if p[2]=="%s":
+  #   if x!='string' and x!='cstring':
+  #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
+  if x=='string' or x=='cstring':
+    p[0].code.append(['print_str',p[2].place[0]])
 
 def p_scan_stmt(p):
-  '''ScanStmt : SCAN PD Expression
-              | SCAN PS Expression
-              | SCAN PF Expression'''
-  p[0] = p[3]
-  if p[2]=="%d":
-    if p[3].types[0]!='int' and p[3].types[0]!='cint':
-      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than int using '%d'")
-    p[0].code.append(['scan_int',p[3].place[0]])
-  if p[2]=="%f":
-    if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
-      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than float using '%f'")
-    p[0].code.append(['scan_float',p[3].place[0]])
-  if p[2]=="%s":
-    if p[3].types[0]!='string' and p[3].types[0]!='cstring':
-      raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than string using '%s'")
-    p[0].code.append(['scan_str',p[3].place[0]])
+  '''ScanStmt : SCAN Expression'''
+  p[0] = p[2]
+  x =  p[2].types[0]
+  if type(p[2].types[0]) is list:
+    x = p[2].types[0][0]
+  if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool':
+    raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't scan Expression of unknown type")
+  # if p[2]=="%d":
+  #   if p[3].types[0]!='int' and p[3].types[0]!='cint':
+  #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than int using '%d'")
+  if x=='int' or x=='cint' or x=='bool' or x=='cbool':
+    p[0].code.append(['scan_int',p[2].place[0]])
+  # if p[2]=="%f":
+  #   if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
+  #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than float using '%f'")
+  if x=='float' or x=='cfloat':
+    p[0].code.append(['scan_float',p[2].place[0]])
+  # if p[2]=="%s":
+  #   if p[3].types[0]!='string' and p[3].types[0]!='cstring':
+  #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than string using '%s'")
+  if x=='string' or x=='cstring':
+    p[0].code.append(['scan_str',p[2].place[0]])
 
 def p_fallthrough_stmt(p):
   '''FallThroughStmt : FALLTHROUGH'''

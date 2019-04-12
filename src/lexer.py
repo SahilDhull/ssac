@@ -37,7 +37,7 @@ keywords = {
 
 tokens = [
 		#Literals
-		'STRING_LIT','IMAGINARY_LIT','FLOAT_LIT','INT_LIT','IDENTIFIER',
+		'STRING_LIT','IMAGINARY_LIT','FLOAT_LIT','BOOL_LIT','INT_LIT','IDENTIFIER',
 		# 'NEWLINE',
 		#Operators
 		'INCREMENT','DECREMENT', 'NOT', 'OR', 'AND', 'PLUSEQUAL','ANDEQUAL','COMPARE_AND',
@@ -48,13 +48,13 @@ tokens = [
 
 		#PUNCTUATION
 		'LPAREN','RPAREN','LSQUARE','RSQUARE','LCURL','RCURL',
-		'COMMA','DOT','SEMICOLON','COLON',
-		'PD','PS','PF'
+		'COMMA','DOT','SEMICOLON','COLON'
+		# 'PD','PS','PF'
 ] + list(keywords.values())
 
-t_PD = r'%d'
-t_PS = r'%s'
-t_PF = r'%f'
+# t_PD = r'%d'
+# t_PS = r'%s'
+# t_PF = r'%f'
 
 #operators
 t_INCREMENT                = r'\+\+'
@@ -141,6 +141,10 @@ def t_IMAGINARY_LIT(t):
 
 def t_FLOAT_LIT(t):
 	r'([0-9]+\.([0-9]+)?([eE][\+-]?[0-9]+)?)|([0-9]+[eE][\+-]?[0-9]+)|(\.[0-9]+([eE][\+-]?[0-9]+)?)'
+	return t
+
+def t_BOOL_LIT(t):
+	r'(true|false)'
 	return t
 
 # flo = r'([0-9]+\.([0-9]+)?([eE][\+-]?[0-9]+)?)|([0-9]+[eE][\+-]?[0-9]+)|(\.[0-9]+([eE][\+-]?[0-9]+)?)')

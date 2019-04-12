@@ -19,9 +19,9 @@ func main(){
 	var c int;
 	if 1==0 {
 		var c float;
-		print %d "ohh";
+		print "ohh";
 	} else {
-		print %s "okay\n";
+		print "okay\n";
 	};
 	// c=2;
 	var k type X = 1;

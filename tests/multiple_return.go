@@ -5,7 +5,7 @@ func f(a int,b int) (int,int){
 };
 
 func main() {
-	// var c,d int = f(2,1);
-	var k bool = !(1==0);
-	print k;
+	var c,d int = f(2,1);
+	print %d c;
+	print %d d;
 };
