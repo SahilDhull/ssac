@@ -63,6 +63,13 @@ def free_reg():
 			return i
 	return -1
 
+def no_of_free_regs():
+	cnt=0
+	for i in regs:
+		if regsState[i]==0:
+			cnt += 1
+	return cnt
+
 def reg_replace(reg_to_rep,newVar=None):
 	oldVar = regTovar[reg_to_rep]
 	old_off = off_cal(oldVar)
@@ -117,6 +124,8 @@ def empty_reg(reg):
 	del varToreg[varname]
 
 def free_all_reg():
+	global rnum
+	rnum = 0
 	for i in range(len(regs)):
 		reg = regs[i]
 		regsState[reg] = 0
@@ -149,7 +158,7 @@ def global_variables():
 # print_list(globalDecl)
 
 binaryop = ['+','-','*','/','%','&&','||','^','!=','<=','>=','==','<','>','<<','>>']
-eqop = ['+=','-=','*=','/=','%=','<<=','>>=',':=','!']  
+eqop = ['=','+=','-=','*=','/=','%=','<<=','>>=',':=','!']  
 op = binaryop + eqop
 
 # Start of MIPS
@@ -211,6 +220,12 @@ def gen_assembly(line):
 		asmCode.append('lw '+src+', '+line[1])
 		asmCode.append('sw '+src+', '+str(offset)+'($fp)')
 
+	if test == 'mem+':
+		src = get_reg(line[1])
+		asmCode.append('add '+src+', '+src+', '+line[2])
+
+
+
 	if test=='$sp':
 		asmCode.append('addi $sp, $sp, '+line[1])
 
@@ -246,27 +261,84 @@ def gen_assembly(line):
 			src = get_reg(line[1])
 			asmCode.append('sw '+src+', '+line[3]+'($fp)')
 
-	if line[0]=='=':
-		if line[1].startswith('temp_c'):
+
+	if line[0] in eqop:
+		arg1 = str(line[1])
+		arg2 = str(line[2])
+		flag = 0
+
+		if line[0]=='=' and arg1.startswith('temp_c'):
 			dest = get_reg(line[1])
 			if line[2]=='true':
 				asmCode.append('li '+dest+', 0x1')
 			elif line[2]=='false':
 				asmCode.append('li '+dest+', 0x0')
 			else:
-				asmCode.append('li '+dest+', '+line[2])
-		
+				asmCode.append('li '+dest+', '+str(line[2]))
+			return
+
+		if arg1.startswith('addr_') and arg2.startswith('addr_'):
+			if no_of_free_regs()<4:
+				free_all_reg()
+			reg1 = get_reg(arg1[5:])
+			reg2 = get_reg(arg2[5:])
+			flag = 1
+			cnt = 2
+
+			for reg in regs:
+				if cnt == 0:
+					break
+				if reg != reg1 and reg != reg2 and cnt == 2:
+					empty_reg(reg)
+					src1 = reg
+					cnt -= 1
+					continue
+				if reg != reg1 and reg != reg2 and cnt == 1:
+					empty_reg(reg)
+					dest = reg
+					cnt -= 1
+					continue
+			asmCode.append('lw '+dest+', 0('+reg1+')')
+			asmCode.append('lw '+src1+', 0('+reg2+')')
+
+		elif arg1.startswith('addr_'):
+			if no_of_free_regs()<3:
+				free_all_reg()
+			flag = 2
+			reg1 = get_reg(arg1[5:])
+			src1 = get_reg(arg2)
+
+			for reg in regs:
+				if reg != reg1 and reg != src1:
+					empty_reg(reg)
+					dest = reg
+					break
+			asmCode.append('lw '+dest+', 0('+reg1+')')
+
+		elif arg2.startswith('addr_'):
+			if no_of_free_regs()<3:
+				free_all_reg()
+			flag = 3
+			reg2 = get_reg(arg2[5:])
+			dest = get_reg(arg1)
+
+			for reg in regs:
+				if reg != reg2 and reg != dest:
+					empty_reg(reg)
+					src1 = reg
+					break
+			asmCode.append('lw '+src1+', 0('+reg2+')')
+
 		else:
-			src = get_reg(line[2])
-			dest = get_reg(line[1],1)
-			# print line[1] +"  "+line[2]
-			asmCode.append('move '+dest+', '+src)
-	
-	if line[0] in eqop:
-		dest = get_reg(line[1])
-		src1 = get_reg(line[2])
+			dest = get_reg(arg1)
+			src1 = get_reg(arg2)
+
+		
 		x = line[0]
 		
+		if line[0]=='=':
+			asmCode.append('move '+dest+', '+src1)
+
 		if (x == '+='):
 			asmCode.append('add ' + dest + ', ' + dest + ', ' + src1)
 		
@@ -297,13 +369,45 @@ def gen_assembly(line):
 		if x == '!':
 			asmCode.append('seq ' + dest + ', ' + src1+', $0')
 
+		if flag == 1 or flag == 2:
+			asmCode.append('sw '+dest+', 0('+reg1+')')
 		return 1
 		
 		
 	if line[0] in binaryop:
-		dest = get_reg(line[1])
-		src1 = get_reg(line[2])
-		src2 = get_reg(line[3])
+		arg0 = str(line[1])
+		arg1 = str(line[2])
+		arg2 = str(line[3])
+		flag = 0
+
+		if no_of_free_regs()<6:
+			free_all_reg()
+
+		if arg0.startswith('addr_'):
+			flag = 1
+			reg1 = get_reg(arg1[5:])
+			dest = free_reg()
+			regsState[dest] = 1
+			asmCode.append('lw '+dest+', 0('+reg1+')')
+		else:
+			dest = get_reg(arg0)
+
+		if arg1.startswith('addr_'):
+			reg2 = get_reg(arg1[5:])
+			src1 = free_reg()
+			regsState[src1] = 1
+			asmCode.append('lw '+src1+', 0('+reg2+')')
+		else:
+			src1 = get_reg(arg1)
+
+		if arg2.startswith('addr_'):
+			reg3 = get_reg(arg2[5:])
+			src2 = free_reg()
+			regsState[src2] = 1
+			asmCode.append('lw '+src2+', 0('+reg3+')')
+		else:
+			src2 = get_reg(arg2)
+		
 		
 		x = line[0]
 		
@@ -357,6 +461,9 @@ def gen_assembly(line):
 		
 		if x == '>>':
 			asmCode.append('srlv '+dest+', '+src1+', '+src2)
+
+		if flag:
+			asmCode.append('sw '+dest+', 0('+reg1+')')
 
 		return 1
 

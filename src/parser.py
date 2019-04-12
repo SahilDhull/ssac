@@ -1185,15 +1185,17 @@ def p_prim_expr(p):
     vinfo.mysize = 4
     p[0].code.append(['=',v1,p[3].place[0]])
     for i in lsize[p[1].extra['layerNum']+1:]:
-      p[0].code.append(['*=',v1,i])
+      c1 = newconst()
+      p[0].code.append(['=',c,i])
+      p[0].code.append(['*=',v1,c])
 
     # Adding previous offset
-    p[0].code.append(['+',v1,p[0].place[0]])
+    p[0].code.append(['+',v1,v1,p[0].place[0]])
 
     p[0].place = [v1]
     if p[1].extra['layerNum'] == len(lsize)-2:
       p[0].code.append(['mem+',v1,'$fp'])
-      p[0].place = ['addr_'+v1+'']
+      p[0].place = ['addr_'+v1]
     p[0].extra['AddrList'] = [v1]
     if k==0:
       p[0].types = info.type[1:]
