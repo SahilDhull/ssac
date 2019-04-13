@@ -1281,7 +1281,6 @@ def p_prim_expr(p):
         sinfo.type = [info.retType[i]]
         # p[0].code.append(['memt',str(return_off),s,info.retsize[i]])
         p[0].place.append(s)
-        p[0].types.append(info.retType[i])
       p[0].code.append(['addi','$sp','$sp',str(-diff)])
 
   # ------------------   SELECTOR  -------------------------
@@ -1973,7 +1972,7 @@ def p_return(p):
       k = l[leng-i-1]
       x = return_off
       p[0].code.append(['push',s,str(k),str(x)])
-      return_off += funcinfo.retsize[i]
+      return_off += funcinfo.retsize[leng-i-1]
   jumpval = funcinfo.mysize + 4
   p[0].code.append(['jret','$ra',fname])
 
@@ -2163,7 +2162,7 @@ def print_in_format():
         child = ""
       tab.append([scope+',',name+',',typ+',',lab+',',off+',',child])
     # info = scopeDict[i].retrieve()
-  col_width = max(len(word) for row in tab for word in row) + 5
+  col_width = max(len(word) for row in tab for word in row) + 2
   flag = 0
   for row in tab:
     print "".join(word.ljust(col_width) for word in row)
