@@ -190,12 +190,22 @@ def gen_assembly(line):
 
 	# Print Statement except string
 	if test.startswith('print'):
-		src = get_reg(line[1])
+		arg1 = line[1]
+		if arg1.startswith('addr_'):
+			arg1 = arg1[5:]
+			reg1 = get_reg(arg1)
+			asmCode.append('lw $4, '+'0('+reg1+')')
+			asmCode.append('li $2, 1')
+			asmCode.append('syscall')
+			return
+		
 		if len(test)==9: #print int
+			src = get_reg(line[1])
 			asmCode.append('li $2, 1')
 			asmCode.append('move $4, '+src)
 			asmCode.append('syscall')
 		elif len(test)==11: # print float
+			src = get_reg(line[1])
 			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
