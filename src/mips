@@ -3,107 +3,90 @@
 .text
 .globl main
 f:
-	addi $sp, $sp, -20
+	addi $sp, $sp, -36
 	li $5, 1
 	li $6, 4
 	lw $7, -12($fp)
 	move $7, $5
-	li $8, 4
+	li $8, 3
 	mult $7, $8
 	mflo $7
+	li $9, 2
+	mult $7, $9
+	mflo $7
 	add $7, $7, $6
-	add $7, $7, $fp
-	lw $9, -20($fp)
+	li $10, 2
+	lw $11, -28($fp)
+	move $11, $10
+	li $12, 2
+	mult $11, $12
+	mflo $11
+	add $11, $11, $7
+	add $11, $11, $fp
+	lw $13, -36($fp)
 	sw $5, -4($fp)
-	lw $5, 0($7)
-	move $9, $5
-	sw $9, 12($fp)
+	lw $5, 0($11)
+	move $13, $5
 	sw $6, -8($fp)
 	sw $7, -12($fp)
 	sw $8, -16($fp)
 	sw $9, -20($fp)
-	addi $sp, $sp, 20
+	sw $10, -24($fp)
+	sw $11, -28($fp)
+	sw $12, -32($fp)
+	sw $13, -36($fp)
+	lw $5, 4($fp)
+	sw $5, 28($fp)
+	lw $5, 8($fp)
+	sw $5, 32($fp)
+	lw $5, 12($fp)
+	sw $5, 36($fp)
+	lw $5, 16($fp)
+	sw $5, 40($fp)
+	lw $5, 20($fp)
+	sw $5, 44($fp)
+	lw $5, 24($fp)
+	sw $5, 48($fp)
+	lw $5, -36($fp)
+	sw $5, 32($fp)
+	addi $sp, $sp, 36
 	jr $ra
-	addi $sp, $sp, -20
-	addi $sp, $sp, 20
+	addi $sp, $sp, -36
+	addi $sp, $sp, 36
 	jr $ra
 main:
+	li $v0,4      
 	addi $fp, $sp, 0
-	addi $sp, $sp, -76
-	li $5, 0
-	li $6, -8
-	lw $7, -20($fp)
-	move $7, $5
-	li $8, 4
-	mult $7, $8
-	mflo $7
-	add $7, $7, $6
-	add $7, $7, $fp
-	li $9, 2
-	sw $5, -12($fp)
-	lw $5, 0($7)
-	move $5, $9
-	sw $5, 0($7)
-	li $5, 1
-	li $10, -8
-	lw $11, -40($fp)
-	move $11, $5
-	li $12, 4
-	mult $11, $12
-	mflo $11
-	add $11, $11, $10
-	add $11, $11, $fp
-	li $13, 2
-	li $14, 0
-	li $15, -8
-	lw $16, -60($fp)
-	move $16, $14
-	li $17, 4
-	mult $16, $17
-	mflo $16
-	add $16, $16, $15
-	add $16, $16, $fp
-	lw $18, -68($fp)
-	lw $19, 0($16)
-	add $18, $13, $19
-	sw $5, -32($fp)
-	lw $5, 0($11)
-	move $5, $18
-	sw $5, 0($11)
-	addi $sp, $sp, -20
-	sw $ra, -72($fp)
-	sw $6, -16($fp)
-	sw $7, -20($fp)
-	sw $8, -24($fp)
-	sw $9, -28($fp)
-	sw $10, -36($fp)
-	sw $11, -40($fp)
-	sw $12, -44($fp)
-	sw $13, -48($fp)
-	sw $14, -52($fp)
-	sw $15, -56($fp)
-	sw $16, -60($fp)
-	sw $17, -64($fp)
-	sw $18, -68($fp)
-	lw $5, -8($fp)
-	sw $5, -84($fp)
-	lw $5, -4($fp)
+	addi $sp, $sp, -32
+	addi $sp, $sp, -60
+	sw $ra, -28($fp)
+	lw $5, -24($fp)
 	sw $5, -80($fp)
-	li $3, -88
-	sw $3, -88($fp)
-	addi $fp, $fp, -88
+	lw $5, -20($fp)
+	sw $5, -76($fp)
+	lw $5, -16($fp)
+	sw $5, -72($fp)
+	lw $5, -12($fp)
+	sw $5, -68($fp)
+	lw $5, -8($fp)
+	sw $5, -64($fp)
+	lw $5, -4($fp)
+	sw $5, -60($fp)
+	li $3, -84
+	sw $3, -84($fp)
+	addi $fp, $fp, -84
+
+
+
 	jal f
-	addi $fp, $fp, 88
-	lw $ra, -72($fp)
-	lw $5, -76($fp)
-	sw $5, -72($fp)
-	addi $sp, $sp, 20
-	lw $6, -76($fp)
-	move $6, $5
-	li $2, 1
-	move $4, $6
-	syscall
-	sw $5, -72($fp)
-	sw $6, -76($fp)
-	addi $sp, $sp, 76
+	addi $fp, $fp, 84
+	lw $ra, -28($fp)
+	lw $5, -32($fp)
+	sw $5, -28($fp)
+	lw $6, -56($fp)
+	sw $6, -32($fp)
+	addi $sp, $sp, 60
+	sw $5, -28($fp)
+	sw $6, -32($fp)
+	addi $sp, $sp, 32
 	jr $ra

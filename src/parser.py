@@ -9,12 +9,10 @@ from symbol import *
 root = None
 
 def size_calculate(s):
-  if s=='int' or s=='cint' or s=='float' or s=='cfloat' :
+  if s=='int' or s=='cint' or s=='float' or s=='cfloat' or s=='bool' or s=='cbool' :
     return 4
   if s=='string' or s == 'cstring':
     return 32
-  if s=='bool':
-    return 4
   return 0
 
 
@@ -146,22 +144,14 @@ def findscope(name):
   raise NameError(name+ " is not defined in any scope")
 
 def findinfo(name, S=-1):
-  # if name.startswith('temp_c'):
-    # print "ok"
   if S > -1:
     if scopeDict[S].retrieve(name) is not None:
-        return scopeDict[S].retrieve(name)
-    # if name.startswith('temp_c'):
-    #   return -1
+      return scopeDict[S].retrieve(name)
     raise NameError("Identifier " + name + " is not defined!")
   for scope in scopeStack[::-1]:
     if scopeDict[scope].retrieve(name) is not None:
-        info = scopeDict[scope].retrieve(name)
-#     for s in scopeStack[::-1]:
-#         if Symbol_Table[s].retrieve(name) is not None:
-#             return s
-#     return -1
-        return info
+      info = scopeDict[scope].retrieve(name)
+      return info
   raise NameError("Identifier " + name + " is not defined!")
 
 
@@ -360,13 +350,16 @@ def p_array_type(p):
     raise IndexError("Line "+str(p.lineno(1))+" : "+"Index of array "+p[-1].idlist[0]+" is not integer")
   x = p[2].extra['operandValue'][0]
   p[0].bytesize *= int(x)
-  if p[4].types[0]=='arr':
-    p[0].types = ['arr'] + p[4].types
+  s = p[4].types[0]
+  if s.startswith('arr'):
+    num = int(s[4])
+    s = s[6:]
+    p[0].types = ['arr_'+str(num+1)+'_'+s]
     if 'operandValue' in p[2].extra:
       p[0].limits = p[2].extra['operandValue']
       p[0].limits += p[4].limits
   else:
-    p[0].types = ['arr'] + p[4].types
+    p[0].types = ['arr_1_'+s]
     if 'operandValue' in p[2].extra:
       x = p[2].extra['operandValue']
       p[0].limits = x
@@ -558,7 +551,7 @@ def p_param_decl(p):
           scopeDict[curScope].updateExtra(x,p[2].limits)
           scopeDict[curScope].updateAttr(x,'type',p[2].types)
           scopeDict[curScope].updateAttr(x,'size',p[2].size)
-          p[0].types += [p[2].types]
+          p[0].types += p[2].types
           info = findinfo(x)
           info.mysize = p[2].bytesize
           p[0].bytesize += p[2].bytesize
@@ -840,15 +833,15 @@ def p_var_spec(p):
       s = findscope(x)
       info = findinfo(x)
       #For arraysDeclaration
-      if p[2].types[0] == 'arr':
+      if (p[2].types[0]).startswith('arr'):
         scopeDict[curScope].updateExtra(x,p[2].limits)
-        scopeDict[s].updateAttr(x,'type',p[2].types)
+        scopeDict[s].updateAttr(x,'type',p[2].types[0])
         scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
         p[0].bytesize += p[2].bytesize
         info.mysize = p[2].bytesize
         scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
         info.offset = scopeDict[curScope].extra['curOffset']
-      elif a==1:
+      elif a==1:      #  malloc
         if p[2].types[0]=='*arr':
           raise TypeError("Line "+str(p.lineno(1))+" : "+"Malloc for array must be in a loop")
         p[0].code.append(['call_malloc',x,str(p[3].bytesize)])
@@ -870,7 +863,7 @@ def p_var_spec(p):
   if len(p[1].place)!=len(p[3].place):
     raise ValueError("Line "+str(p.lineno(1))+" : "+"Mismatch in number of expressions assigned to variables")
 
-  
+
   for i in range(len(p[1].place)):
     x = p[1].idlist[i]
     # p[1].place[i] = p[3].place[i]
@@ -886,6 +879,7 @@ def p_var_spec(p):
     #pointer case
     if p[2].types[0][0]=='*':
       scopeDict[scope].updateAttr(x,'size',p[2].size)
+
     if type(p[3].types[i]) is list:
       s = p[3].types[i][0]
     else:
@@ -1160,6 +1154,10 @@ def p_prim_expr(p):
     name = p[1].extra['operand']
     info = findinfo(name)
     lsize = info.listsize
+    s = info.type
+    if type(s) is list:
+      s = s[0]
+    l = s.split('_')
     if p[3].types[0]!='int' and p[3].types[0]!='cint':
       raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
     k = p[1].extra['layerNum']
@@ -1197,10 +1195,11 @@ def p_prim_expr(p):
       p[0].code.append(['mem+',v1,'$fp'])
       p[0].place = ['addr_'+v1]
     p[0].extra['AddrList'] = [v1]
-    if k==0:
-      p[0].types = info.type[1:]
+    if k==len(lsize)-2:
+      p[0].types = [l[2]]
     else:
-      p[0].types = p[1].types[1:]
+      x =  int(l[1])-k-1
+      p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
     
   # -------------------function case ------------------------
@@ -1939,32 +1938,37 @@ def p_conditionopt(p):
 def p_return(p):
   '''ReturnStmt : RETURN ExpressionListPureOpt'''
   p[0] = p[2]
-  
+
   for scope in scopeStack[::-1]:
     if 'fName' in scopeDict[scope].extra:
       fname = scopeDict[scope].extra['fName']
       retType = scopeDict[scope].extra['retType']
       return_off = scopeDict[scope].extra['parOffset']
   funcinfo = findinfo(fname)
+  l = funcinfo.retsize
+  # 1 return value
   if len(p[2].types) == 1:
     if not equalcheck(retType,p[2].types[0]):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType+" which doesnt match that in stmt i.e. "+p[2].types[0] )
     s = p[2].place[0]
-    p[0].code.append(['movs',s,str(return_off)+"($fp)"])
+    p[0].code.append(['push',s,str(l[0]),str(return_off)])
+
+  # void return
   elif len(p[2].types) == 0:
     if retType!='void':
       raise TypeError("Line "+str(p.lineno(1))+" : "+"function "+fname+" has return type "+retType+" , but returned void in the stmt")
+  # Multiple return
   else:
-    print len(retType)
     if len(p[2].types)!=len(retType):
       raise TypeError("Line "+str(p.lineno(1))+" : "+"Number of return argument doesn't match for "+fname)
-    leng = len(p[2].types)
-    for i in range(len(p[2].types)):
+    leng = len(p[2].place)
+    for i in range(len(p[2].place)):
       if not equalcheck(retType[i],p[2].types[i]):
         raise TypeError("Line "+str(p.lineno(1))+" : "+"Function "+fname+" has return type "+retType[i]+" which doesnt match that in stmt i.e. "+p[2].types[i] )
       s = p[2].place[leng-i-1]
+      k = l[leng-i-1]
       x = return_off
-      p[0].code.append(['movs',s,str(x)+"($fp)"])
+      p[0].code.append(['push',s,str(k),str(x)])
       return_off += funcinfo.retsize[i]
   jumpval = funcinfo.mysize + 4
   p[0].code.append(['jret','$ra',fname])

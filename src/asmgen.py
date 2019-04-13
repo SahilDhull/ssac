@@ -250,7 +250,7 @@ def gen_assembly(line):
 		asmCode.append('sw '+src+', '+line[2])
 
 	if test == 'jal':
-		free_all_reg()
+		# free_all_reg()
 		asmCode.append('jal '+line[1])
 
 	if test=='addi':
