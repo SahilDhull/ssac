@@ -1,75 +1,84 @@
 .data
-		str1: .asciiz "^////" 
+		str1: .asciiz "----\n" 
 .text
 .globl main
 main:
 	addi $fp, $sp, 0
-	addi $sp, $sp, -148
-	li $5, 1
-	li $6, -80
-	lw $7, -92($fp)
-	move $7, $5
-	li $8, 4
-	mult $7, $8
-	mflo $7
-	li $9, 4
-	mult $7, $9
-	mflo $7
-	add $7, $7, $6
-	li $10, 3
-	lw $11, -108($fp)
-	move $11, $10
-	li $12, 4
-	mult $11, $12
-	mflo $11
-	add $11, $11, $7
-	add $11, $11, $fp
-	li $13, 1
-	sw $5, -84($fp)
-	lw $5, 0($11)
-	move $5, $13
-	sw $5, 0($11)
-	li $5, 1
-	li $14, -80
-	lw $15, -128($fp)
-	move $15, $5
-	li $16, 4
-	mult $15, $16
-	mflo $15
-	li $17, 4
-	mult $15, $17
-	mflo $15
-	add $15, $15, $14
-	li $18, 3
-	lw $19, -144($fp)
-	move $19, $18
-	li $20, 4
-	mult $19, $20
-	mflo $19
-	sw $5, -120($fp)
-	sw $6, -88($fp)
-	sw $7, -92($fp)
-	sw $8, -96($fp)
-	sw $9, -100($fp)
-	sw $10, -104($fp)
-	sw $11, -108($fp)
-	sw $12, -112($fp)
-	sw $13, -116($fp)
-	sw $14, -124($fp)
-	sw $15, -128($fp)
-	sw $16, -132($fp)
-	sw $17, -136($fp)
-	sw $18, -140($fp)
-	sw $19, -144($fp)
-	sw $20, -148($fp)
-	lw $5, -144($fp)
-	lw $6, -128($fp)
-	add $5, $5, $6
-	add $5, $5, $fp
-	lw $4, 0($5)
-	li $2, 1
+	addi $sp, $sp, -44
+	lw $5, -4($fp)
+	li $2, 5
 	syscall
-	sw $5, -144($fp)
-	sw $6, -128($fp)
-	addi $sp, $sp, 148
+	move $5, $2
+	sw $5, -4($fp)
+	j l6
+l3:
+	lw $5, -20($fp)
+	li $5, 2
+	lw $6, -8($fp)
+	move $6, $5
+	sw $5, -20($fp)
+	sw $6, -8($fp)
+	j l2
+l4:
+	lw $5, -28($fp)
+	li $5, 3
+	lw $6, -8($fp)
+	move $6, $5
+	sw $5, -28($fp)
+	sw $6, -8($fp)
+	j l2
+l5:
+	lw $5, -32($fp)
+	li $5, 5
+	lw $6, -8($fp)
+	move $6, $5
+	sw $5, -32($fp)
+	sw $6, -8($fp)
+	j l2
+l6:
+	lw $5, -12($fp)
+	li $5, 0
+	lw $6, -16($fp)
+	li $6, 1
+	lw $7, -24($fp)
+	li $7, 2
+	lw $8, -36($fp)
+	lw $9, -4($fp)
+	sne $8, $9, $5
+	sw $5, -12($fp)
+	sw $6, -16($fp)
+	sw $7, -24($fp)
+	sw $8, -36($fp)
+	sw $9, -4($fp)
+	lw $5, -36($fp)
+	beq $5, $0, l3
+	lw $6, -40($fp)
+	lw $7, -4($fp)
+	lw $8, -16($fp)
+	sne $6, $7, $8
+	sw $5, -36($fp)
+	sw $6, -40($fp)
+	sw $7, -4($fp)
+	sw $8, -16($fp)
+	lw $5, -40($fp)
+	beq $5, $0, l3
+	lw $6, -44($fp)
+	lw $7, -4($fp)
+	lw $8, -24($fp)
+	sne $6, $7, $8
+	sw $5, -40($fp)
+	sw $6, -44($fp)
+	sw $7, -4($fp)
+	sw $8, -24($fp)
+	lw $5, -44($fp)
+	beq $5, $0, l4
+	sw $5, -44($fp)
+	j l5
+l2:
+	lw $5, -8($fp)
+	li $2, 1
+	move $4, $5
+	syscall
+	sw $5, -8($fp)
+	addi $sp, $sp, 44
 	jr $ra

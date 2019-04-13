@@ -1,9 +1,17 @@
 package main;
 
-
 func main(){
-	var a [5][4]int;
-	a[1][3] = 1;
-	print a[1][3];
+	var c int;
+	scan c;
+	var k int;
+	switch c {
+	case 0,1:
+		k=2;
+	case 2:
+		k=3;
+	default:
+		k=5;
+	};
+	print k;
 };
 

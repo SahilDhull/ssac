@@ -83,25 +83,17 @@ def reg_replace(reg_to_rep,newVar=None):
 def get_reg(var,load=0):
 	info = findinfo(var)
 	off = off_cal(var)
-	c = 0
-
-	if var.startswith('temp_c'):
-		c = 1
 
 	if var in varToreg and regsState[varToreg[var]]==1:
-		# print var
-		# print varToreg
 		return varToreg[var]
 
 	freereg = free_reg()
 
 	if type(freereg) is str:
 		varToreg[var] = freereg
-		# print var + " --> " + freereg
 		regTovar[freereg] = var
 		regsState[freereg] = 1
-		# print regsState
-		if c==0 and load==0:
+		if load==0:
 			asmCode.append('lw '+freereg+', '+str(off)+'($fp)')
 		return freereg
 	global rnum
@@ -163,7 +155,7 @@ op = binaryop + eqop
 
 # Start of MIPS
 asmCode.append('.data')
-asmCode.append("\tstr1: .asciiz \"^////\" ")
+asmCode.append("\tstr1: .asciiz \"----\\n\" ")
 global_variables()
 asmCode.append('.text')
 asmCode.append('.globl main')
@@ -174,18 +166,23 @@ def gen_assembly(line):
 
 	# If Statement
 	if test=='ifgoto':
+		free_all_reg()
 		dest = get_reg(line[1])
 		asmCode.append('beq '+dest+', $0, '+line[2])       
 
 	# Label
 	if test == 'label':
-		asmCode.append(line[1]+':')
 		if line[1]=='main':
+			asmCode.append(line[1]+':')
 			asmCode.append('addi $fp, $sp, 0')
-		free_all_reg()
+		else:
+			free_all_reg()
+			asmCode.append(line[1]+':')
+		# free_all_reg()
 
 	# goto
 	if test == 'goto':
+		free_all_reg()
 		asmCode.append('j '+line[1])
 
 	# Print Statement except string
@@ -259,7 +256,6 @@ def gen_assembly(line):
 		asmCode.append('jal '+line[1])
 
 	if test=='addi':
-		# print line[1]
 		if line[1]=='$fp':
 			free_all_reg()
 		asmCode.append('addi '+line[1]+', '+line[2]+', '+line[3])
@@ -301,6 +297,11 @@ def gen_assembly(line):
 				off += 4
 				num -= 4
 
+	if test == '++':
+		reg = get_reg(line[1])
+		info = findinfo(line[1])
+		asmCode.append('addi '+reg+', 1')
+		asmCode.append('sw '+reg+', '+str(info.offset)+'($fp)')
 
 	if line[0] in eqop:
 		arg1 = str(line[1])
@@ -441,7 +442,7 @@ def gen_assembly(line):
 		arg1 = str(line[2])
 		arg2 = str(line[3])
 		flag = 0
-
+		# free_all_reg()
 		if no_of_free_regs()<6:
 			free_all_reg()
 
@@ -469,7 +470,6 @@ def gen_assembly(line):
 			asmCode.append('lw '+src2+', 0('+reg3+')')
 		else:
 			src2 = get_reg(arg2)
-		
 		
 		x = line[0]
 		

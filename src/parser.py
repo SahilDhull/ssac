@@ -104,7 +104,7 @@ scopeDict[0] = st(0)
 scopeDict[0].updateExtra('curOffset',0)
 scopeStack=[0]
 
-def addscope(name=None):
+def addscope(name=None,off = 0):
   
   global scopeLevel
   global curScope
@@ -112,7 +112,7 @@ def addscope(name=None):
   scopeStack.append(scopeLevel)
   scopeDict[scopeLevel] = st(scopeLevel)
   scopeDict[scopeLevel].setParent(curScope)
-  scopeDict[scopeLevel].updateExtra('curOffset',0)
+  scopeDict[scopeLevel].updateExtra('curOffset',off)
   # if mainFunc:
   #   y = scopeDict[0].extra['curOffset']
   #   scopeDict[scopeLevel].updateExtra('curOffset',y)
@@ -912,17 +912,27 @@ def p_short_var_decl(p):
   else:
     scopeDict[curScope].insert(p[1],None)
   v = newvar()
+  # v_decl(v,curScope)
   p[0].code = p[3].code
   p[0].code.append(['=',v,p[3].place[0]])
   x = p[3].types[0]
-  if x=='int' or x=='cint':
-    p[0].bytesize = 4
   info = findinfo(p[1])
+  if x=='int' or x=='cint' or x=='float' or x=='cfloat' or x=='bool' or x=='cbool':
+    p[0].bytesize = 4
+  elif x=='string':
+    p[0].bytesize = 32
+  if x.startswith('c'):
+    info.type = x[1:]
+  else:
+    info.type = x
+  # print info.type
   scopeDict[curScope].extra['curOffset'] -= p[0].bytesize
   info.offset = scopeDict[curScope].extra['curOffset']
   info.mysize = p[0].bytesize
+  p[0].place = [v]
+  p[0].types = p[3].types
   scopeDict[curScope].updateAttr(p[1],'place',v)
-  scopeDict[curScope].updateAttr(p[1],'type',p[3].types[0])
+  # scopeDict[curScope].updateAttr(p[1],'type',p[3].types[0])
 
 # ----------------FUNCTION DECLARATIONS------------------
 def p_func_decl(p):
@@ -1771,7 +1781,7 @@ def p_switch_statement(p):
   p[0] = p[1]
 
 def p_ExprSwitchStmt(p):
-  '''ExprSwitchStmt : SWITCH Expression CreateScope LCURL StartSwitch ExprCaseClauseList RCURL EndScope_1'''
+  '''ExprSwitchStmt : SWITCH Expression CCreateScope LCURL StartSwitch ExprCaseClauseList RCURL EndScope_1'''
   p[0]=p[2]
   dLabel = None
   l1 = newlabel()
@@ -1791,7 +1801,7 @@ def p_ExprSwitchStmt(p):
     else:
       v = newvar()
       v_decl(v,curScope)
-      p[0].code += [['==',v,p[2].place[0],p[6].place[i]]]
+      p[0].code += [['!=',v,p[2].place[0],p[6].place[i]]]
       p[0].code += [['ifgoto',v,p[6].extra['labels'][i]]]
   if dLabel is not None:
     p[0].code += [['goto',dLabel]]
@@ -1883,7 +1893,7 @@ def p_ExprSwitchCase(p):
 # --------- FOR STMT   -------------------------------
 
 def p_for(p):
-  '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope_1'''
+  '''ForStmt : FOR CCreateScope ConditionBlockOpt Block EndScope_1'''
   p[0] = node()
   l1 = p[3].extra['before']
   p[0].code = p[3].code + p[4].code
@@ -1893,14 +1903,19 @@ def p_for(p):
   l2 = p[3].extra['after']
   p[0].code += [['label',l2]]
 
+def p_c_create_scope(p):
+  '''CCreateScope : '''
+  x = scopeDict[curScope].extra['curOffset']
+  addscope(None,x)
+
 def p_conditionblockopt(p):
   '''ConditionBlockOpt : epsilon
              | Condition
              | ForClause'''
   p[0] = p[1]
-  par = scopeDict[curScope].parent
-  poff = scopeDict[par].extra['curOffset']
-  scopeDict[curScope].updateExtra('curOffset',poff)
+  # par = scopeDict[curScope].parent
+  # poff = scopeDict[par].extra['curOffset']
+  # scopeDict[curScope].updateExtra('curOffset',poff)
 
 def p_condition(p):
   '''Condition : Expression '''
@@ -1919,14 +1934,7 @@ def p_forclause(p):
   scopeDict[curScope].updateExtra('endFor',l2)
   p[0].extra['after'] = l2
   if len(p[3].place)!=0:
-    v1 = newvar()
-    v2 = newvar()
-    v_decl(v1,curScope)
-    v_decl(v2,curScope)
-    p[0].code += [['=',v1,p[3].place[0]]]
-    p[0].code += [['=',v2,1]]
-    p[0].code += [['-',v1,v2,v2]]
-    p[0].code += [['ifgoto',v1,l2]]
+    p[0].code += [['ifgoto',p[3].place[0],l2]]
   p[0].extra['incr'] = p[5].code
 
 
