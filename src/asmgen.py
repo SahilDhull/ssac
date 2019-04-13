@@ -182,6 +182,7 @@ def gen_assembly(line):
 		asmCode.append(line[1]+':')
 		if line[1]=='main':
 			asmCode.append('addi $fp, $sp, 0')
+		free_all_reg()
 
 	# goto
 	if test == 'goto':
@@ -213,12 +214,6 @@ def gen_assembly(line):
 			asmCode.append('move '+dest+', $f0')
 		else:
 			asmCode.append('Scan string not Implemented')
-
-	if test=='memt':
-		src = get_reg(line[2],1)
-		offset = off_cal(line[2])
-		asmCode.append('lw '+src+', '+line[1])
-		asmCode.append('sw '+src+', '+str(offset)+'($fp)')
 
 	if test == 'mem+':
 		src = get_reg(line[1])
@@ -258,6 +253,21 @@ def gen_assembly(line):
 		if line[1]=='$fp':
 			free_all_reg()
 		asmCode.append('addi '+line[1]+', '+line[2]+', '+line[3])
+
+	if test=='memt':
+		size = int(line[3])
+		off = int(line[1])
+		arg = line[2]
+		free_all_reg()
+		src = free_reg()
+		info = findinfo(arg)
+		varoff = info.offset
+		while size:
+			asmCode.append('lw '+src+', '+str(off)+'($fp)')
+			asmCode.append('sw '+src+', '+str(varoff)+'($fp)')
+			varoff += 4
+			off += 4
+			size -=4
 
 	if test == 'push':
 		if line[1] == '$ra':
@@ -300,8 +310,10 @@ def gen_assembly(line):
 		if arg1.startswith('addr_') and arg2.startswith('addr_'):
 			if no_of_free_regs()<4:
 				free_all_reg()
-			reg1 = get_reg(arg1[5:])
-			reg2 = get_reg(arg2[5:])
+			arg1 = arg1[5:]
+			arg2 = arg2[5:]
+			reg1 = get_reg(arg1)
+			reg2 = get_reg(arg2)
 			flag = 1
 			cnt = 2
 
@@ -325,7 +337,8 @@ def gen_assembly(line):
 			if no_of_free_regs()<3:
 				free_all_reg()
 			flag = 2
-			reg1 = get_reg(arg1[5:])
+			arg1 = arg1[5:]
+			reg1 = get_reg(arg1)
 			src1 = get_reg(arg2)
 
 			for reg in regs:
@@ -339,7 +352,8 @@ def gen_assembly(line):
 			if no_of_free_regs()<3:
 				free_all_reg()
 			flag = 3
-			reg2 = get_reg(arg2[5:])
+			arg2 = arg2[5:]
+			reg2 = get_reg(arg2)
 			dest = get_reg(arg1)
 
 			for reg in regs:
@@ -355,9 +369,27 @@ def gen_assembly(line):
 
 		
 		x = line[0]
-		
-		if line[0]=='=':
+		info1 = findinfo(arg1)
+		typ1 = info1.type
+		info2 = findinfo(arg2)
+		typ2 = info2.type
+
+
+		if line[0]=='=' and (typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or typ1 == None or typ2 == None):
 			asmCode.append('move '+dest+', '+src1)
+		elif x=='=':
+			siz = info1.mysize
+			off1 = info1.offset
+			off2 = info2.offset
+			free_all_reg()
+			regn = free_reg()
+			while siz:
+				asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+				asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+				off1 += 4
+				off2 += 4
+				siz -= 4
+				
 
 		if (x == '+='):
 			asmCode.append('add ' + dest + ', ' + dest + ', ' + src1)

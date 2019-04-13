@@ -140,7 +140,6 @@ def findscope(name):
   for s in scopeStack[::-1]:
     if scopeDict[s].retrieve(name) is not None:
       return s
-  print scopeStack
   raise NameError(name+ " is not defined in any scope")
 
 def findinfo(name, S=-1):
@@ -157,12 +156,12 @@ def findinfo(name, S=-1):
 
 # -------------  SOME OTHER FUNCTIONS ---------------------
 
-def v_decl(v,s):
+def v_decl(v,s,size=4):
   scopeDict[s].insert(v,None)
   vinfo = findinfo(v)
-  scopeDict[s].extra['curOffset'] -= 4
+  scopeDict[s].extra['curOffset'] -= size
   vinfo.offset = scopeDict[s].extra['curOffset']
-  vinfo.mysize = 4
+  vinfo.mysize = size
 
 def newcvar():
   global cvarNum
@@ -555,7 +554,7 @@ def p_param_decl(p):
           info = findinfo(x)
           info.mysize = p[2].bytesize
           p[0].bytesize += p[2].bytesize
-          info.listsize = p[2].limits + [p[2].size[len(p[2].types)-1]]
+          info.listsize = p[2].limits + [str(p[2].size[len(p[2].size)-1])]
       else:
         for x in p[1].idlist:
           scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
@@ -941,7 +940,6 @@ def p_func_decl(p):
     x = scopeDict[info.child.val].extra['funcOffset']
     info.funcsize = x
     p[0].code.append(['$sp',str(x)])
-    # print scopeDict[curScope].extra['funcOffset']
     # p[0].code.append()
     # if p[2]!='main':
       # p[0].code.append(['movs',"%r9",'0($fp)'])
@@ -1245,13 +1243,16 @@ def p_prim_expr(p):
       if info.retType[0]=='void':
         flag=1
       if flag==0:
+        scopeDict[curScope].extra['curOffset'] -= 4
         v1 = newvar()
-        v_decl(v1,curScope)
+        v_decl(v1,curScope,info.retsize[0])
+        vinfo = findinfo(v1)
         p[0].place = [v1]
         return_off -= info.retsize[0]
-        p[0].code.append(['memt',str(return_off)+'($fp)',v1])
+        vinfo.type =  p[1].types[0]
+        # p[0].code.append(['memt',str(return_off),v1,str(info.retsize[0])])
       p[0].code.append(['addi','$sp','$sp',str(-diff)])
-      p[0].types = [p[1].types[0]]
+      p[0].types = p[1].types[0]
     else:
       p[0].place = []
       p[0].types = info.retType
@@ -1271,12 +1272,16 @@ def p_prim_expr(p):
       p[0].code.append(['jal',info.label])
       p[0].code.append(['addi','$fp','$fp',str(-start)])
       p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
+      scopeDict[curScope].extra['curOffset'] -= 4
       for i in range(len(info.retType)):
         s = newvar()
-        v_decl(s,curScope)
+        v_decl(s,curScope,info.retsize[i])
         return_off -= info.retsize[i]
-        p[0].code.append(['memt',str(return_off)+'($fp)',s])
+        sinfo = findinfo(s)
+        sinfo.type = [info.retType[i]]
+        # p[0].code.append(['memt',str(return_off),s,info.retsize[i]])
         p[0].place.append(s)
+        p[0].types.append(info.retType[i])
       p[0].code.append(['addi','$sp','$sp',str(-diff)])
 
   # ------------------   SELECTOR  -------------------------
@@ -1486,10 +1491,9 @@ def p_unary_expr(p):
       vinfo.offset = scopeDict[curScope].extra['curOffset']
       vinfo.mysize = 4
       if p[1][0]=='+' or p[1][0]=='-':
-        v1=newvar()
-        v_decl(v1,curScope)
-        p[0].code.append(['=',v1,0])
-        p[0].code.append(['=',v,v1,p[2].place[0]])
+        c = newconst()
+        p[0].code.append(['=',c,0])
+        p[0].code.append(['-=',v,c,p[2].place[0]])
       elif p[1][0]=='*':
         p[0].code.append(['load',v,p[2].place[0]])
         if p[2].types[0][0]!='*':
