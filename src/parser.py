@@ -1290,7 +1290,6 @@ def p_prim_expr(p):
     x = p[1].idlist[0]
     info = findinfo(x)
     t = info.type
-    print x
     if t.startswith('arr'):
       l = t.split('_')
       t = l[2][4:]
@@ -1301,7 +1300,6 @@ def p_prim_expr(p):
         return
       # if x not in scopeDict[curScope].extra:
       #   raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
-      print t
       t = t[5:]
     else:
       t = t[4:]
@@ -1310,21 +1308,29 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    # v = newvar()
+    v = newvar()
     # print x
-    varname = x+'.'+p[3]
+    varname = v+'.'+p[3]
     if not checkid(x,'e'):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
+    varinfo = sScope.retrieve(p[3])
+    if (info.type).startswith('*'):
+    	v1 = newvar()
+    	v_decl(v1,curScope)
+    	c = newconst()
+    	curoff = (sinfo.mysize + varinfo.offset)
+    	p[0].code.append(['=',c,str(curoff)])
+    	p[0].code.append(['+',v1,p[1].place[0],c])
+
     if checkid(varname,'e'):
       # coming here if already exists
       info1 = findinfo(varname)
       p[0].place = [info1.place]
       p[0].types = [info1.type]
     else:
-      varinfo = sScope.retrieve(p[3])
       curoff = info.offset + (info.mysize + varinfo.offset)
-      v = newvar()
+      # v = newvar()
       p[0].types = [varinfo.type]
       p[0].place = [v]
       scopeDict[curScope].insert(varname,p[0].types[0])
@@ -1334,7 +1340,8 @@ def p_prim_expr(p):
       scopeDict[curScope].updateAttr(varname,'offset',curoff)
       # scopeDict[curScope].updateExtra(varname,'defined',False)
     p[0].idlist = [varname]
-    
+    if (info.type).startswith('*'):
+    	p[0].place = ['addr_'+v1]
     # p[0] = p[1]
   else:
     

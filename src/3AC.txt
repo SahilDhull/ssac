@@ -1,78 +1,63 @@
-label ackermann 
-$sp -76 
-= temp_c0 0 
-== var2 var0 temp_c0 
-ifgoto var2 l2 
-= temp_c1 1 
-+ var3 var1 temp_c1 
-push var3 4 12 
-jret $ra ackermann 
-goto l3 
-label l2 
-goto l3 
-label l3 
-= temp_c2 0 
-== var4 var1 temp_c2 
-ifgoto var4 l4 
-= temp_c3 1 
-- var5 var0 temp_c3 
-= temp_c4 1 
-addi $sp $sp -20 
-push $ra -40 
-push var5 4 -48 
-push temp_c4 4 -52 
-push -56 -56 
-addi $fp $fp -56 
-jal ackermann 
-addi $fp $fp 56 
-loadra $ra -40($fp) 
-addi $sp $sp 20 
-push var6 4 12 
-jret $ra ackermann 
-goto l5 
-label l4 
-goto l5 
-label l5 
-= temp_c5 1 
-- var7 var0 temp_c5 
-= temp_c6 1 
-- var8 var1 temp_c6 
-addi $sp $sp -20 
-push $ra -64 
-push var0 4 -72 
-push var8 4 -76 
-push -80 -80 
-addi $fp $fp -80 
-jal ackermann 
-addi $fp $fp 80 
-loadra $ra -64($fp) 
-addi $sp $sp 20 
-addi $sp $sp -20 
-push $ra -72 
-push var7 4 -80 
-push var9 4 -84 
-push -88 -88 
-addi $fp $fp -88 
-jal ackermann 
-addi $fp $fp 88 
-loadra $ra -72($fp) 
-addi $sp $sp 20 
-push var10 4 12 
-jret $ra ackermann 
-jr $ra ackermann 
 label main 
-$sp -16 
-= temp_c7 3 
-= temp_c8 4 
-addi $sp $sp -20 
-push $ra -12 
-push temp_c7 4 -20 
-push temp_c8 4 -24 
-push -28 -28 
-addi $fp $fp -28 
-jal ackermann 
-addi $fp $fp 28 
-loadra $ra -12($fp) 
-addi $sp $sp 20 
-print_int var11 
+$sp -584 
+addr var12 var4 
+addr var13 var5 
+addr var14 var6 
+addr var15 var7 
+= var8 var12 
+= var9 var13 
+= var10 var14 
+= var11 var15 
+= var16 var20 
+= var17 var21 
+= var18 var22 
+= var19 var23 
+= temp_str0 "b\n" 
+= var24 temp_str0 
+= temp_c0 4 
+= var25 temp_c0 
+= temp_str1 "name of c\n" 
+= var26 temp_str1 
+= temp_c1 5 
+= var27 temp_c1 
+= temp_str2 "name of d\n" 
+= var28 temp_str2 
+= temp_c2 6 
+= var29 temp_c2 
+= temp_str3 "name of e\n" 
+= var30 temp_str3 
+= temp_c3 7 
+= var31 temp_c3 
+= temp_c4 8 
++ var34 var16 temp_c4 
+= var32 addr_var34 
+print_string var32 
+= temp_c5 4 
++ var36 var16 temp_c5 
+print_int addr_var36 
+= temp_str4 "\n" 
+print_string temp_str4 
+= temp_c6 4 
++ var38 var17 temp_c6 
+print_int addr_var38 
+= temp_str5 "\n" 
+print_string temp_str5 
+= temp_c7 0 
++ var41 var39 temp_c7 
+= temp_c8 0 
++ var43 addr_var41 temp_c8 
+= temp_c9 4 
++ var45 addr_var43 temp_c9 
+print_int addr_var45 
+= temp_str6 "\n" 
+print_string temp_str6 
+= temp_c10 0 
++ var48 var46 temp_c10 
+= temp_c11 0 
++ var50 addr_var48 temp_c11 
+= temp_c12 0 
++ var52 addr_var50 temp_c12 
+= temp_c13 4 
++ var54 addr_var52 temp_c13 
+print_int addr_var54 
 jr $ra main 
