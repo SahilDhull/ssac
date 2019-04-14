@@ -207,20 +207,33 @@ def gen_assembly(line):
 			asmCode.append('move $f12, '+src)
 			asmCode.append('syscall')
 		else:       # string case
-			asmCode.append('Print String not Implemented')
+			info = findinfo(line[1])
+			# asmCode.append('li $4, '+str(info.offset))
+			# asmCode.append('add $4, $4, $fp')
+			asmCode.append('li $2, 4')
+			asmCode.append('addi $4, $fp, '+str(info.offset))
+			asmCode.append('syscall')
 
 	if test.startswith('scan'):
-		dest = get_reg(line[1])
-		if len(test)==8:
+		if test.endswith('int'):
+			dest = get_reg(line[1])
 			asmCode.append('li $2, 5')
 			asmCode.append('syscall')
 			asmCode.append('move '+dest+', $2')
-		elif len(test) == 11:
+		
+		elif test.endswith('float'):
+			dest = get_reg(line[1])
 			asmCode.append('li $2, 6')
 			asmCode.append('syscall')
 			asmCode.append('move '+dest+', $f0')
-		else:
-			asmCode.append('Scan string not Implemented')
+		
+		elif test.endswith('string'):
+			info = findinfo(line[1])
+			empty_reg('$5')
+			asmCode.append('li $2, 8')
+			asmCode.append('li $5, 32')
+			asmCode.append('addi $4, $fp, '+str(info.offset))
+			asmCode.append('syscall')
 
 	if test == 'mem+':
 		src = get_reg(line[1])
@@ -318,6 +331,49 @@ def gen_assembly(line):
 				asmCode.append('li '+dest+', '+str(line[2]))
 			return
 
+		if line[0]=='=' and arg1.startswith('temp_str'):
+			arg = str(line[2][1:-1])
+			dest = get_reg(arg1)
+			info = findinfo(arg1)
+			off = info.offset
+			info.type = 'string'
+			l = len(arg)
+			i=0
+			cnt = 32
+			while i < len(arg) and cnt>1:
+				c = arg[i]
+				if arg[i]=='\\':
+					l-=1
+					i+=1
+					if arg[i]=='n':
+						c = '\n'
+					elif arg[i]=='t':
+						c = '\t'
+					elif arg[i]=='\"':
+						c = '\"'
+					elif arg[i]=='\'':
+						c = '\''
+					elif arg[i]=='\\':
+						c = '\\'
+				cnt-=1
+				o = ord(c)
+				asmCode.append('li '+dest+', '+str(o))
+				asmCode.append('sb '+dest+', '+str(off)+'($fp)')
+				i+=1
+				off += 1
+			while cnt>0:
+				asmCode.append('li '+dest+', 0')
+				asmCode.append('sb '+dest+', '+str(off)+'($fp)')
+				cnt-=1
+				off+=1
+			# asmCode.append('li '+dest+', '+str(l))
+			# asmCode.append('sw '+dest+', '+str(info.offset+28)+'($fp)')
+			regsState[dest]=0
+			del varToreg[arg1]
+			del regTovar[dest]
+
+			return
+
 		if arg1.startswith('addr_') and arg2.startswith('addr_'):
 			if no_of_free_regs()<4:
 				free_all_reg()
@@ -375,8 +431,15 @@ def gen_assembly(line):
 			asmCode.append('lw '+src1+', 0('+reg2+')')
 
 		else:
-			dest = get_reg(arg1)
-			src1 = get_reg(arg2)
+			info1 = findinfo(arg1)
+			typ1 = info1.type
+			info2 = findinfo(arg2)
+			typ2 = info2.type
+			if (typ1=='string' or typ2=='string'):
+				abcd=1
+			else:
+				dest = get_reg(arg1)
+				src1 = get_reg(arg2)
 
 		
 		x = line[0]
@@ -400,6 +463,7 @@ def gen_assembly(line):
 				off1 += 4
 				off2 += 4
 				siz -= 4
+			regsState[regn] = 0
 				
 
 		if (x == '+='):

@@ -1578,7 +1578,7 @@ def p_print_stmt(p):
   x =  p[2].types[0]
   if type(p[2].types[0]) is list:
     x = p[2].types[0][0]
-  if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool':
+  if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool' and x!='string' and x!='cstring':
     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't print Expression of unknown type")
   # if p[2]=="%d":
   #   if x!='int' and x!='cint':
@@ -1594,7 +1594,7 @@ def p_print_stmt(p):
   #   if x!='string' and x!='cstring':
   #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
   if x=='string' or x=='cstring':
-    p[0].code.append(['print_str',p[2].place[0]])
+    p[0].code.append(['print_string',p[2].place[0]])
 
 def p_scan_stmt(p):
   '''ScanStmt : SCAN Expression'''
@@ -1602,7 +1602,7 @@ def p_scan_stmt(p):
   x =  p[2].types[0]
   if type(p[2].types[0]) is list:
     x = p[2].types[0][0]
-  if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool':
+  if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool' and x!='string' and x!='cstring':
     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't scan Expression of unknown type")
   # if p[2]=="%d":
   #   if p[3].types[0]!='int' and p[3].types[0]!='cint':
@@ -1618,7 +1618,7 @@ def p_scan_stmt(p):
   #   if p[3].types[0]!='string' and p[3].types[0]!='cstring':
   #     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than string using '%s'")
   if x=='string' or x=='cstring':
-    p[0].code.append(['scan_str',p[2].place[0]])
+    p[0].code.append(['scan_string',p[2].place[0]])
 
 def p_fallthrough_stmt(p):
   '''FallThroughStmt : FALLTHROUGH'''

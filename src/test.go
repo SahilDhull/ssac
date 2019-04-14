@@ -1,17 +1,11 @@
 package main;
 
-func main(){
-	var c int;
-	scan c;
-	var k int;
-	switch c {
-	case 0,1:
-		k=2;
-	case 2:
-		k=3;
-	default:
-		k=5;
-	};
-	print k;
+func f(a[5]int, k string) (string,[5]int) {
+	// b[1][2]= 1;
+	a[2] = 99;
+	return "Hello World\n",a;
 };
 
+func main(){
+	var a int = 1;
+};
