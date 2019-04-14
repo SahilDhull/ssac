@@ -1151,6 +1151,7 @@ def p_prim_expr(p):
       raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
     k = p[1].extra['layerNum']
     # check on index range
+    # print lsize
     if p[1].extra['layerNum'] == len(lsize)-1:
       raise IndexError("Line "+str(p.lineno(1))+" : "+'Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
@@ -1904,6 +1905,10 @@ def p_conditionblockopt(p):
 						 | Condition
 						 | ForClause'''
 	p[0] = p[1]
+	l1 = newlabel()
+	p[0].code += [['label',l1]]
+	p[0].extra['before'] = l1
+	
 	# par = scopeDict[curScope].parent
 	# poff = scopeDict[par].extra['curOffset']
 	# scopeDict[curScope].updateExtra('curOffset',poff)
@@ -1920,6 +1925,7 @@ def p_forclause(p):
 	p[0].code += [['label',l1]]
 	p[0].extra['before'] = l1
 	p[0].code += p[3].code
+	p[0].extra['before'] = l1
 	l2 = newlabel()
 	scopeDict[curScope].updateExtra('beginFor',l1)
 	scopeDict[curScope].updateExtra('endFor',l2)
