@@ -407,7 +407,7 @@ def gen_assembly(line):
 			return
 
 		if arg1.startswith('addr_') and arg2.startswith('addr_'):
-			if no_of_free_regs()<4:
+			if no_of_free_regs()<6:
 				free_all_reg()
 			# arg1 = arg1[5:]
 			# arg2 = arg2[5:]
@@ -421,68 +421,91 @@ def gen_assembly(line):
 				cnt2+=1
 			reg1 = get_reg(arg1)
 			reg2 = get_reg(arg2)
-			print cnt1
-			print cnt2
 
 			flag = 1
-			cnt = 2
+			# cnt = 2
 
-			for reg in regs:
-				if cnt == 0:
-					break
-				if reg != reg1 and reg != reg2 and cnt == 2:
-					empty_reg(reg)
-					src1 = reg
-					cnt -= 1
-					continue
-				if reg != reg1 and reg != reg2 and cnt == 1:
-					empty_reg(reg)
-					dest = reg
-					cnt -= 1
-					continue
-			while cnt1:
+			src1 = free_reg()
+			dest = free_reg()
+			regs1 = free_reg()
+
+			# for reg in regs:
+			# 	if cnt == 0:
+			# 		break
+			# 	if reg != reg1 and reg != reg2 and cnt == 2:
+			# 		empty_reg(reg)
+			# 		src1 = reg
+			# 		cnt -= 1
+			# 		continue
+			# 	if reg != reg1 and reg != reg2 and cnt == 1:
+			# 		empty_reg(reg)
+			# 		dest = reg
+			# 		cnt -= 1
+			# 		continue
+			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
+			asmCode.append('lw '+regs1+', 0('+reg1+')')
 
 			while cnt2:
 				cnt2-=1
 				asmCode.append('lw '+reg2+', 0('+reg2+')')
 
-			asmCode.append('move '+dest+', '+reg1)
+			asmCode.append('move '+dest+', '+regs1)
 			asmCode.append('move '+src1+', '+reg2)
-			only_empty(reg1)
+			# only_empty(reg1)
 			only_empty(reg2)
+			regsState[regs1] = 0
 
 
 		elif arg1.startswith('addr_'):
-			if no_of_free_regs()<3:
+			if no_of_free_regs()<4:
 				free_all_reg()
 			flag = 2
-			arg1 = arg1[5:]
+			# arg1 = arg1[5:]
+			cnt1 = 0
+			while arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				cnt1+=1
+
 			reg1 = get_reg(arg1)
 			src1 = get_reg(arg2)
+			dest = free_reg()
+			regs1 = free_reg()
 
-			for reg in regs:
-				if reg != reg1 and reg != src1:
-					empty_reg(reg)
-					dest = reg
-					break
-			asmCode.append('lw '+dest+', 0('+reg1+')')
+			while cnt1>1:
+				cnt1-=1
+				asmCode.append('lw '+reg1+', 0('+reg1+')')
+			asmCode.append('lw '+regs1+', 0('+reg1+')')
+			# for reg in regs:
+			# 	if reg != reg1 and reg != src1:
+			# 		empty_reg(reg)
+			# 		dest = reg
+			# 		break
+			asmCode.append('move '+dest+', '+regs1)
+			regsState[regs1] = 0
 
 		elif arg2.startswith('addr_'):
 			if no_of_free_regs()<3:
 				free_all_reg()
 			flag = 3
-			arg2 = arg2[5:]
+			# arg2 = arg2[5:]
+			cnt2 = 0
+			while arg2.startswith('addr_'):
+				arg2 = arg2[5:]
+				cnt2+=1
 			reg2 = get_reg(arg2)
 			dest = get_reg(arg1)
-
-			for reg in regs:
-				if reg != reg2 and reg != dest:
-					empty_reg(reg)
-					src1 = reg
-					break
-			asmCode.append('lw '+src1+', 0('+reg2+')')
+			src1 = free_reg()
+			while cnt2:
+				cnt2-=1
+				asmCode.append('lw '+reg2+', 0('+reg2+')')
+			asmCode.append('move '+src1+', '+reg2)
+			# for reg in regs:
+			# 	if reg != reg2 and reg != dest:
+			# 		empty_reg(reg)
+			# 		src1 = reg
+			# 		break
 
 		else:
 			info1 = findinfo(arg1)
@@ -555,6 +578,10 @@ def gen_assembly(line):
 		if x == '!':
 			asmCode.append('seq ' + dest + ', ' + src1+', $0')
 
+		if flag == 1 or flag==2:
+			asmCode.append('sw '+dest+', 0('+reg1+')')
+			only_empty(reg1)
+			return
 		# if flag == 1 or flag == 2:
 			# asmCode.append('sw '+dest+', 0('+reg1+')')
 		return 1
@@ -571,26 +598,52 @@ def gen_assembly(line):
 
 		if arg0.startswith('addr_'):
 			flag = 1
-			reg1 = get_reg(arg1[5:])
+			cnt1 = 0
+			while arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				cnt1+=1
+			reg1 = get_reg(arg1)
 			dest = free_reg()
 			regsState[dest] = 1
-			asmCode.append('lw '+dest+', 0('+reg1+')')
+			while cnt1>1:
+				cnt1-=1
+				asmCode.append('lw '+reg1+', 0('+reg1+')')
+			asmCode.append('lw '+regs1+', 0('+reg1+')')
+
+			asmCode.append('lw '+dest+', 0('+regs1+')')
+			regsState[regs1] = 0
 		else:
 			dest = get_reg(arg0)
 
 		if arg1.startswith('addr_'):
-			reg2 = get_reg(arg1[5:])
 			src1 = free_reg()
 			regsState[src1] = 1
-			asmCode.append('lw '+src1+', 0('+reg2+')')
+			cnt2 = 0
+			while arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				cnt2+=1
+			reg2 = get_reg(arg1)
+			while cnt2:
+				cnt2-=1
+				asmCode.append('lw '+reg2+', 0('+reg2+')')
+			asmCode.append('move '+src1+', '+reg2)
+			only_empty(reg2)
 		else:
 			src1 = get_reg(arg1)
 
 		if arg2.startswith('addr_'):
-			reg3 = get_reg(arg2[5:])
 			src2 = free_reg()
 			regsState[src2] = 1
-			asmCode.append('lw '+src2+', 0('+reg3+')')
+			cnt2 = 0
+			while arg2.startswith('addr_'):
+				arg2 = arg2[5:]
+				cnt2+=1
+			reg3 = get_reg(arg2)
+			while cnt2:
+				cnt2-=1
+				asmCode.append('lw '+reg3+', 0('+reg3+')')
+			asmCode.append('move '+src2+', '+reg3)
+			only_empty(reg3)
 		else:
 			src2 = get_reg(arg2)
 		
@@ -649,6 +702,7 @@ def gen_assembly(line):
 
 		if flag:
 			asmCode.append('sw '+dest+', 0('+reg1+')')
+			only_empty(reg1)
 
 		return 1
 
