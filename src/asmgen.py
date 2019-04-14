@@ -155,7 +155,7 @@ def global_variables():
 
 # print_list(globalDecl)
 
-binaryop = ['+','-','*','/','%','&&','||','^','!=','<=','>=','==','<','>','<<','>>']
+binaryop = ['+','-','*','/','%','&','|','^','!=','<=','>=','==','<','>','<<','>>']
 eqop = ['=','+=','-=','*=','/=','%=','<<=','>>=',':=','!']  
 op = binaryop + eqop
 
@@ -614,10 +614,10 @@ def gen_assembly(line):
 			asmCode.append('div '+src1+', '+src2)
 			asmCode.append('mfhi ' + dest)
 		
-		if x == '&&':
+		if x == '&':
 			asmCode.append('and '+dest+', '+src1+', '+src2)
 		
-		if x == '||':
+		if x == '|':
 			asmCode.append('or '+dest+', '+src1+', '+src2)
 		
 		if x == '^':

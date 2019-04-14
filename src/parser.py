@@ -1382,7 +1382,7 @@ def p_expr(p):
 			p[0].code = p[1].code + p[3].code
 			p[0].idlist = p[1].idlist + p[3].idlist
 			p[0].bytesize = p[1].bytesize
-			if (p[2]=='<<' or p[2]=='>>' or p[2]=='^' or p[2]=='&^' or p[2]=='%' or p[2]=='|' or p[2]=='&') and (p[3].types[0]!='int' and p[3].types[0]!='cint') or (p[1].types[0]!='int' and p[1].types[0]!='cint'):
+			if (p[2]=='<<' or p[2]=='>>' or p[2]=='^' or p[2]=='&^' or p[2]=='%' or p[2]=='|' or p[2]=='&') and ((p[3].types[0]!='int' and p[3].types[0]!='cint') or (p[1].types[0]!='int' and p[1].types[0]!='cint')):
 				raise TypeError("Line "+str(p.lineno(1))+" : "+"RHS/LHS of "+p[2]+" is not integer")
 			if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
 				if (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
@@ -1484,7 +1484,7 @@ def p_unary_expr(p):
 			if p[1][0]=='+' or p[1][0]=='-':
 				c = newconst()
 				p[0].code.append(['=',c,0])
-				p[0].code.append(['-=',v,c,p[2].place[0]])
+				p[0].code.append([p[1][0],v,c,p[2].place[0]])
 				p[0].place=[v]
 			elif p[1][0]=='*':
 				# p[0].code.append(['load',v,p[2].place[0]])
