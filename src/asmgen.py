@@ -233,6 +233,22 @@ def gen_assembly(line):
 			asmCode.append('addi $4, $fp, '+str(info.offset))
 			asmCode.append('syscall')
 
+
+	if test == 'addr':
+		arg1 = line[1]
+		arg2 = line[2]
+		dest = get_reg(arg1)
+		info = findinfo(arg2)
+		off = info.offset
+		asmCode.append('add '+dest+', $fp, '+str(off))
+
+	if test == 'load':
+		arg1 = line[1]
+		arg2 = line[2]
+		dest = get_reg(arg1)
+		src = get_reg(arg2)
+		asmCode.append('lw '+dest+', '+'0('+src+')')
+
 	if test == 'mem+':
 		src = get_reg(line[1])
 		asmCode.append('add '+src+', '+src+', '+line[2])
@@ -285,6 +301,9 @@ def gen_assembly(line):
 			varoff += 4
 			off += 4
 			size -=4
+
+
+
 
 	if test == 'push':
 		if line[1] == '$ra':
@@ -433,8 +452,11 @@ def gen_assembly(line):
 			typ1 = info1.type
 			info2 = findinfo(arg2)
 			typ2 = info2.type
+			print typ1
 			if (typ1=='string' or typ2=='string'):
 				abcd=1
+			# elif (typ1.startswith('*')):
+
 			else:
 				dest = get_reg(arg1)
 				src1 = get_reg(arg2)

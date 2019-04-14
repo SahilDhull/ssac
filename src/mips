@@ -2,6 +2,53 @@
 		str1: .asciiz "----\n" 
 .text
 .globl main
+<<<<<<< HEAD
+main:
+	addi $fp, $sp, 0
+	addi $sp, $sp, -36
+	lw $5, -36($fp)
+	li $5, 10
+	sb $5, -36($fp)
+	li $5, 0
+	sb $5, -35($fp)
+	li $5, 0
+	sb $5, -34($fp)
+	li $5, 0
+	sb $5, -33($fp)
+	li $5, 0
+	sb $5, -32($fp)
+	li $5, 0
+	sb $5, -31($fp)
+	li $5, 0
+	sb $5, -30($fp)
+	li $5, 0
+	sb $5, -29($fp)
+	li $5, 0
+	sb $5, -28($fp)
+	li $5, 0
+	sb $5, -27($fp)
+	li $5, 0
+	sb $5, -26($fp)
+	li $5, 0
+	sb $5, -25($fp)
+	li $5, 0
+	sb $5, -24($fp)
+	li $5, 0
+	sb $5, -23($fp)
+	li $5, 0
+	sb $5, -22($fp)
+	li $5, 0
+	sb $5, -21($fp)
+	li $5, 0
+	sb $5, -20($fp)
+	li $5, 0
+	sb $5, -19($fp)
+	li $5, 0
+	sb $5, -18($fp)
+	li $5, 0
+	sb $5, -17($fp)
+	li $5, 0
+=======
 f:
 	addi $sp, $sp, -64
 	lw $5, -32($fp)
@@ -244,6 +291,7 @@ main:
 	li $5, 0
 	sb $5, -17($fp)
 	li $5, 0
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230
 	sb $5, -16($fp)
 	li $5, 0
 	sb $5, -15($fp)
@@ -267,6 +315,12 @@ main:
 	sb $5, -6($fp)
 	li $5, 0
 	sb $5, -5($fp)
+<<<<<<< HEAD
+	li $2, 4
+	addi $4, $fp, -36
+	syscall
+	addi $sp, $sp, 36
+=======
 	li $5, 0
 	sb $5, -4($fp)
 	li $5, 0
@@ -568,4 +622,5 @@ main:
 	addi $4, $fp, -136
 	syscall
 	addi $sp, $sp, 284
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230
 	jr $ra

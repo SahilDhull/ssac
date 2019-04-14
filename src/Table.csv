@@ -1,4 +1,12 @@
 Scope,      Name,       Type,       Comp_Name   Offset,     Child       
+<<<<<<< HEAD
+0,          main,       func,       None,       None,       1           
+1,          k,          string,     var0,       -32,                    
+1,          p,          *string,    var1,       -36,                    
+1,          var2,       ,           None,       -40,                    
+1,          var3,       ,           None,       -44,                    
+1,          temp_str0,  ,           None,       -76,                    
+=======
 0,          side,       struct,     None,       None,       1           
 0,          rect,       struct,     None,       None,       2           
 0,          f,          func,       None,       None,       3           
@@ -27,3 +35,4 @@ Scope,      Name,       Type,       Comp_Name   Offset,     Child
 4,          b.part.b,   string,     var15,      -136,                   
 4,          temp_str4,  string,     None,       -208,                   
 4,          var16,      struct,     None,       -284,                   
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230

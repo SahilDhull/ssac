@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+label main 
+$sp -76 
+addr var2 var0 
+= var1 var2 
+mem+ var3 $fp 
+= temp_str0 "ok" 
+= var3 temp_str0 
+=======
 label f 
 $sp -64 
 = temp_str0 "\nCOOL\n" 
@@ -34,4 +43,5 @@ addi $sp $sp 152
 = var10 var16 
 print_string var12 
 print_string var15 
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230
 jr $ra main 

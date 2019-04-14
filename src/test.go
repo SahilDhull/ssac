@@ -1,5 +1,16 @@
 package main;
 
+<<<<<<< HEAD
+func main(){
+	var k string;
+	var p *string;
+	p = &k;
+	*p = "ok";
+	// *p = 3;
+	// print *p;
+	// print "\n";
+};
+=======
 type side struct{
 	a int;
 	b string;
@@ -31,3 +42,4 @@ func main(){
 	print b.name;
 	print b.part.b;
 };
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230
