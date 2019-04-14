@@ -1,0 +1,508 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"re",
+				"retsize"
+			],
+			[
+				"cur",
+				"curScope"
+			],
+			[
+				"s",
+				"startswith"
+			],
+			[
+				"typ",
+				"TypeError"
+			],
+			[
+				"type",
+				"types"
+			],
+			[
+				"im",
+				"Implemented"
+			],
+			[
+				"get",
+				"get_reg"
+			],
+			[
+				"PLA",
+				"PLAYER_ID"
+			],
+			[
+				"SEAS",
+				"SEASON"
+			],
+			[
+				"IN",
+				"INSERT"
+			],
+			[
+				"M",
+				"MATCHES_STARTED"
+			],
+			[
+				"MAT",
+				"MATCHES_STARTED"
+			],
+			[
+				"Cl",
+				"CLUB_ID"
+			],
+			[
+				"Pl",
+				"PLAYER_ID"
+			],
+			[
+				"MA",
+				"MATCH_ID"
+			],
+			[
+				"su",
+				"SUBSTITUTION"
+			],
+			[
+				"SUB",
+				"SUB_PLAYED"
+			],
+			[
+				"PLAYER",
+				"PLAYER_IN"
+			],
+			[
+				"MATCH",
+				"MATCH_ID"
+			],
+			[
+				"CLUB",
+				"CLUB_ID"
+			],
+			[
+				"CLU",
+				"CLUB_ID"
+			],
+			[
+				"RE",
+				"RED_COUNT"
+			],
+			[
+				"HOME",
+				"HOME_CLUB"
+			],
+			[
+				"match",
+				"MATCH_ID"
+			],
+			[
+				"CLE",
+				"CLEAN_SHEET"
+			],
+			[
+				"AS",
+				"ASSIST_BY"
+			],
+			[
+				"PL",
+				"PLAYER_ID"
+			],
+			[
+				"ma",
+				"MATCH_ID"
+			],
+			[
+				"PLAYE",
+				"PLAYER_ID"
+			],
+			[
+				"BOOK",
+				"BOOKING_TYPE"
+			],
+			[
+				"SEASON",
+				"SEASON_ID"
+			],
+			[
+				"n",
+				"n_factor4"
+			],
+			[
+				"y_",
+				"y_new2"
+			],
+			[
+				"sca",
+				"scale"
+			],
+			[
+				"sig",
+				"sig_scaling"
+			],
+			[
+				"tan",
+				"tanh_scaling"
+			],
+			[
+				"out",
+				"output2"
+			],
+			[
+				"outp",
+				"output"
+			],
+			[
+				"filters",
+				"filters2"
+			],
+			[
+				"the",
+				"theta2"
+			],
+			[
+				"theta",
+				"theta_val"
+			],
+			[
+				"Ima",
+				"ImageDraw"
+			],
+			[
+				"R",
+				"RIGHT_PAREN"
+			],
+			[
+				"LE",
+				"LEFT_PAREN"
+			],
+			[
+				"cre",
+				"CREDITS"
+			],
+			[
+				"Cre",
+				"CREDITS_DONE"
+			],
+			[
+				"Re",
+				"REGISTRATION"
+			],
+			[
+				"CREDITS",
+				"CREDITS_DONE"
+			],
+			[
+				"PRO",
+				"PROG_ID"
+			],
+			[
+				"PROG",
+				"PROG_ID"
+			],
+			[
+				"DEP",
+				"DEPT_ID"
+			],
+			[
+				"PR",
+				"PROGRAMME"
+			],
+			[
+				"DEPT",
+				"DEPT_ID"
+			],
+			[
+				"CO",
+				"COURSE"
+			],
+			[
+				"X",
+				"X"
+			],
+			[
+				"rew",
+				"rewards_all_episodes"
+			],
+			[
+				"epi",
+				"episode_num"
+			],
+			[
+				"episode",
+				"episode"
+			],
+			[
+				"epis",
+				"episodes"
+			],
+			[
+				"max",
+				"maxex"
+			],
+			[
+				"epsio",
+				"epsilon"
+			],
+			[
+				"for",
+				"for_prop"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 137.777770996,
+		"history":
+		[
+			"ls",
+			"clear"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/sshubh718/study/DBMS/epl/EPL/create.sql",
+		"/home/sshubh718/study/Compilers/project/ssac/src/Table.csv",
+		"/home/sshubh718/study/Compilers/project/ssac/src/test.go",
+		"/home/sshubh718/study/Compilers/project/ssac/src/3AC.txt",
+		"/home/sshubh718/study/Compilers/project/ssac/src/mips",
+		"/home/sshubh718/study/Compilers/project/ssac/src/symbol.py",
+		"/home/sshubh718/study/Compilers/project/ssac/src/asmgen.py",
+		"/home/sshubh718/study/Compilers/project/ssac/src/parser.py",
+		"/home/sshubh718/study/DBMS/Project/club_player_table.sql",
+		"/home/sshubh718/study/DBMS/Project/create.sql",
+		"/home/sshubh718/study/DBMS/Project/player_table.sql",
+		"/home/sshubh718/study/DBMS/Project/changes.txt",
+		"/home/sshubh718/study/DBMS/Project/insert.sql",
+		"/home/sshubh718/study/cognitive/mkc/combined.csv",
+		"/home/sshubh718/study/cognitive/mkc/result_max.csv",
+		"/home/sshubh718/study/cognitive/mkc/result_max_1000.csv",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/new.py",
+		"/home/sshubh718/study/cognitive/mkc/iplotter.py",
+		"/home/sshubh718/study/cognitive/mkc/plotter.py",
+		"/home/sshubh718/study/cognitive/mkc/result.csv",
+		"/home/sshubh718/study/cognitive/mkc/q22.py",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/q22.py",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/result_1000.csv",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/result.csv",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/scaled.csv",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/plotter.py",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/combined.csv",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/q2.py",
+		"/home/sshubh718/study/cognitive/A3/wordsim353/set1.csv",
+		"/home/sshubh718/study/DBMS/160674_A2 (1)/DBMS/entry.sql",
+		"/home/sshubh718/study/DBMS/160674_A2 (1)/DBMS/ass.sql",
+		"/home/sshubh718/study/DBMS/160674_A2/DBMS/ass.sql",
+		"/home/sshubh718/study/DBMS/160674_A2/DBMS/entry.sql",
+		"/home/sshubh718/study/DBMS/160674_A2/DBMS/test.sql",
+		"/home/sshubh718/study/DBMS/ass.sql",
+		"/home/sshubh718/study/DBMS/entry.sql",
+		"/home/sshubh718/study/cognitive/Q1_2/readme.txt",
+		"/home/sshubh718/study/cognitive/Generators/replace.py",
+		"/home/sshubh718/study/cognitive/Q1_2/gabor.py",
+		"/home/sshubh718/study/cognitive/Q1_2/q3.py",
+		"/home/sshubh718/study/cognitive/Q1_2/q2.py",
+		"/home/sshubh718/study/cognitive/Generators/resize.py",
+		"/home/sshubh718/study/cognitive/Q1_2/Generators/resize.py",
+		"/home/sshubh718/study/cognitive/Q1_2/new.py",
+		"/home/sshubh718/study/cognitive/Q1_2/Generators/generate.py",
+		"/home/sshubh718/study/cognitive/Q1_2/Generators/q2.py",
+		"/home/sshubh718/study/cognitive/Q1_2/generate.py",
+		"/home/sshubh718/study/cognitive/Generators/generate.py",
+		"/home/sshubh718/study/cognitive/gabor.py",
+		"/home/sshubh718/study/cognitive/Generators/white.py",
+		"/home/sshubh718/study/cognitive/Generators/tgenr.py",
+		"/home/sshubh718/study/cognitive/Generators/tgenb.py",
+		"/home/sshubh718/study/cognitive/Generators/tfgenr.py",
+		"/home/sshubh718/study/cognitive/Generators/genr.py",
+		"/home/sshubh718/study/cognitive/Generators/tfgenb.py",
+		"/home/sshubh718/study/cognitive/Generators/genb.py",
+		"/home/sshubh718/study/cognitive/Generators/fgenr.py",
+		"/home/sshubh718/study/cognitive/Generators/fgenb.py",
+		"/home/sshubh718/study/cognitive/generate.py",
+		"/home/sshubh718/study/cognitive/abhay.py",
+		"/home/sshubh718/study/cognitive/genr.py",
+		"/home/sshubh718/study/cognitive/genb.py",
+		"/home/sshubh718/study/cognitive/fgenb.py",
+		"/home/sshubh718/study/cognitive/fgenr.py",
+		"/home/sshubh718/study/cognitive/gen.py",
+		"/home/sshubh718/Study/Compilers/Assignment 2/kapila.py",
+		"/home/sshubh718/Downloads/timepass (3).py",
+		"/home/sshubh718/Downloads/timepass (2).py",
+		"/home/sshubh718/Downloads/timepass (1).py",
+		"/home/sshubh718/Study/Compilers/Assignment 2/timepass.py",
+		"/home/sshubh718/Study/Compilers/Assignment 2/parser.out",
+		"/home/sshubh718/Study/Compilers/Assignment 2/nlexer.py",
+		"/home/sshubh718/Study/Compilers/Assignment 2/script.sh",
+		"/home/sshubh718/Downloads/nlexer.py",
+		"/home/sshubh718/Downloads/timepass.py",
+		"/home/sshubh718/Documents/stud.sql",
+		"/home/sshubh718/Documents/ass.sql",
+		"/home/sshubh718/Documents/script.sh",
+		"/home/sshubh718/Documents/Compilers/raghav.go",
+		"/home/sshubh718/Documents/Compilers/parser.py",
+		"/home/sshubh718/Documents/Compilers/lexer.py",
+		"/home/sshubh718/Documents/Compilers/parser.out",
+		"/home/sshubh718/Documents/Compilers/parsetab.py",
+		"/home/sshubh718/Documents/ques.py",
+		"/home/sshubh718/Documents/q3.py",
+		"/home/sshubh718/Documents/q1.py",
+		"/home/sshubh718/Documents/q2.py",
+		"/home/sshubh718/Documents/readme.txt",
+		"/home/sshubh718/Downloads/lexerAssgn1 (1).py",
+		"/home/sshubh718/Documents/input.txt",
+		"/home/sshubh718/q1",
+		"/home/sshubh718/Documents/lex.py",
+		"/home/sshubh718/Documents/lex.pya",
+		"/home/sshubh718/hello.py"
+	],
+	"find":
+	{
+		"height": 21.9512195122
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": true,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 21.9512195122
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "01_hello_world.sublime-project",
+	"replace":
+	{
+		"height": 41.4634146341
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 139.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
