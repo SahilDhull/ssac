@@ -1478,7 +1478,7 @@ def p_unary_expr(p):
 			if p[1][0]=='+' or p[1][0]=='-':
 				c = newconst()
 				p[0].code.append(['=',c,0])
-				p[0].code.append(['-=',v,c,p[2].place[0]])
+				p[0].code.append([p[1][0],v,c,p[2].place[0]])
 				p[0].place=[v]
 			elif p[1][0]=='*':
 				# p[0].code.append(['load',v,p[2].place[0]])

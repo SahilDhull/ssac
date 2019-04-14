@@ -1,5 +1,5 @@
 label main 
-$sp -336 
+$sp -368 
 = temp_c0 5 
 = var3 temp_c0 
 addr var4 var3 
@@ -28,7 +28,10 @@ print_string temp_str4
 = temp_c2 77 
 = var3 temp_c2 
 print_int addr_addr_var1 
-+= addr_addr_var1 addr_var0 
++ var25 addr_var0 addr_addr_addr_var2 
+= addr_addr_var1 var25 
+= temp_c3 5 
++= addr_addr_addr_var2 temp_c3 
 = temp_str5 "\n" 
 print_string temp_str5 
 print_int addr_addr_addr_var2 
