@@ -1,27 +1,6 @@
-Scope,      Name,       Type,       Comp_Name   Offset,     Child       
-0,          ackermann,  func,       None,       None,       1           
-0,          main,       func,       None,       None,       4           
-1,          m,          int,        var0,       8,                      
-1,          n,          int,        var1,       4,                      
-1,          temp_c0,    ,           None,       -4,                     
-1,          var2,       ,           None,       -8,                     
-1,          temp_c2,    ,           None,       -20,                    
-1,          var4,       ,           None,       -24,                    
-1,          temp_c5,    ,           None,       -144,                   
-1,          var7,       ,           None,       -148,                   
-1,          temp_c6,    ,           None,       -152,                   
-1,          var8,       ,           None,       -156,                   
-1,          var9,       int,        None,       -164,                   
-1,          var10,      int,        None,       -172,                   
-2,          temp_c1,    ,           None,       -12,                    
-2,          var3,       ,           None,       -16,                    
-3,          temp_str0,  string,     None,       -56,                    
-3,          temp_str1,  string,     None,       -88,                    
-3,          temp_str2,  string,     None,       -120,                   
-3,          temp_c3,    ,           None,       -124,                   
-3,          var5,       ,           None,       -128,                   
-3,          temp_c4,    ,           None,       -132,                   
-3,          var6,       int,        None,       -140,                   
-4,          temp_c7,    ,           None,       -4,                     
-4,          temp_c8,    ,           None,       -8,                     
-4,          var11,      int,        None,       -16,                    
+Scope,     Name,      Type,      Comp_Name  Offset,    Child      
+0,         main,      func,      None,      None,      1          
+1,         b,         int,       var0,      -16,                  
+1,         temp_c0,   ,          None,      -4,                   
+1,         var1,      ,          None,      -8,                   
+1,         temp_c1,   ,          None,      -12,                  
