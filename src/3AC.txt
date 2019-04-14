@@ -1,10 +1,37 @@
 label main 
-$sp -28 
+$sp -336 
 = temp_c0 5 
-= var1 temp_c0 
-addr var2 var1 
-= var0 var2 
+= var3 temp_c0 
+addr var4 var3 
+= var0 var4 
+addr var5 var0 
+= var1 var5 
+addr var6 var1 
+= var2 var6 
+print_int addr_var0 
+= temp_str0 "\n" 
+print_string temp_str0 
+print_int addr_addr_var1 
+= temp_str1 "\n" 
+print_string temp_str1 
+print_int addr_addr_addr_var2 
+= temp_str2 "\n" 
+print_string temp_str2 
 = temp_c1 1 
 = addr_var0 temp_c1 
-print_int addr_var0 
+print_int addr_addr_addr_var2 
+= temp_str3 "\n" 
+print_string temp_str3 
+print_int var3 
+= temp_str4 "\n" 
+print_string temp_str4 
+= temp_c2 77 
+= var3 temp_c2 
+print_int addr_addr_var1 
++= addr_addr_var1 addr_var0 
+= temp_str5 "\n" 
+print_string temp_str5 
+print_int addr_addr_addr_var2 
+= temp_str6 "\n" 
+print_string temp_str6 
 jr $ra main 

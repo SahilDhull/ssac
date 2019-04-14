@@ -60,6 +60,7 @@ def free_reg():
 	# print regsState
 	for i in regs:
 		if regsState[i]==0:
+			regsState[i]=1
 			return i
 	return -1
 
@@ -114,6 +115,11 @@ def empty_reg(reg):
 	asmCode.append('sw '+reg+', '+str(old_off)+'($fp)')
 	del regTovar[reg]
 	del varToreg[varname]
+
+def only_empty(reg):
+	regsState[reg] = 0
+	del varToreg[regTovar[reg]]
+	del regTovar[reg]
 
 def free_all_reg():
 	global rnum
@@ -188,12 +194,21 @@ def gen_assembly(line):
 	# Print Statement except string
 	if test.startswith('print'):
 		arg1 = line[1]
+		cnt = 0
 		if arg1.startswith('addr_'):
-			arg1 = arg1[5:]
+			while arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				cnt+=1
 			reg1 = get_reg(arg1)
-			asmCode.append('lw $4, '+'0('+reg1+')')
+			asmCode.append('move $4, '+reg1)
+			while cnt:
+				cnt-=1
+				asmCode.append('lw $4, 0($4)')
 			asmCode.append('li $2, 1')
 			asmCode.append('syscall')
+			regsState[reg1] = 0
+			del varToreg[arg1]
+			del regTovar[reg1]
 			return
 		
 		if len(test)==9: #print int
@@ -394,10 +409,21 @@ def gen_assembly(line):
 		if arg1.startswith('addr_') and arg2.startswith('addr_'):
 			if no_of_free_regs()<4:
 				free_all_reg()
-			arg1 = arg1[5:]
-			arg2 = arg2[5:]
+			# arg1 = arg1[5:]
+			# arg2 = arg2[5:]
+			cnt1 = 0
+			cnt2 = 0
+			while arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				cnt1+=1
+			while arg2.startswith('addr_'):
+				arg2 = arg2[5:]
+				cnt2+=1
 			reg1 = get_reg(arg1)
 			reg2 = get_reg(arg2)
+			print cnt1
+			print cnt2
+
 			flag = 1
 			cnt = 2
 
@@ -414,8 +440,19 @@ def gen_assembly(line):
 					dest = reg
 					cnt -= 1
 					continue
-			asmCode.append('lw '+dest+', 0('+reg1+')')
-			asmCode.append('lw '+src1+', 0('+reg2+')')
+			while cnt1:
+				cnt1-=1
+				asmCode.append('lw '+reg1+', 0('+reg1+')')
+
+			while cnt2:
+				cnt2-=1
+				asmCode.append('lw '+reg2+', 0('+reg2+')')
+
+			asmCode.append('move '+dest+', '+reg1)
+			asmCode.append('move '+src1+', '+reg2)
+			only_empty(reg1)
+			only_empty(reg2)
+
 
 		elif arg1.startswith('addr_'):
 			if no_of_free_regs()<3:
@@ -470,6 +507,9 @@ def gen_assembly(line):
 
 		if line[0]=='=' and (typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or typ1 == None or typ2 == None):
 			asmCode.append('move '+dest+', '+src1)
+			empty_reg(dest)
+			empty_reg(src1)
+			# empty_reg(dest)
 		elif x=='=':
 			siz = info1.mysize
 			off1 = info1.offset
@@ -515,8 +555,8 @@ def gen_assembly(line):
 		if x == '!':
 			asmCode.append('seq ' + dest + ', ' + src1+', $0')
 
-		if flag == 1 or flag == 2:
-			asmCode.append('sw '+dest+', 0('+reg1+')')
+		# if flag == 1 or flag == 2:
+			# asmCode.append('sw '+dest+', 0('+reg1+')')
 		return 1
 		
 		
