@@ -452,7 +452,6 @@ def gen_assembly(line):
 			typ1 = info1.type
 			info2 = findinfo(arg2)
 			typ2 = info2.type
-			print typ1
 			if (typ1=='string' or typ2=='string'):
 				abcd=1
 			# elif (typ1.startswith('*')):

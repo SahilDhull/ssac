@@ -1474,18 +1474,18 @@ def p_unary_expr(p):
 			if p[1][0]=='&' or p[1][0]=='*':
 				p[0].bytesize = 4
 			v = newvar()
-			scopeDict[curScope].insert(v,None)
-			vinfo = findinfo(v)
-			scopeDict[curScope].extra['curOffset'] -= 4
-			vinfo.offset = scopeDict[curScope].extra['curOffset']
-			vinfo.mysize = 4
+			v_decl(v,curScope)
 			if p[1][0]=='+' or p[1][0]=='-':
 				c = newconst()
 				p[0].code.append(['=',c,0])
 				p[0].code.append(['-=',v,c,p[2].place[0]])
+				p[0].place=[v]
 			elif p[1][0]=='*':
 				# p[0].code.append(['load',v,p[2].place[0]])
-				p[0].code.append(['mem+',v,'$fp'])
+				# v = newvar()
+				# v_decl(v,curScope)
+				# p[0].code.append(['=',v,p[2].place[0]])
+				# p[0].code.append(['mem+',v,'$fp'])
 				p[0].place = ['addr_'+p[2].place[0]]
 				if p[2].types[0][0]!='*':
 					raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot reference a non pointer")
@@ -1496,7 +1496,7 @@ def p_unary_expr(p):
 				else:
 					p[0].code.append(['addr',v,p[2].place[0]])
 				p[0].types = ['*' + p[2].types[0]]
-			p[0].place=[v]
+				p[0].place=[v]
 
 
 def p_unary_op(p):
