@@ -1,8 +1,0 @@
-label main 
-$sp -16 
-= temp_c0 2 
-= temp_c1 0 
--= var1 temp_c1 temp_c0 
-= var0 var1 
-print_int var0 
-jr $ra main 

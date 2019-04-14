@@ -1492,6 +1492,9 @@ def p_unary_expr(p):
 				# v_decl(v,curScope)
 				# p[0].code.append(['=',v,p[2].place[0]])
 				# p[0].code.append(['mem+',v,'$fp'])
+				# if (p[2].place[0]).startswith('addr_'):
+				# 	p[0].place = [p[2].place[0]]
+				# else:
 				p[0].place = ['addr_'+p[2].place[0]]
 				if p[2].types[0][0]!='*':
 					raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot reference a non pointer")
