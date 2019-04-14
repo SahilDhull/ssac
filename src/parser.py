@@ -1218,12 +1218,15 @@ def p_prim_expr(p):
     if len(info.retType)==1:
       if len(info.retsize):
         start -= info.retsize[0]
+      curstart = start
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
       diff = start - curval -4
       p[0].code.append(['addi','$sp','$sp',str(diff)])
       p[0].code.append(['push','$ra',str(return_off)])
+      start = curstart
       for i in range(len(p[3].place)):
+      	start -= p[3].extra['ParamSize'][i]
         p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
       start -= 4
       p[0].code.append(['push',str(start),str(start)])
@@ -1251,12 +1254,15 @@ def p_prim_expr(p):
       for i in range(len(info.retType)):
         start-=info.retsize[i]
       #   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
+      curstart = start
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
       diff = start - curval -4
       p[0].code.append(['addi','$sp','$sp',str(diff)])
       p[0].code.append(['push','$ra',str(return_off)])
+      start = curstart
       for i in range(len(p[3].place)):
+      	start -= p[3].extra['ParamSize'][i]
         p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i],str(start)])
       start-=4
       p[0].code.append(['push',str(start),str(start)])
