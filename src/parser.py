@@ -381,22 +381,15 @@ def p_struct_type(p):
   '''StructType : FuncScope STRUCT LCURL FieldDeclRep RCURL EndScope'''
   p[0] = p[4]
   info = findinfo(p[-1],0)
-  
-  
-  
-  
   p[0].types = [info.type]
   scopeDict[curScope].updateAttr(p[-1],'mysize',p[4].bytesize)
   p[0].bytesize = p[4].bytesize
-  
-  
 
 def p_func_scope(p):
   '''FuncScope : '''
   p[0] = node()
   # scopeDict[curScope].updateExtra('structPscope',curScope)
   x = curScope
-  
   addscope(p[-1])
   scopeDict[curScope].updateExtra('structPscope',x)
 
@@ -417,36 +410,22 @@ def p_field_decl_rep(p):
 def p_field_decl(p):
   ''' FieldDecl : IdentifierList Type'''
   p[0] = p[1]
-  
-  
-  
-  
   sco = scopeDict[curScope].extra['structPscope']
   s = scopeDict[sco].extra['structname']
   
   if s in p[2].types:
     raise TypeError("Line "+str(p.lineno(1))+" : "+"Struct "+s[4:]+" recursively defind, not allowed")
-  # if x in p[2].types
   for i in range(len(p[0].idlist)):
     p[0].bytesize += p[2].bytesize
     x = p[0].idlist[i]
-    
-    
     info = findinfo(x)
     scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
     scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
     y = scopeDict[curScope].extra['curOffset']
     info.offset = y
-    
     info.mysize = p[2].bytesize
-    
-    
-    
-    
     # scopeDict[curScope].updateExtra('curOffset',y+p[2].size[0])
     # p[0].bytesize +=p[2].size[0]
-    
-
 
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
@@ -470,13 +449,14 @@ def p_sign(p):
     p[0].retsize = p[2].retsize
     scopeDict[curScope].updateExtra('types',p[1].types)
     scopeDict[0].insert(p[-2],'sigType')
+    info = findinfo(p[-2],0)
     if len(p[2].types)==0:
       scopeDict[0].updateAttr(p[-2],'ret','void')
+      info.retsize = [0]
     else:
       for i in range(len(p[2].types)):
         scopeDict[0].updateAttr(p[-2],'ret',p[2].types[i])
     p[0].extra['fName'] = p[-2]
-    info = findinfo(p[-2],0)
     if info.label==None:
       lnew = newlabel()
       scopeDict[0].updateAttr(p[-2],'label',lnew)
@@ -1051,6 +1031,7 @@ def p_basic_lit(p):
     stringNum += 1
     scopeDict[curScope].insert(c,None)
     info = findinfo(c,curScope)
+    info.type = 'string'
     scopeDict[curScope].extra['curOffset'] -= 32
     info.offset = scopeDict[curScope].extra['curOffset']
     info.mysize = 32
@@ -1235,7 +1216,8 @@ def p_prim_expr(p):
     start -= 4
     return_off = start
     if len(info.retType)==1:
-      start -= info.retsize[0]
+      if len(info.retsize):
+        start -= info.retsize[0]
       for i in range(len(p[3].place)):
         start -= p[3].extra['ParamSize'][i]
       diff = start - curval -4
@@ -1299,25 +1281,22 @@ def p_prim_expr(p):
     x = p[1].idlist[0]
     info = findinfo(x)
     t = info.type
-    if t[0] =='arr':
-      for i in range(len(t)):
-        if t[i]!='arr':
-          break
-      t = t[i:][0][4:]
+    if t.startswith('arr'):
+      l = t.split('_')
+      t = l[2][4:]
+    # Pointer case --- to be handled -->
     elif t[0]=='*':
       if t[1:5]!='type':
         raise TypeError("Line "+str(p.lineno(1))+" : "+t+" does not have any attribute")
         return
       if x not in scopeDict[curScope].extra:
-        
         raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
       t = t[5:]
     else:
       t = t[4:]
-    
+
     sinfo = findinfo(t)
     sScope = sinfo.child
-    
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
     varname = x+'.'+p[3]
@@ -1325,19 +1304,20 @@ def p_prim_expr(p):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
     if checkid(varname,'e'):
-      
+      # coming here if already exists
       info1 = findinfo(varname)
-      
       p[0].place = [info1.place]
       p[0].types = [info1.type]
     else:
       varinfo = sScope.retrieve(p[3])
-      curoff = info.offset + varinfo.offset
-      # v = 'off_'+str(curoff)
+      curoff = info.offset + (info.mysize + varinfo.offset)
+      v = newvar()
       p[0].types = [varinfo.type]
-      p[0].place = [varname]
+      p[0].place = [v]
       scopeDict[curScope].insert(varname,p[0].types[0])
-      scopeDict[curScope].updateAttr(varname,'place',varname)
+      vinfo = findinfo(varname)
+      vinfo.mysize = varinfo.mysize
+      scopeDict[curScope].updateAttr(varname,'place',v)
       scopeDict[curScope].updateAttr(varname,'offset',curoff)
       # scopeDict[curScope].updateExtra(varname,'defined',False)
     p[0].idlist = [varname]
@@ -1569,7 +1549,6 @@ def p_end_scope_new(p):
   # oldScope = curScope
   old_off = scopeDict[curScope].extra['curOffset']
   endscope()
-  
   scopeDict[curScope].extra['curOffset'] = old_off
 
 def p_print_stmt(p):
