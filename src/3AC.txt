@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 label main 
 $sp -76 
 addr var2 var0 
@@ -5,4 +6,42 @@ addr var2 var0
 mem+ var3 $fp 
 = temp_str0 "ok" 
 = var3 temp_str0 
+=======
+label f 
+$sp -64 
+= temp_str0 "\nCOOL\n" 
+= var6 temp_str0 
+= temp_str1 "\ngggggggg\n" 
+= var8 temp_str1 
+push var5 72 76 
+jret $ra f 
+jr $ra f 
+label main 
+$sp -284 
+= temp_str2 "\n" 
+= var9 temp_str2 
+= temp_c0 2 
+= var11 temp_c0 
+= temp_str3 "hey\n" 
+= var12 temp_str3 
+= temp_c1 1 
+= var14 temp_c1 
+= temp_str4 "Nope\n" 
+= var15 temp_str4 
+print_string var15 
+print_string var12 
+print_int var11 
+addi $sp $sp -152 
+push $ra -212 
+push var10 72 -356 
+push -360 -360 
+addi $fp $fp -360 
+jal f 
+addi $fp $fp 360 
+loadra $ra -212($fp) 
+addi $sp $sp 152 
+= var10 var16 
+print_string var12 
+print_string var15 
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230
 jr $ra main 

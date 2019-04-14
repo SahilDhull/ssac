@@ -208,8 +208,6 @@ def gen_assembly(line):
 			asmCode.append('syscall')
 		else:       # string case
 			info = findinfo(line[1])
-			# asmCode.append('li $4, '+str(info.offset))
-			# asmCode.append('add $4, $4, $fp')
 			asmCode.append('li $2, 4')
 			asmCode.append('addi $4, $fp, '+str(info.offset))
 			asmCode.append('syscall')

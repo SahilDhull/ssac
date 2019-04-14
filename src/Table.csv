@@ -1,7 +1,38 @@
 Scope,      Name,       Type,       Comp_Name   Offset,     Child       
+<<<<<<< HEAD
 0,          main,       func,       None,       None,       1           
 1,          k,          string,     var0,       -32,                    
 1,          p,          *string,    var1,       -36,                    
 1,          var2,       ,           None,       -40,                    
 1,          var3,       ,           None,       -44,                    
 1,          temp_str0,  ,           None,       -76,                    
+=======
+0,          side,       struct,     None,       None,       1           
+0,          rect,       struct,     None,       None,       2           
+0,          f,          func,       None,       None,       3           
+0,          main,       func,       None,       None,       4           
+1,          a,          int,        var0,       -4,                     
+1,          b,          string,     var1,       -36,                    
+2,          name,       string,     var2,       -32,                    
+2,          age,        int,        var3,       -36,                    
+2,          part,       struct,     var4,       -72,                    
+3,          a,          struct,     var5,       4,                      
+3,          a.name,     string,     var6,       44,                     
+3,          temp_str0,  string,     None,       -32,                    
+3,          a.part,     struct,     var7,       4,                      
+3,          a.part.b,   string,     var8,       4,                      
+3,          temp_str1,  string,     None,       -64,                    
+4,          str,        string,     var9,       -64,                    
+4,          temp_str2,  string,     None,       -32,                    
+4,          b,          struct,     var10,      -136,                   
+4,          b.age,      int,        var11,      -100,                   
+4,          temp_c0,    ,           None,       -140,                   
+4,          b.name,     string,     var12,      -96,                    
+4,          temp_str3,  string,     None,       -172,                   
+4,          b.part,     struct,     var13,      -136,                   
+4,          b.part.a,   int,        var14,      -104,                   
+4,          temp_c1,    ,           None,       -176,                   
+4,          b.part.b,   string,     var15,      -136,                   
+4,          temp_str4,  string,     None,       -208,                   
+4,          var16,      struct,     None,       -284,                   
+>>>>>>> 63321e01c6978282ce8a1337319c1977b366b230

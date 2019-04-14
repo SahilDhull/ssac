@@ -378,27 +378,20 @@ def p_element_type(p):
 
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
-	'''StructType : FuncScope STRUCT LCURL FieldDeclRep RCURL EndScope'''
-	p[0] = p[4]
-	info = findinfo(p[-1],0)
-	
-	
-	
-	
-	p[0].types = [info.type]
-	scopeDict[curScope].updateAttr(p[-1],'mysize',p[4].bytesize)
-	p[0].bytesize = p[4].bytesize
-	
-	
+  '''StructType : FuncScope STRUCT LCURL FieldDeclRep RCURL EndScope'''
+  p[0] = p[4]
+  info = findinfo(p[-1],0)
+  p[0].types = [info.type]
+  scopeDict[curScope].updateAttr(p[-1],'mysize',p[4].bytesize)
+  p[0].bytesize = p[4].bytesize
 
 def p_func_scope(p):
-	'''FuncScope : '''
-	p[0] = node()
-	# scopeDict[curScope].updateExtra('structPscope',curScope)
-	x = curScope
-	
-	addscope(p[-1])
-	scopeDict[curScope].updateExtra('structPscope',x)
+  '''FuncScope : '''
+  p[0] = node()
+  # scopeDict[curScope].updateExtra('structPscope',curScope)
+  x = curScope
+  addscope(p[-1])
+  scopeDict[curScope].updateExtra('structPscope',x)
 
 def p_field_decl_rep(p):
 	''' FieldDeclRep : FieldDeclRep FieldDecl Semi
@@ -415,38 +408,24 @@ def p_field_decl_rep(p):
 		p[0]=p[1]
 
 def p_field_decl(p):
-	''' FieldDecl : IdentifierList Type'''
-	p[0] = p[1]
-	
-	
-	
-	
-	sco = scopeDict[curScope].extra['structPscope']
-	s = scopeDict[sco].extra['structname']
-	
-	if s in p[2].types:
-		raise TypeError("Line "+str(p.lineno(1))+" : "+"Struct "+s[4:]+" recursively defind, not allowed")
-	# if x in p[2].types
-	for i in range(len(p[0].idlist)):
-		p[0].bytesize += p[2].bytesize
-		x = p[0].idlist[i]
-		
-		
-		info = findinfo(x)
-		scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
-		scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
-		y = scopeDict[curScope].extra['curOffset']
-		info.offset = y
-		
-		info.mysize = p[2].bytesize
-		
-		
-		
-		
-		# scopeDict[curScope].updateExtra('curOffset',y+p[2].size[0])
-		# p[0].bytesize +=p[2].size[0]
-		
-
+  ''' FieldDecl : IdentifierList Type'''
+  p[0] = p[1]
+  sco = scopeDict[curScope].extra['structPscope']
+  s = scopeDict[sco].extra['structname']
+  
+  if s in p[2].types:
+    raise TypeError("Line "+str(p.lineno(1))+" : "+"Struct "+s[4:]+" recursively defind, not allowed")
+  for i in range(len(p[0].idlist)):
+    p[0].bytesize += p[2].bytesize
+    x = p[0].idlist[i]
+    info = findinfo(x)
+    scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
+    scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
+    y = scopeDict[curScope].extra['curOffset']
+    info.offset = y
+    info.mysize = p[2].bytesize
+    # scopeDict[curScope].updateExtra('curOffset',y+p[2].size[0])
+    # p[0].bytesize +=p[2].size[0]
 
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
@@ -465,29 +444,30 @@ def p_base_type(p):
 
 # ---------------FUNCTION TYPES----------------------------
 def p_sign(p):
-		'''Signature : Parameters ResultOpt'''
-		p[0]=p[1]
-		p[0].retsize = p[2].retsize
-		scopeDict[curScope].updateExtra('types',p[1].types)
-		scopeDict[0].insert(p[-2],'sigType')
-		if len(p[2].types)==0:
-			scopeDict[0].updateAttr(p[-2],'ret','void')
-		else:
-			for i in range(len(p[2].types)):
-				scopeDict[0].updateAttr(p[-2],'ret',p[2].types[i])
-		p[0].extra['fName'] = p[-2]
-		info = findinfo(p[-2],0)
-		if info.label==None:
-			lnew = newlabel()
-			scopeDict[0].updateAttr(p[-2],'label',lnew)
-			scopeDict[0].updateAttr(p[-2],'child',scopeDict[curScope])
-		p[0].types = p[2].types
-		# parsize = -4 - scopeDict[curScope].extra['parOffset']
-		
-		
-		
-		p[0].bytesize = p[1].bytesize+p[2].bytesize
-		# p[0].code.append(['move',str(p[0].bytesize),'0($fp)'])
+    '''Signature : Parameters ResultOpt'''
+    p[0]=p[1]
+    p[0].retsize = p[2].retsize
+    scopeDict[curScope].updateExtra('types',p[1].types)
+    scopeDict[0].insert(p[-2],'sigType')
+    info = findinfo(p[-2],0)
+    if len(p[2].types)==0:
+      scopeDict[0].updateAttr(p[-2],'ret','void')
+      info.retsize = [0]
+    else:
+      for i in range(len(p[2].types)):
+        scopeDict[0].updateAttr(p[-2],'ret',p[2].types[i])
+    p[0].extra['fName'] = p[-2]
+    if info.label==None:
+      lnew = newlabel()
+      scopeDict[0].updateAttr(p[-2],'label',lnew)
+      scopeDict[0].updateAttr(p[-2],'child',scopeDict[curScope])
+    p[0].types = p[2].types
+    # parsize = -4 - scopeDict[curScope].extra['parOffset']
+    
+    
+    
+    p[0].bytesize = p[1].bytesize+p[2].bytesize
+    # p[0].code.append(['move',str(p[0].bytesize),'0($fp)'])
 
 def p_result_opt(p):
 		'''ResultOpt : Result
@@ -1038,27 +1018,28 @@ def p_literal(p):
 
 stringNum = 0
 def p_basic_lit(p):
-	'''BasicLit : I INT_LIT
-							| F FLOAT_LIT
-							| C IMAGINARY_LIT
-							| B BOOL_LIT
-							| S STRING_LIT'''
-	p[0]=p[1]
-	
-	if p[1].types[0]=='cstring':
-		global stringNum
-		c = 'temp_str'+str(stringNum)
-		stringNum += 1
-		scopeDict[curScope].insert(c,None)
-		info = findinfo(c,curScope)
-		scopeDict[curScope].extra['curOffset'] -= 32
-		info.offset = scopeDict[curScope].extra['curOffset']
-		info.mysize = 32
-	else:
-		c = newconst()
-	p[0].code.append(["=",c,p[2]])
-	p[0].place.append(c)
-	p[0].extra['operandValue'] = [p[2]]
+  '''BasicLit : I INT_LIT
+              | F FLOAT_LIT
+              | C IMAGINARY_LIT
+              | B BOOL_LIT
+              | S STRING_LIT'''
+  p[0]=p[1]
+  
+  if p[1].types[0]=='cstring':
+    global stringNum
+    c = 'temp_str'+str(stringNum)
+    stringNum += 1
+    scopeDict[curScope].insert(c,None)
+    info = findinfo(c,curScope)
+    info.type = 'string'
+    scopeDict[curScope].extra['curOffset'] -= 32
+    info.offset = scopeDict[curScope].extra['curOffset']
+    info.mysize = 32
+  else:
+    c = newconst()
+  p[0].code.append(["=",c,p[2]])
+  p[0].place.append(c)
+  p[0].extra['operandValue'] = [p[2]]
 
 def p_B(p):
 	'''B : '''
@@ -1146,207 +1127,206 @@ def p_qualified_ident(p):
 
 # ------------------PRIMARY EXPRESSIONS--------------------
 def p_prim_expr(p):
-	'''PrimaryExpr : Operand
-								 | PrimaryExpr DOT IDENTIFIER
-								 | Conversion
-								 | PrimaryExpr LSQUARE Expression RSQUARE
-								 | PrimaryExpr Slice
-								 | PrimaryExpr TypeAssertion
-								 | PrimaryExpr LPAREN ExpressionListTypeOpt RPAREN'''
-	if len(p) == 2:
-		p[0] = p[1]
-	# Arrays: ----------------------------------------
-	elif p[2]=='[':
-		p[0] = p[1]
-		p[0].code+=p[3].code
-		name = p[1].extra['operand']
-		info = findinfo(name)
-		lsize = info.listsize
-		s = info.type
-		if type(s) is list:
-			s = s[0]
-		l = s.split('_')
-		if p[3].types[0]!='int' and p[3].types[0]!='cint':
-			raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
-		k = p[1].extra['layerNum']
-		# check on index range
-		if p[1].extra['layerNum'] == len(lsize)-1:
-			raise IndexError("Line "+str(p.lineno(1))+" : "+'Dimension of array '+p[1].extra['operand'] + ' doesnt match')
+  '''PrimaryExpr : Operand
+                 | PrimaryExpr DOT IDENTIFIER
+                 | Conversion
+                 | PrimaryExpr LSQUARE Expression RSQUARE
+                 | PrimaryExpr Slice
+                 | PrimaryExpr TypeAssertion
+                 | PrimaryExpr LPAREN ExpressionListTypeOpt RPAREN'''
+  if len(p) == 2:
+    p[0] = p[1]
+  # Arrays: ----------------------------------------
+  elif p[2]=='[':
+    p[0] = p[1]
+    p[0].code+=p[3].code
+    name = p[1].extra['operand']
+    info = findinfo(name)
+    lsize = info.listsize
+    s = info.type
+    if type(s) is list:
+      s = s[0]
+    l = s.split('_')
+    if p[3].types[0]!='int' and p[3].types[0]!='cint':
+      raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
+    k = p[1].extra['layerNum']
+    # check on index range
+    if p[1].extra['layerNum'] == len(lsize)-1:
+      raise IndexError("Line "+str(p.lineno(1))+" : "+'Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
-		if 'operandValue' in p[3].extra:
-			z = p[3].extra['operandValue'][0]
-			y = scopeDict[curScope].extra[p[1].extra['operand']]
-			if z>=y[k]:
-				raise IndexError("Line "+str(p.lineno(1))+" : "+"Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
-		
-		if p[0].extra['layerNum']==0:
-			c = newconst()
-			p[0].code.append(['=',c,str(info.offset)])
-			p[0].place = [c]
-		v1 = newvar()
-		scopeDict[curScope].insert(v1,None)
-		vinfo = findinfo(v1)
-		scopeDict[curScope].extra['curOffset'] -= 4
-		vinfo.offset = scopeDict[curScope].extra['curOffset']
-		vinfo.mysize = 4
-		p[0].code.append(['=',v1,p[3].place[0]])
-		for i in lsize[p[1].extra['layerNum']+1:]:
-			c1 = newconst()
-			p[0].code.append(['=',c1,i])
-			p[0].code.append(['*=',v1,c1])
+    if 'operandValue' in p[3].extra:
+      z = p[3].extra['operandValue'][0]
+      y = scopeDict[curScope].extra[p[1].extra['operand']]
+      if z>=y[k]:
+        raise IndexError("Line "+str(p.lineno(1))+" : "+"Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
+    
+    if p[0].extra['layerNum']==0:
+      c = newconst()
+      p[0].code.append(['=',c,str(info.offset)])
+      p[0].place = [c]
+    v1 = newvar()
+    scopeDict[curScope].insert(v1,None)
+    vinfo = findinfo(v1)
+    scopeDict[curScope].extra['curOffset'] -= 4
+    vinfo.offset = scopeDict[curScope].extra['curOffset']
+    vinfo.mysize = 4
+    p[0].code.append(['=',v1,p[3].place[0]])
+    for i in lsize[p[1].extra['layerNum']+1:]:
+      c1 = newconst()
+      p[0].code.append(['=',c1,i])
+      p[0].code.append(['*=',v1,c1])
 
-		# Adding previous offset
-		p[0].code.append(['+',v1,v1,p[0].place[0]])
+    # Adding previous offset
+    p[0].code.append(['+',v1,v1,p[0].place[0]])
 
-		p[0].place = [v1]
-		if p[1].extra['layerNum'] == len(lsize)-2:
-			p[0].code.append(['mem+',v1,'$fp'])
-			p[0].place = ['addr_'+v1]
-		p[0].extra['AddrList'] = [v1]
-		if k==len(lsize)-2:
-			p[0].types = [l[2]]
-		else:
-			x =  int(l[1])-k-1
-			p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
-		p[0].extra['layerNum'] += 1
-		
-	# -------------------function case ------------------------
-	elif p[2]=='(':
-		p[0]=p[1]
-		p[0].code+=p[3].code
-		x = p[1].idlist[0]
-		info = findinfo(p[1].idlist[0],0)
-		functionDict = info.child
-		if len(functionDict.extra['types'])!=len(p[3].place):
-			raise IndexError("Line "+str(p.lineno(1))+" : "+"Function "+x+" passed with Unequal number of arguments")
-		paramTypes = functionDict.extra['types']
-		if len(p[3].place):
-			for i in range(len(p[3].place)):
-				if not equalcheck(paramTypes[i],p[3].types[i]):
-					raise TypeError("Line "+str(p.lineno(1))+" : "+"Type Mismatch in "+p[1].idlist[0])
+    p[0].place = [v1]
+    if p[1].extra['layerNum'] == len(lsize)-2:
+      p[0].code.append(['mem+',v1,'$fp'])
+      p[0].place = ['addr_'+v1]
+    p[0].extra['AddrList'] = [v1]
+    if k==len(lsize)-2:
+      p[0].types = [l[2]]
+    else:
+      x =  int(l[1])-k-1
+      p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
+    p[0].extra['layerNum'] += 1
+    
+  # -------------------function case ------------------------
+  elif p[2]=='(':
+    p[0]=p[1]
+    p[0].code+=p[3].code
+    x = p[1].idlist[0]
+    info = findinfo(p[1].idlist[0],0)
+    functionDict = info.child
+    if len(functionDict.extra['types'])!=len(p[3].place):
+      raise IndexError("Line "+str(p.lineno(1))+" : "+"Function "+x+" passed with Unequal number of arguments")
+    paramTypes = functionDict.extra['types']
+    if len(p[3].place):
+      for i in range(len(p[3].place)):
+        if not equalcheck(paramTypes[i],p[3].types[i]):
+          raise TypeError("Line "+str(p.lineno(1))+" : "+"Type Mismatch in "+p[1].idlist[0])
 
-		# Checking Return Type
-		name = p[1].idlist[0]
-		info.label = name
-		curval = scopeDict[curScope].extra['curOffset']
-		start = curval
-		funcinfo = findinfo(p[1].idlist[0])
-		funcsize = funcinfo.mysize
-		start -= 4
-		return_off = start
-		if len(info.retType)==1:
-			start -= info.retsize[0]
-			for i in range(len(p[3].place)):
-				start -= p[3].extra['ParamSize'][i]
-			diff = start - curval -4
-			p[0].code.append(['addi','$sp','$sp',str(diff)])
-			p[0].code.append(['push','$ra',str(return_off)])
-			for i in range(len(p[3].place)):
-				p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
-			start -= 4
-			p[0].code.append(['push',str(start),str(start)])
-			p[0].code.append(['addi','$fp','$fp',str(start)])
-			p[0].code.append(['jal',info.label])
-			p[0].code.append(['addi','$fp','$fp',str(-start)])
-			p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
-			flag=0
-			if info.retType[0]=='void':
-				flag=1
-			if flag==0:
-				scopeDict[curScope].extra['curOffset'] -= 4
-				v1 = newvar()
-				v_decl(v1,curScope,info.retsize[0])
-				vinfo = findinfo(v1)
-				p[0].place = [v1]
-				return_off -= info.retsize[0]
-				vinfo.type =  p[1].types[0]
-				# p[0].code.append(['memt',str(return_off),v1,str(info.retsize[0])])
-			p[0].code.append(['addi','$sp','$sp',str(-diff)])
-			p[0].types = p[1].types[0]
-		else:
-			p[0].place = []
-			p[0].types = info.retType
-			for i in range(len(info.retType)):
-				start-=info.retsize[i]
-			#   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
-			for i in range(len(p[3].place)):
-				start -= p[3].extra['ParamSize'][i]
-			diff = start - curval -4
-			p[0].code.append(['addi','$sp','$sp',str(diff)])
-			p[0].code.append(['push','$ra',str(return_off)])
-			for i in range(len(p[3].place)):
-				p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i],str(start)])
-			start-=4
-			p[0].code.append(['push',str(start),str(start)])
-			p[0].code.append(['addi','$fp','$fp',str(start)])
-			p[0].code.append(['jal',info.label])
-			p[0].code.append(['addi','$fp','$fp',str(-start)])
-			p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
-			scopeDict[curScope].extra['curOffset'] -= 4
-			for i in range(len(info.retType)):
-				s = newvar()
-				v_decl(s,curScope,info.retsize[i])
-				return_off -= info.retsize[i]
-				sinfo = findinfo(s)
-				sinfo.type = [info.retType[i]]
-				# p[0].code.append(['memt',str(return_off),s,info.retsize[i]])
-				p[0].place.append(s)
-			p[0].code.append(['addi','$sp','$sp',str(-diff)])
+    # Checking Return Type
+    name = p[1].idlist[0]
+    info.label = name
+    curval = scopeDict[curScope].extra['curOffset']
+    start = curval
+    funcinfo = findinfo(p[1].idlist[0])
+    funcsize = funcinfo.mysize
+    start -= 4
+    return_off = start
+    if len(info.retType)==1:
+      if len(info.retsize):
+        start -= info.retsize[0]
+      for i in range(len(p[3].place)):
+        start -= p[3].extra['ParamSize'][i]
+      diff = start - curval -4
+      p[0].code.append(['addi','$sp','$sp',str(diff)])
+      p[0].code.append(['push','$ra',str(return_off)])
+      for i in range(len(p[3].place)):
+        p[0].code.append(['push',p[3].place[i],str(p[3].extra['ParamSize'][i]),str(start)])
+      start -= 4
+      p[0].code.append(['push',str(start),str(start)])
+      p[0].code.append(['addi','$fp','$fp',str(start)])
+      p[0].code.append(['jal',info.label])
+      p[0].code.append(['addi','$fp','$fp',str(-start)])
+      p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
+      flag=0
+      if info.retType[0]=='void':
+        flag=1
+      if flag==0:
+        scopeDict[curScope].extra['curOffset'] -= 4
+        v1 = newvar()
+        v_decl(v1,curScope,info.retsize[0])
+        vinfo = findinfo(v1)
+        p[0].place = [v1]
+        return_off -= info.retsize[0]
+        vinfo.type =  p[1].types[0]
+        # p[0].code.append(['memt',str(return_off),v1,str(info.retsize[0])])
+      p[0].code.append(['addi','$sp','$sp',str(-diff)])
+      p[0].types = p[1].types[0]
+    else:
+      p[0].place = []
+      p[0].types = info.retType
+      for i in range(len(info.retType)):
+        start-=info.retsize[i]
+      #   p[0].code.append(['push','ret'+str(i+1),str(info.retsize[i])])
+      for i in range(len(p[3].place)):
+        start -= p[3].extra['ParamSize'][i]
+      diff = start - curval -4
+      p[0].code.append(['addi','$sp','$sp',str(diff)])
+      p[0].code.append(['push','$ra',str(return_off)])
+      for i in range(len(p[3].place)):
+        p[0].code.append(['push',p[3].place[i],p[3].extra['ParamSize'][i],str(start)])
+      start-=4
+      p[0].code.append(['push',str(start),str(start)])
+      p[0].code.append(['addi','$fp','$fp',str(start)])
+      p[0].code.append(['jal',info.label])
+      p[0].code.append(['addi','$fp','$fp',str(-start)])
+      p[0].code.append(['loadra','$ra',str(scopeDict[curScope].extra['curOffset']-4)+'($fp)'])
+      scopeDict[curScope].extra['curOffset'] -= 4
+      for i in range(len(info.retType)):
+        s = newvar()
+        v_decl(s,curScope,info.retsize[i])
+        return_off -= info.retsize[i]
+        sinfo = findinfo(s)
+        sinfo.type = [info.retType[i]]
+        # p[0].code.append(['memt',str(return_off),s,info.retsize[i]])
+        p[0].place.append(s)
+      p[0].code.append(['addi','$sp','$sp',str(-diff)])
 
-	# ------------------   SELECTOR  -------------------------
-	elif len(p) == 4:
-		p[0] = p[1]
-		x = p[1].idlist[0]
-		info = findinfo(x)
-		t = info.type
-		if t[0] =='arr':
-			for i in range(len(t)):
-				if t[i]!='arr':
-					break
-			t = t[i:][0][4:]
-		elif t[0]=='*':
-			if t[1:5]!='type':
-				raise TypeError("Line "+str(p.lineno(1))+" : "+t+" does not have any attribute")
-				return
-			if x not in scopeDict[curScope].extra:
-				
-				raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
-			t = t[5:]
-		else:
-			t = t[4:]
-		
-		sinfo = findinfo(t)
-		sScope = sinfo.child
-		
-		if p[3] not in sScope.table:
-			raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-		varname = x+'.'+p[3]
-		if not checkid(x,'e'):
-			raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
-		
-		if checkid(varname,'e'):
-			
-			info1 = findinfo(varname)
-			
-			p[0].place = [info1.place]
-			p[0].types = [info1.type]
-		else:
-			varinfo = sScope.retrieve(p[3])
-			curoff = info.offset + varinfo.offset
-			# v = 'off_'+str(curoff)
-			p[0].types = [varinfo.type]
-			p[0].place = [varname]
-			scopeDict[curScope].insert(varname,p[0].types[0])
-			scopeDict[curScope].updateAttr(varname,'place',varname)
-			scopeDict[curScope].updateAttr(varname,'offset',curoff)
-			# scopeDict[curScope].updateExtra(varname,'defined',False)
-		p[0].idlist = [varname]
-		
-		# p[0] = p[1]
-	else:
-		
-		if not len(p[3].place):
-			p[0] =node()
+  # ------------------   SELECTOR  -------------------------
+  elif len(p) == 4:
+    p[0] = p[1]
+    x = p[1].idlist[0]
+    info = findinfo(x)
+    t = info.type
+    if t.startswith('arr'):
+      l = t.split('_')
+      t = l[2][4:]
+    # Pointer case --- to be handled -->
+    elif t[0]=='*':
+      if t[1:5]!='type':
+        raise TypeError("Line "+str(p.lineno(1))+" : "+t+" does not have any attribute")
+        return
+      if x not in scopeDict[curScope].extra:
+        raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
+      t = t[5:]
+    else:
+      t = t[4:]
+
+    sinfo = findinfo(t)
+    sScope = sinfo.child
+    if p[3] not in sScope.table:
+      raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
+    varname = x+'.'+p[3]
+    if not checkid(x,'e'):
+      raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
+    
+    if checkid(varname,'e'):
+      # coming here if already exists
+      info1 = findinfo(varname)
+      p[0].place = [info1.place]
+      p[0].types = [info1.type]
+    else:
+      varinfo = sScope.retrieve(p[3])
+      curoff = info.offset + (info.mysize + varinfo.offset)
+      v = newvar()
+      p[0].types = [varinfo.type]
+      p[0].place = [v]
+      scopeDict[curScope].insert(varname,p[0].types[0])
+      vinfo = findinfo(varname)
+      vinfo.mysize = varinfo.mysize
+      scopeDict[curScope].updateAttr(varname,'place',v)
+      scopeDict[curScope].updateAttr(varname,'offset',curoff)
+      # scopeDict[curScope].updateExtra(varname,'defined',False)
+    p[0].idlist = [varname]
+    
+    # p[0] = p[1]
+  else:
+    
+    if not len(p[3].place):
+      p[0] =node()
 
 
 def p_slice(p):
@@ -1567,12 +1547,11 @@ def p_statement(p):
 		p[0] = p[3]
 
 def p_end_scope_new(p):
-	'''EndScope_1 : '''
-	# oldScope = curScope
-	old_off = scopeDict[curScope].extra['curOffset']
-	endscope()
-	
-	scopeDict[curScope].extra['curOffset'] = old_off
+  '''EndScope_1 : '''
+  # oldScope = curScope
+  old_off = scopeDict[curScope].extra['curOffset']
+  endscope()
+  scopeDict[curScope].extra['curOffset'] = old_off
 
 def p_print_stmt(p):
 	'''PrintStmt : PRINT Expression'''
