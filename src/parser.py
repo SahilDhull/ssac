@@ -1077,7 +1077,10 @@ def p_operand_name(p):
 		raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[1] + " is not defined")
 	p[0] = node()
 	info = findinfo(p[1])
-	p[0].bytesize = info.mysize
+	if info.type == 'sigType':
+		p[0].bytesize = info.retsize[0]
+	else:
+		p[0].bytesize = info.mysize
 	if type(info.type) is list:
 		s = info.type[0]
 	else:
@@ -1296,8 +1299,8 @@ def p_prim_expr(p):
       if t[1:5]!='type':
         raise TypeError("Line "+str(p.lineno(1))+" : "+t+" does not have any attribute")
         return
-      if x not in scopeDict[curScope].extra:
-        raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
+      # if x not in scopeDict[curScope].extra:
+      #   raise NameError("Line "+str(p.lineno(1))+" : "+x+" is not set")
       t = t[5:]
     else:
       t = t[4:]
@@ -1306,19 +1309,29 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    varname = x+'.'+p[3]
+    v = newvar()
+    # print x
+    varname = v+'.'+p[3]
     if not checkid(x,'e'):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
+    varinfo = sScope.retrieve(p[3])
+    if (info.type).startswith('*'):
+    	v1 = newvar()
+    	v_decl(v1,curScope)
+    	c = newconst()
+    	curoff = (sinfo.mysize + varinfo.offset)
+    	p[0].code.append(['=',c,str(curoff)])
+    	p[0].code.append(['+',v1,p[1].place[0],c])
+
     if checkid(varname,'e'):
       # coming here if already exists
       info1 = findinfo(varname)
       p[0].place = [info1.place]
       p[0].types = [info1.type]
     else:
-      varinfo = sScope.retrieve(p[3])
       curoff = info.offset + (info.mysize + varinfo.offset)
-      v = newvar()
+      # v = newvar()
       p[0].types = [varinfo.type]
       p[0].place = [v]
       scopeDict[curScope].insert(varname,p[0].types[0])
@@ -1328,7 +1341,8 @@ def p_prim_expr(p):
       scopeDict[curScope].updateAttr(varname,'offset',curoff)
       # scopeDict[curScope].updateExtra(varname,'defined',False)
     p[0].idlist = [varname]
-    
+    if (info.type).startswith('*'):
+    	p[0].place = ['addr_'+v1]
     # p[0] = p[1]
   else:
     
@@ -2132,7 +2146,7 @@ result=parser.parse(input_str,tracking=True)
 
 def print_in_format():
 	tab = [[]]
-	tab[0] = ['Scope,','Name,','Type,','Comp_Name','Offset,','Child']
+	tab[0] = ['Scope,','Name,','Type,','CName','Offset,','Child']
 	for i in range(len(scopeDict)):
 		symtab = scopeDict[i]
 		for j in symtab.symbols:
@@ -2151,10 +2165,10 @@ def print_in_format():
 				if not t:
 					t=""
 					k=""
-				if k[:4]=="type":
-					k = 'struct'
-				if k[:5]=='*type':
-					k='*struct'
+				# if k[:4]=="type":
+				# 	k = 'struct'
+				# if k[:5]=='*type':
+				# 	k='*struct'
 				s = k
 			scope = str(i)
 			name = j
@@ -2167,7 +2181,7 @@ def print_in_format():
 				child = ""
 			tab.append([scope+',',name+',',typ+',',lab+',',off+',',child])
 		# info = scopeDict[i].retrieve()
-	col_width = max(len(word) for row in tab for word in row) + 2
+	col_width = max(len(word) for row in tab for word in row) + 1
 	flag = 0
 	for row in tab:
 		print "".join(word.ljust(col_width) for word in row)

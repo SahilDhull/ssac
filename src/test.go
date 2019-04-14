@@ -20,6 +20,7 @@ func even(number int) int {
 	};
 };
 func main ()
+
 {
 	// set an integer number here
 	var number int = 23945;
