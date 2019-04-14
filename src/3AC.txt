@@ -1,20 +1,78 @@
-label main 
-$sp -44 
-= temp_c0 3 
-= var0 temp_c0 
-= temp_c1 2 
-= temp_c2 0 
-- var2 temp_c2 temp_c1 
-= var1 var2 
-= temp_c3 0 
-< var3 var0 temp_c3 
-= temp_c4 0 
-< var4 var1 temp_c4 
-& var5 var3 var4 
-ifgoto var5 l2 
-print_int var0 
+label ackermann 
+$sp -76 
+= temp_c0 0 
+== var2 var0 temp_c0 
+ifgoto var2 l2 
+= temp_c1 1 
++ var3 var1 temp_c1 
+push var3 4 12 
+jret $ra ackermann 
 goto l3 
 label l2 
 goto l3 
 label l3 
+= temp_c2 0 
+== var4 var1 temp_c2 
+ifgoto var4 l4 
+= temp_c3 1 
+- var5 var0 temp_c3 
+= temp_c4 1 
+addi $sp $sp -20 
+push $ra -40 
+push var5 4 -48 
+push temp_c4 4 -52 
+push -56 -56 
+addi $fp $fp -56 
+jal ackermann 
+addi $fp $fp 56 
+loadra $ra -40($fp) 
+addi $sp $sp 20 
+push var6 4 12 
+jret $ra ackermann 
+goto l5 
+label l4 
+goto l5 
+label l5 
+= temp_c5 1 
+- var7 var0 temp_c5 
+= temp_c6 1 
+- var8 var1 temp_c6 
+addi $sp $sp -20 
+push $ra -64 
+push var0 4 -72 
+push var8 4 -76 
+push -80 -80 
+addi $fp $fp -80 
+jal ackermann 
+addi $fp $fp 80 
+loadra $ra -64($fp) 
+addi $sp $sp 20 
+addi $sp $sp -20 
+push $ra -72 
+push var7 4 -80 
+push var9 4 -84 
+push -88 -88 
+addi $fp $fp -88 
+jal ackermann 
+addi $fp $fp 88 
+loadra $ra -72($fp) 
+addi $sp $sp 20 
+push var10 4 12 
+jret $ra ackermann 
+jr $ra ackermann 
+label main 
+$sp -16 
+= temp_c7 3 
+= temp_c8 4 
+addi $sp $sp -20 
+push $ra -12 
+push temp_c7 4 -20 
+push temp_c8 4 -24 
+push -28 -28 
+addi $fp $fp -28 
+jal ackermann 
+addi $fp $fp 28 
+loadra $ra -12($fp) 
+addi $sp $sp 20 
+print_int var11 
 jr $ra main 
