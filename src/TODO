@@ -6,3 +6,16 @@ print a,b,c
 global
 malloc
 array ka pointer
+
+
+
+
+
+
+
+
+conditional.go
+global_vars.go
+qsort.go
+passarray.go
+adjacency_list.go  -----after malloc and array of struct

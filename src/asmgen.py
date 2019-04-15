@@ -194,6 +194,19 @@ def gen_assembly(line):
 	# Print Statement except string
 	if test.startswith('print'):
 		arg1 = line[1]
+		if len(test)==12 and arg1.startswith('addr_'):
+			arg1 = arg1[5:]
+			reg1 = get_reg(arg1)
+			asmCode.append('move $4, '+reg1)
+			asmCode.append('li $2, 4')
+			asmCode.append('syscall')
+			return
+		elif len(test) == 12:
+			info = findinfo(line[1])
+			asmCode.append('li $2, 4')
+			asmCode.append('addi $4, $fp, '+str(info.offset))
+			asmCode.append('syscall')
+			return
 		cnt = 0
 		if arg1.startswith('addr_'):
 			while arg1.startswith('addr_'):
@@ -222,11 +235,6 @@ def gen_assembly(line):
 			src = get_reg(line[1])
 			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
-			asmCode.append('syscall')
-		else:       # string case
-			info = findinfo(line[1])
-			asmCode.append('li $2, 4')
-			asmCode.append('addi $4, $fp, '+str(info.offset))
 			asmCode.append('syscall')
 
 	if test.startswith('scan'):
@@ -530,7 +538,7 @@ def gen_assembly(line):
 		typ2 = info2.type
 
 
-		if line[0]=='=' and (typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or typ1 == None or typ2 == None):
+		if line[0]=='=' and (typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or (typ1 == None and typ2 == None)):
 			asmCode.append('move '+dest+', '+src1)
 			empty_reg(dest)
 			empty_reg(src1)
@@ -582,7 +590,8 @@ def gen_assembly(line):
 
 		if flag == 1 or flag==2:
 			asmCode.append('sw '+dest+', 0('+reg1+')')
-			only_empty(reg1)
+			# only_empty(reg1)
+			regsState[reg1] = 0
 			return
 		# if flag == 1 or flag == 2:
 			# asmCode.append('sw '+dest+', 0('+reg1+')')

@@ -1,0 +1,64 @@
+label main 
+$sp -504 
+= temp_str0 "----->>>>>>>>>>>" 
+= var4 temp_str0 
+= temp_c0 0 
+= temp_c1 -200 
+= var5 temp_c0 
+= temp_c2 40 
+*= var5 temp_c2 
++ var5 var5 temp_c1 
+mem+ var5 $fp 
+= temp_c3 -200 
+= temp_c4 40 
+*= temp_c4 temp_c0 
++ temp_c3 temp_c3 temp_c4 
+= var6 temp_c3 
+mem+ var6 $fp 
+= temp_c5 1 
+= temp_c6 -200 
+= var7 temp_c5 
+= temp_c7 40 
+*= var7 temp_c7 
++ var7 var7 temp_c6 
+mem+ var7 $fp 
+= var8 var7 
+= var6 var8 
+= temp_str1 "............" 
+= var9 temp_str1 
+= temp_c8 2 
+= temp_c9 -200 
+= var10 temp_c8 
+= temp_c10 40 
+*= var10 temp_c10 
++ var10 var10 temp_c9 
+mem+ var10 $fp 
+= temp_c11 34 
+= var11 temp_c11 
+= temp_str2 "-----------------" 
+= var12 temp_str2 
+= temp_c12 1 
+= temp_c13 -200 
+= var13 temp_c12 
+= temp_c14 40 
+*= var13 temp_c14 
++ var13 var13 temp_c13 
+mem+ var13 $fp 
+print_int var14 
+= temp_c15 1 
+= temp_c16 -200 
+= var15 temp_c15 
+= temp_c17 40 
+*= var15 temp_c17 
++ var15 var15 temp_c16 
+mem+ var15 $fp 
+= temp_c18 -200 
+= temp_c19 40 
+*= temp_c19 temp_c15 
++ temp_c18 temp_c18 temp_c19 
+= var16 temp_c18 
+mem+ var16 $fp 
+= temp_c20 4 
++ var17 addr_var16 temp_c20 
+print_int addr_var17 
+jr $ra main 

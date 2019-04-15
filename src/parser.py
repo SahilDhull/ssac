@@ -44,7 +44,7 @@ def equalcheck(x,y):
 		return True
 	return False
 
-def checkid(name,str):
+def checkid(name,str,flag=0):
 	if str=='andsand':
 		if scopeDict[curScope].retrieve(name) is not None:
 			info = scopeDict[curScope].retrieve(name)
@@ -59,6 +59,10 @@ def checkid(name,str):
 		
 		if scopeDict[curScope].retrieve(name) is not None:
 			return True
+		if flag==1:
+			for scope in scopeStack[::-1]:
+				if scopeDict[scope].retrieve(name) is not None:
+					return True
 		return False
 
 	return False
@@ -1194,7 +1198,7 @@ def p_prim_expr(p):
       x =  int(l[1])-k-1
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
-    p[0].extra['array'] = z
+    p[0].extra['arrayvar'] = p[3].place[0]
     # print z
     
   # -------------------function case ------------------------
@@ -1311,41 +1315,67 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    # v = newvar()
+    v = newvar()
     # print x
     varname = x+'.'+p[3]
-    if not checkid(x,'e'):
+    if info.type.startswith('arr'):
+    	varname = x+'_'+p[1].place[0]+'.'+p[3]
+    if not checkid(x,'e',1):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
     varinfo = sScope.retrieve(p[3])
     if (info.type).startswith('*'):
-    	v1 = newvar()
-    	v_decl(v1,curScope)
-    	print p[0].extra['array']
+    	# v1 = newvar()
+    	v_decl(v,curScope)
+    	# print p[0].extra['array']
     	c = newconst()
     	curoff = (sinfo.mysize + varinfo.offset)
     	p[0].code.append(['=',c,str(curoff)])
-    	p[0].code.append(['+',v1,p[1].place[0],c])
+    	p[0].code.append(['+',v,'addr_'+p[1].place[0],c])
 
     if checkid(varname,'e'):
       # coming here if already exists
       info1 = findinfo(varname)
       p[0].place = [info1.place]
       p[0].types = [info1.type]
+    elif info.type.startswith('arr') and varinfo.type.startswith('*type'):
+        pl = p[1].extra['arrayvar']
+        print pl
+        curoff = info.offset + (sinfo.mysize + varinfo.offset)
+        c1 = newconst()
+        p[0].code.append(['=',c1,str(curoff)])
+        c2 = newconst()
+        p[0].code.append(['=',c2,str(sinfo.mysize)])
+        p[0].code.append(['*=',c2,pl])
+        p[0].code.append(['+',c1,c1,c2])
+        p[0].code.append(['=',v,c1])
+        p[0].code.append(['mem+',v,'$fp'])
+        # print "...."+v
+        # p[0].place = ['addr_'+v]
+        p[0].place = [v]
+        p[0].types = [varinfo.type]
+        scopeDict[curScope].insert(varname,p[0].types[0])
+        vinfo = findinfo(varname)
+        vinfo.mysize = varinfo.mysize
+        scopeDict[curScope].updateAttr(varname,'place',v)
+        scopeDict[curScope].updateAttr(varname,'offset',curoff)
     else:
-      curoff = info.offset + (info.mysize + varinfo.offset)
-      v = newvar()
-      p[0].types = [varinfo.type]
-      p[0].place = [v]
-      scopeDict[curScope].insert(varname,p[0].types[0])
-      vinfo = findinfo(varname)
-      vinfo.mysize = varinfo.mysize
-      scopeDict[curScope].updateAttr(varname,'place',v)
-      scopeDict[curScope].updateAttr(varname,'offset',curoff)
-      # scopeDict[curScope].updateExtra(varname,'defined',False)
+        curoff = info.offset + (sinfo.mysize + varinfo.offset)
+        # v = newvar()
+        p[0].types = [varinfo.type]
+        p[0].place = [v]
+        scopeDict[curScope].insert(varname,p[0].types[0])
+        vinfo = findinfo(varname)
+        vinfo.mysize = varinfo.mysize
+        scopeDict[curScope].updateAttr(varname,'place',v)
+        scopeDict[curScope].updateAttr(varname,'offset',curoff)
+        # scopeDict[curScope].updateExtra(varname,'defined',False)
     p[0].idlist = [varname]
     if (info.type).startswith('*'):
-    	p[0].place = ['addr_'+v1]
+    # 	if varinfo.type == 'string':
+    # 		p[0].place = [v1]
+    # 	else:
+    	p[0].place = ['addr_'+v]
     # p[0] = p[1]
   else:
     
@@ -1518,7 +1548,10 @@ def p_unary_expr(p):
 					raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot reference a non pointer")
 				p[0].types[0]=p[2].types[0][1:]
 			else:
-				if 'AddrList' in p[0].extra:
+				info = findinfo(p[2].idlist[0])
+				if (info.type).startswith('arr') and 'AddrList' in p[0].extra:
+					p[0].code.append(['=',v,p[0].extra['AddrList'][0]])
+				elif 'AddrList' in p[0].extra:
 					p[0].code.append(['addr',v,p[0].extra['AddrList'][0]])
 				else:
 					p[0].code.append(['addr',v,p[2].place[0]])
