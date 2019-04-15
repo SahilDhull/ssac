@@ -1206,7 +1206,7 @@ def p_prim_expr(p):
       x =  int(l[1])-k-1
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
-    p[0].extra['array'] = z
+    # p[0].extra['array'] = z
     # print z
     
   # -------------------function case ------------------------
@@ -1632,12 +1632,12 @@ def p_print_stmt(p):
 		x =  p[2].types[i]
 		if type(p[2].types[i]) is list:
 			x = p[2].types[i][0]
-		if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool' and x!='string' and x!='cstring':
-			raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't print Expression of unknown type")
+		# if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool' and x!='string' and x!='cstring':
+		# 	raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't print Expression of unknown type")
 		# if p[2]=="%d":
 		#   if x!='int' and x!='cint':
 		#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
-		if x=='int' or x=='cint' or x=='bool' or x=='cbool':
+		if x=='int' or x=='cint' or x=='bool' or x=='cbool' or x.startswith('*'):
 			p[0].code.append(['print_int',p[2].place[i]])
 		# if p[2]=="%f":
 		#   if x!='float' and x!='cfloat':
