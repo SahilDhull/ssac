@@ -1,0 +1,130 @@
+label main 
+$sp -636 
+= temp_str0 "----->>>>>>>>>>>" 
+= var4 temp_str0 
+= temp_c0 0 
+= temp_c1 -200 
+= var5 temp_c0 
+= temp_c2 40 
+*= var5 temp_c2 
++ var5 var5 temp_c1 
+mem+ var5 $fp 
+= temp_c3 -200 
+= temp_c4 40 
+*= temp_c4 temp_c0 
++ temp_c3 temp_c3 temp_c4 
+= var6 temp_c3 
+mem+ var6 $fp 
+= temp_c5 1 
+= temp_c6 -200 
+= var7 temp_c5 
+= temp_c7 40 
+*= var7 temp_c7 
++ var7 var7 temp_c6 
+mem+ var7 $fp 
+= var8 var7 
+= var6 var8 
+= temp_c8 1 
+= temp_c9 -200 
+= var9 temp_c8 
+= temp_c10 40 
+*= var9 temp_c10 
++ var9 var9 temp_c9 
+mem+ var9 $fp 
+= temp_c11 -200 
+= temp_c12 40 
+*= temp_c12 temp_c8 
++ temp_c11 temp_c11 temp_c12 
+= var10 temp_c11 
+mem+ var10 $fp 
+= temp_c13 2 
+= temp_c14 -200 
+= var11 temp_c13 
+= temp_c15 40 
+*= var11 temp_c15 
++ var11 var11 temp_c14 
+mem+ var11 $fp 
+= var12 var11 
+= var10 var12 
+= temp_c16 2 
+= temp_c17 -200 
+= var13 temp_c16 
+= temp_c18 40 
+*= var13 temp_c18 
++ var13 var13 temp_c17 
+mem+ var13 $fp 
+= temp_c19 -200 
+= temp_c20 40 
+*= temp_c20 temp_c16 
++ temp_c19 temp_c19 temp_c20 
+= var14 temp_c19 
+mem+ var14 $fp 
+= temp_c21 3 
+= temp_c22 -200 
+= var15 temp_c21 
+= temp_c23 40 
+*= var15 temp_c23 
++ var15 var15 temp_c22 
+mem+ var15 $fp 
+= var16 var15 
+= var14 var16 
+= temp_c24 3 
+= temp_c25 -200 
+= var17 temp_c24 
+= temp_c26 40 
+*= var17 temp_c26 
++ var17 var17 temp_c25 
+mem+ var17 $fp 
+= temp_c27 -200 
+= temp_c28 40 
+*= temp_c28 temp_c24 
++ temp_c27 temp_c27 temp_c28 
+= var18 temp_c27 
+mem+ var18 $fp 
+= temp_c29 4 
+= temp_c30 -200 
+= var19 temp_c29 
+= temp_c31 40 
+*= var19 temp_c31 
++ var19 var19 temp_c30 
+mem+ var19 $fp 
+= var20 var19 
+= var18 var20 
+= temp_str1 "............" 
+= var21 temp_str1 
+= temp_c32 2 
+= temp_c33 -200 
+= var22 temp_c32 
+= temp_c34 40 
+*= var22 temp_c34 
++ var22 var22 temp_c33 
+mem+ var22 $fp 
+= temp_c35 34 
+= var23 temp_c35 
+= temp_str2 "-----------------" 
+= var24 temp_str2 
+= temp_c36 1 
+= temp_c37 -200 
+= var25 temp_c36 
+= temp_c38 40 
+*= var25 temp_c38 
++ var25 var25 temp_c37 
+mem+ var25 $fp 
+print_int var26 
+= temp_c39 1 
+= temp_c40 -200 
+= var27 temp_c39 
+= temp_c41 40 
+*= var27 temp_c41 
++ var27 var27 temp_c40 
+mem+ var27 $fp 
+= temp_c42 -200 
+= temp_c43 40 
+*= temp_c43 temp_c39 
++ temp_c42 temp_c42 temp_c43 
+= var28 temp_c42 
+mem+ var28 $fp 
+= temp_c44 4 
++ var29 addr_var28 temp_c44 
+print_int addr_var29 
+jr $ra main 

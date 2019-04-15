@@ -1418,7 +1418,6 @@ def p_expr_list_type_opt(p):
 
 def p_expr(p):
 		'''Expression : UnaryExpr
-									| NULL
 									| Expression COMPARE_OR Expression
 									| Expression COMPARE_AND Expression
 									| Expression EQEQ Expression
