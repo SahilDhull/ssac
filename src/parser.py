@@ -42,6 +42,8 @@ def equalcheck(x,y):
 		return True
 	elif y.startswith('c') and x==y[1:]:
 		return True
+	elif x.startswith('*') and y=='*NULL':
+		return True
 	return False
 
 def checkid(name,str):
@@ -61,6 +63,11 @@ def checkid(name,str):
 			return True
 		return False
 
+	return False
+
+def checkinparent(name,scope):
+	if scopeDict[scope].retrieve(name) is not None:
+		return True
 	return False
 
 def opTypeCheck(a,b,op):
@@ -694,17 +701,22 @@ def p_identifier_rep(p):
 
 
 def p_expr_list(p):
-		'''ExpressionList : Expression ExpressionRep'''
-		p[0]=p[2]
-		p[0].code = p[1].code+p[0].code
-		p[0].place = p[1].place + p[0].place
-		p[0].types = p[1].types + p[0].types
-		p[0].idlist = p[1].idlist + p[0].idlist
-		p[0].bytesize = p[1].bytesize + p[2].bytesize
-		if 'AddrList' not in p[1].extra:
-			p[1].extra['AddrList'] = ['None']
-		p[0].extra['AddrList'] += p[1].extra['AddrList']
-		p[0].extra['ParamSize'] = [p[1].bytesize] + p[2].extra['ParamSize']
+		'''ExpressionList : Expression ExpressionRep
+												|	NULL'''
+		if len(p) == 3:
+			p[0]=p[2]
+			p[0].code = p[1].code+p[0].code
+			p[0].place = p[1].place + p[0].place
+			p[0].types = p[1].types + p[0].types
+			p[0].idlist = p[1].idlist + p[0].idlist
+			p[0].bytesize = p[1].bytesize + p[2].bytesize
+			if 'AddrList' not in p[1].extra:
+				p[1].extra['AddrList'] = ['None']
+			p[0].extra['AddrList'] += p[1].extra['AddrList']
+			p[0].extra['ParamSize'] = [p[1].bytesize] + p[2].extra['ParamSize']
+		else:
+			p[0] = node()
+			p[0].types = ['*NULL']
 
 def p_expr_rep(p):
 		'''ExpressionRep : ExpressionRep COMMA Expression
@@ -1289,7 +1301,9 @@ def p_prim_expr(p):
   elif len(p) == 4:
     p[0] = p[1]
     x = p[1].idlist[0]
+    # print x
     info = findinfo(x)
+    # print info.__dict__
     t = info.type
     if t.startswith('arr'):
       l = t.split('_')
@@ -1312,7 +1326,9 @@ def p_prim_expr(p):
     v = newvar()
     # print x
     varname = v+'.'+p[3]
-    if not checkid(x,'e'):
+    # print x
+    # print scopeDict[curScope].parent
+    if not (checkid(x,'e') or checkinparent(x,scopeDict[curScope].parent)):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
     varinfo = sScope.retrieve(p[3])
@@ -1371,6 +1387,7 @@ def p_expr_list_type_opt(p):
 
 def p_expr(p):
 		'''Expression : UnaryExpr
+									| NULL
 									| Expression COMPARE_OR Expression
 									| Expression COMPARE_AND Expression
 									| Expression EQEQ Expression
@@ -1391,9 +1408,32 @@ def p_expr(p):
 									| Expression MULTIPLY Expression
 									| Expression AND Expression'''
 		if len(p)==2:
-			p[0]=p[1]
+			if p[1]=='null':
+				# print "here"
+				p[0] = node()
+				p[0].types = ['*NULL']
+			else:
+				p[0]=p[1]
 		else:
+
 			p[0]=node()
+################################### pointer = NULL ###################################
+			
+
+			if p[2]=='==':
+				if p[1].types[0].startswith('*'):
+					if p[3].types[0]=='*NULL':
+						c = newconst()
+						v = newvar()
+						v_decl(v,curScope)
+						p[0].code.append(['=',c,'0'])
+						# p[0].code.append(['=',p[1].place[0],c])
+						p[0].code.append([p[2],v,p[1].place[0],c])
+						p[0].types = ['bool']
+						p[0].place = [v]
+						return
+################################### pointer = NULL ###################################
+			# print 
 			p[0].code = p[1].code + p[3].code
 			p[0].idlist = p[1].idlist + p[3].idlist
 			p[0].bytesize = p[1].bytesize
@@ -1404,12 +1444,16 @@ def p_expr(p):
 					x=1
 				elif (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
 					x=2
+				elif (p[3].types[0]=='*NULL'):
+					x=3
 				else:
 					raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions does not match")
 			else:
 				p[0].types=p[1].types
 			if p[2]=='==' or p[2]=='!=' or p[2]=='<' or p[2]=='>' or p[2]=='<=' or p[2]=='>=':
 				p[0].types = ['bool']
+
+
 			v = newvar()
 			scopeDict[curScope].insert(v,None)
 			vinfo = findinfo(v)
@@ -1693,9 +1737,26 @@ def p_assignment(p):
 	p[0] = node()
 	p[0].code = p[1].code
 	p[0].code+=p[3].code
+	# print p[1]
 	for i in range(len(p[1].place)):
+		if p[2]=='=':
+			if not equalcheck(p[1].types[i],p[3].types[i]):
+				raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of = don't match")
+			else:
+				if p[1].types[i].startswith('*'):
+					if p[3].types[0]=='*NULL':
+						c = newconst()
+						p[0].code.append(['=',c,'0'])
+						p[0].code.append(['=',p[1].place[i],c])
+						return
+					if p[1].types[i].startswith('*type'):
+						scopeDict[curScope].updateExtra(p[1].idlist[i],'*struct')
+		else:
+			if not opTypeCheck(p[1].types[i],p[3].types[i],p[2][0]):
+				raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of = don't match")
+
 		if p[1].types[i].startswith('c'):
-			raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot assin toassign_op a const variable ")
+			raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot assin to assign_op a const variable ")
 		if p[2]=='/=':
 			p[0].code.append(['/=',p[1].place[i],p[3].place[i]])
 		elif p[2]=='%=':
@@ -1712,17 +1773,6 @@ def p_assignment(p):
 		# if p[1].extra['AddrList'][i]!='None':
 		#   p[0].code.append(['store',p[1].extra['AddrList'][i],p[1].place[i]])
 
-		if p[2]=='=':
-			if not equalcheck(p[1].types[i],p[3].types[i]):
-				raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of = don't match")
-			else:
-				if p[1].types[i].startswith('*type'):
-					
-					scopeDict[curScope].updateExtra(p[1].idlist[i],'*struct')
-
-		else:
-			if not opTypeCheck(p[1].types[i],p[3].types[i],p[2][0]):
-				raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of ()= don't match")
 
 def p_assign_op(p):
 	''' assign_op : AssignOp'''
