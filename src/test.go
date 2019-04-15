@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package main;
 
 type rect struct {
@@ -62,3 +63,5 @@ func main(){
 	// 	print "Not found\n";
 	// };
 };
+=======
+>>>>>>> de83aab19d78354e4f22a0c67b062115ea828b33

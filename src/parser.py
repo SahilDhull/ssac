@@ -1206,6 +1206,8 @@ def p_prim_expr(p):
       x =  int(l[1])-k-1
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
+    p[0].extra['array'] = z
+    # print z
     
   # -------------------function case ------------------------
   elif p[2]=='(':
@@ -1323,8 +1325,9 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    v = newvar()
+    # v = newvar()
     # print x
+
     varname = v+'.'+p[3]
     # print x
     # print scopeDict[curScope].parent
@@ -1335,6 +1338,7 @@ def p_prim_expr(p):
     if (info.type).startswith('*'):
     	v1 = newvar()
     	v_decl(v1,curScope)
+    	print p[0].extra['array']
     	c = newconst()
     	curoff = (sinfo.mysize + varinfo.offset)
     	p[0].code.append(['=',c,str(curoff)])
@@ -1347,7 +1351,7 @@ def p_prim_expr(p):
       p[0].types = [info1.type]
     else:
       curoff = info.offset + (info.mysize + varinfo.offset)
-      # v = newvar()
+      v = newvar()
       p[0].types = [varinfo.type]
       p[0].place = [v]
       scopeDict[curScope].insert(varname,p[0].types[0])
@@ -1622,28 +1626,29 @@ def p_end_scope_new(p):
   scopeDict[curScope].extra['curOffset'] = old_off
 
 def p_print_stmt(p):
-	'''PrintStmt : PRINT Expression'''
+	'''PrintStmt : PRINT ExpressionList'''
 	p[0] = p[2]
-	x =  p[2].types[0]
-	if type(p[2].types[0]) is list:
-		x = p[2].types[0][0]
-	if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool' and x!='string' and x!='cstring':
-		raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't print Expression of unknown type")
-	# if p[2]=="%d":
-	#   if x!='int' and x!='cint':
-	#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
-	if x=='int' or x=='cint' or x=='bool' or x=='cbool':
-		p[0].code.append(['print_int',p[2].place[0]])
-	# if p[2]=="%f":
-	#   if x!='float' and x!='cfloat':
-	#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
-	if x=='float' or x=='cfloat':
-		p[0].code.append(['print_float',p[2].place[0]])
-	# if p[2]=="%s":
-	#   if x!='string' and x!='cstring':
-	#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
-	if x=='string' or x=='cstring':
-		p[0].code.append(['print_string',p[2].place[0]])
+	for i in range(len(p[2].types)):
+		x =  p[2].types[i]
+		if type(p[2].types[i]) is list:
+			x = p[2].types[i][0]
+		if x!='int' and x!='cint' and x!='float' and x!='cfloat' and x!='bool' and x!='cbool' and x!='string' and x!='cstring':
+			raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't print Expression of unknown type")
+		# if p[2]=="%d":
+		#   if x!='int' and x!='cint':
+		#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than int using '%d'")
+		if x=='int' or x=='cint' or x=='bool' or x=='cbool':
+			p[0].code.append(['print_int',p[2].place[i]])
+		# if p[2]=="%f":
+		#   if x!='float' and x!='cfloat':
+		#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
+		if x=='float' or x=='cfloat':
+			p[0].code.append(['print_float',p[2].place[i]])
+		# if p[2]=="%s":
+		#   if x!='string' and x!='cstring':
+		#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
+		if x=='string' or x=='cstring':
+			p[0].code.append(['print_string',p[2].place[i]])
 
 def p_scan_stmt(p):
 	'''ScanStmt : SCAN Expression'''
@@ -1952,9 +1957,11 @@ def p_for(p):
 	'''ForStmt : FOR CCreateScope ConditionBlockOpt Block EndScope_1'''
 	p[0] = node()
 	l1 = p[3].extra['before']
+	# print l1
 	p[0].code = p[3].code + p[4].code
 	if 'incr' in p[3].extra:
 		p[0].code += p[3].extra['incr']
+	# print p[3].extra['incr']
 	p[0].code += [['goto',l1]]
 	l2 = p[3].extra['after']
 	p[0].code += [['label',l2]]
@@ -1986,10 +1993,12 @@ def p_forclause(p):
 	'''ForClause : SimpleStmt Semi ConditionOpt Semi SimpleStmt'''
 	p[0] = p[1]
 	l1 = newlabel()
+	print l1
 	p[0].code += [['label',l1]]
 	p[0].extra['before'] = l1
 	p[0].code += p[3].code
 	p[0].extra['before'] = l1
+	print p[0].extra['before'] 
 	l2 = newlabel()
 	scopeDict[curScope].updateExtra('beginFor',l1)
 	scopeDict[curScope].updateExtra('endFor',l2)
