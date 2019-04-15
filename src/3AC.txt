@@ -1,0 +1,39 @@
+label arglist 
+$sp 0 
+print_int var0 
+print_int var1 
+print_int var3 
+print_int var4 
+print_int var5 
+print_int var6 
+print_int var7 
+jr $ra arglist 
+label main 
+$sp -64 
+= temp_c0 1 
+= temp_c1 2 
+= temp_c2 3 
+= temp_c3 4 
+= temp_c4 5 
+= temp_c5 6 
+= temp_c6 7 
+= temp_c7 8 
+addi $sp $sp -40 
+push $ra -36 
+push temp_c0 4 -40 
+push temp_c1 4 -44 
+push temp_c2 4 -48 
+push temp_c3 4 -52 
+push temp_c4 4 -56 
+push temp_c5 4 -60 
+push temp_c6 4 -64 
+push temp_c7 4 -68 
+push -72 -72 
+addi $fp $fp -72 
+jal arglist 
+addi $fp $fp 72 
+loadra $ra -36($fp) 
+addi $sp $sp 40 
+= temp_str0 "\n" 
+print_string temp_str0 
+jr $ra main 

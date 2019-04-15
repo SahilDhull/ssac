@@ -1,6 +1,6 @@
 package main
 
-import "fmt"
+import "fmt";
 
 func ackermann(m int, n int) int {
 	if m == 0 {
