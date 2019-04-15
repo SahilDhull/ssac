@@ -200,6 +200,8 @@ def gen_assembly(line):
 				arg1 = arg1[5:]
 				cnt+=1
 			reg1 = get_reg(arg1)
+			info = findinfo(arg1)
+			print info.mysize
 			asmCode.append('move $4, '+reg1)
 			while cnt:
 				cnt-=1

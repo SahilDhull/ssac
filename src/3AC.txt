@@ -1,181 +1,48 @@
 label main 
-$sp -540 
-= temp_c0 0 
+$sp -224 
+= temp_c0 1 
+= temp_c1 -120 
 = var4 temp_c0 
-label l2 
-= temp_c1 4 
-< var9 var4 temp_c1 
-ifgoto var9 l3 
-label l4 
-= temp_c2 0 
-= var5 temp_c2 
-label l5 
-= temp_c3 4 
-< var10 var5 temp_c3 
-ifgoto var10 l6 
-label l7 
-scan_int var3 
-= temp_c4 -64 
-= var11 var4 
-= temp_c5 4 
-*= var11 temp_c5 
-= temp_c6 4 
-*= var11 temp_c6 
-+ var11 var11 temp_c4 
-= var12 var5 
-= temp_c7 4 
-*= var12 temp_c7 
-+ var12 var12 var11 
-mem+ var12 $fp 
-= addr_var12 var3 
-++ var5 
-goto l7 
-label l6 
-++ var4 
-goto l4 
-label l3 
-= temp_c8 0 
-= var4 temp_c8 
-label l8 
-= temp_c9 4 
-< var13 var4 temp_c9 
-ifgoto var13 l9 
-label l10 
-= temp_c10 0 
-= var5 temp_c10 
-label l11 
-= temp_c11 4 
-< var14 var5 temp_c11 
-ifgoto var14 l12 
-label l13 
-scan_int var3 
-= temp_c12 -128 
-= var15 var4 
+= temp_c2 40 
+*= var4 temp_c2 
++ var4 var4 temp_c1 
+mem+ var4 $fp 
+= temp_c3 2 
+= temp_c4 -120 
+= var6 temp_c3 
+= temp_c5 40 
+*= var6 temp_c5 
++ var6 var6 temp_c4 
+mem+ var6 $fp 
+addr var7 var6 
+= var5 var7 
+= temp_c6 2 
+= temp_c7 -120 
+= var8 temp_c6 
+= temp_c8 40 
+*= var8 temp_c8 
++ var8 var8 temp_c7 
+mem+ var8 $fp 
+= temp_c9 1 
+= var9 temp_c9 
+= temp_c10 1 
+= temp_c11 -120 
+= var10 temp_c10 
+= temp_c12 40 
+*= var10 temp_c12 
++ var10 var10 temp_c11 
+mem+ var10 $fp 
 = temp_c13 4 
-*= var15 temp_c13 
-= temp_c14 4 
-*= var15 temp_c14 
-+ var15 var15 temp_c12 
-= var16 var5 
-= temp_c15 4 
-*= var16 temp_c15 
-+ var16 var16 var15 
-mem+ var16 $fp 
-= addr_var16 var3 
-++ var5 
-goto l13 
-label l12 
-++ var4 
-goto l10 
-label l9 
-= temp_c16 0 
-= var4 temp_c16 
-label l14 
+= var9 temp_c13 
+= temp_c14 0 
+= temp_c15 -120 
+= var12 temp_c14 
+= temp_c16 40 
+*= var12 temp_c16 
++ var12 var12 temp_c15 
+mem+ var12 $fp 
 = temp_c17 4 
-< var17 var4 temp_c17 
-ifgoto var17 l15 
-label l16 
-= temp_c18 0 
-= var5 temp_c18 
-label l17 
-= temp_c19 4 
-< var18 var5 temp_c19 
-ifgoto var18 l18 
-label l19 
-= temp_c20 0 
-= var3 temp_c20 
-= temp_c21 0 
-= var8 temp_c21 
-label l20 
-= temp_c22 4 
-< var19 var8 temp_c22 
-ifgoto var19 l21 
-label l22 
-= temp_c23 -64 
-= var20 var4 
-= temp_c24 4 
-*= var20 temp_c24 
-= temp_c25 4 
-*= var20 temp_c25 
-+ var20 var20 temp_c23 
-= var21 var8 
-= temp_c26 4 
-*= var21 temp_c26 
-+ var21 var21 var20 
-mem+ var21 $fp 
-= var6 addr_var21 
-= temp_c27 -128 
-= var22 var8 
-= temp_c28 4 
-*= var22 temp_c28 
-= temp_c29 4 
-*= var22 temp_c29 
-+ var22 var22 temp_c27 
-= var23 var5 
-= temp_c30 4 
-*= var23 temp_c30 
-+ var23 var23 var22 
-mem+ var23 $fp 
-= var7 addr_var23 
-* var24 var6 var7 
-+= var3 var24 
-++ var8 
-goto l22 
-label l21 
-= temp_c31 -192 
-= var25 var4 
-= temp_c32 4 
-*= var25 temp_c32 
-= temp_c33 4 
-*= var25 temp_c33 
-+ var25 var25 temp_c31 
-= var26 var5 
-= temp_c34 4 
-*= var26 temp_c34 
-+ var26 var26 var25 
-mem+ var26 $fp 
-= addr_var26 var3 
-++ var5 
-goto l19 
-label l18 
-++ var4 
-goto l16 
-label l15 
-= temp_c35 0 
-= var4 temp_c35 
-label l23 
-= temp_c36 4 
-< var27 var4 temp_c36 
-ifgoto var27 l24 
-label l25 
-= temp_c37 0 
-= var5 temp_c37 
-label l26 
-= temp_c38 4 
-< var28 var5 temp_c38 
-ifgoto var28 l27 
-label l28 
-= temp_c39 -192 
-= var29 var4 
-= temp_c40 4 
-*= var29 temp_c40 
-= temp_c41 4 
-*= var29 temp_c41 
-+ var29 var29 temp_c39 
-= var30 var5 
-= temp_c42 4 
-*= var30 temp_c42 
-+ var30 var30 var29 
-mem+ var30 $fp 
-print_int addr_var30 
-= temp_str0 " " 
-print_string temp_str0 
-++ var5 
-goto l28 
-label l27 
-= temp_str1 "\n" 
-print_string temp_str1 
-++ var4 
-goto l25 
-label l24 
++ var13 var5 temp_c17 
+= var11 addr_var13 
+print_int var11 
 jr $ra main 
