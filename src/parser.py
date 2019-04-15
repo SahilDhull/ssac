@@ -1194,6 +1194,8 @@ def p_prim_expr(p):
       x =  int(l[1])-k-1
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
+    p[0].extra['array'] = z
+    # print z
     
   # -------------------function case ------------------------
   elif p[2]=='(':
@@ -1309,9 +1311,9 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    v = newvar()
+    # v = newvar()
     # print x
-    varname = v+'.'+p[3]
+    varname = x+'.'+p[3]
     if not checkid(x,'e'):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
@@ -1319,6 +1321,7 @@ def p_prim_expr(p):
     if (info.type).startswith('*'):
     	v1 = newvar()
     	v_decl(v1,curScope)
+    	print p[0].extra['array']
     	c = newconst()
     	curoff = (sinfo.mysize + varinfo.offset)
     	p[0].code.append(['=',c,str(curoff)])
@@ -1331,7 +1334,7 @@ def p_prim_expr(p):
       p[0].types = [info1.type]
     else:
       curoff = info.offset + (info.mysize + varinfo.offset)
-      # v = newvar()
+      v = newvar()
       p[0].types = [varinfo.type]
       p[0].place = [v]
       scopeDict[curScope].insert(varname,p[0].types[0])
