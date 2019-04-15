@@ -1210,6 +1210,7 @@ def p_prim_expr(p):
       x =  int(l[1])-k-1
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
+    p[0].extra['arrayvar'] = p[3].place[0]
     # print z
     
   # -------------------function case ------------------------
