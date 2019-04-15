@@ -1919,9 +1919,9 @@ def p_conditionblockopt(p):
 						 | Condition
 						 | ForClause'''
 	p[0] = p[1]
-	l1 = newlabel()
-	p[0].code += [['label',l1]]
-	p[0].extra['before'] = l1
+	# l1 = newlabel()
+	# p[0].code += [['label',l1]]
+	# p[0].extra['before'] = l1
 	
 	# par = scopeDict[curScope].parent
 	# poff = scopeDict[par].extra['curOffset']
