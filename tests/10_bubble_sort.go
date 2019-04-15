@@ -9,6 +9,9 @@ func main() {
 	b[2] = 9;
 	b[3] = 2;
 	b[4] = 6;
+	var i int;
+	var j int;
+	var c int;
 
 	for i = 0; i < 5; i = i + 1 {
 		for j = 0; j < 4; j = j + 1 {
@@ -20,7 +23,7 @@ func main() {
 		};
 	};
 
-	for i := 0; i < 5; i = i + 1 {
+	for i = 0; i < 5; i = i + 1 {
 		print b[i];
 		print " ";
 	};
