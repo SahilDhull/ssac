@@ -528,7 +528,7 @@ def gen_assembly(line):
 			asmCode.append('move '+dest+', '+regs1)
 			asmCode.append('move '+src1+', '+regs2)
 			# only_empty(reg1)
-			# only_empty(reg2)
+			only_empty(reg2)
 			regsState[regs1] = 0
 			regsState[regs2] = 0
 
@@ -604,8 +604,8 @@ def gen_assembly(line):
 		info2 = findinfo(arg2)
 		typ2 = info2.type
 
-		if line[0] == '=' and (info1.mysize==4 and info2.mysize==4) and (flag != 1):
-		# if line[0]=='=' and (typ1.startswith('*') or typ2.startswith('*') or typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or (typ1 == None and typ2 == None)):
+		if line[0] == '=' and ((info1.mysize==4 or typ1==None) and (info2.mysize==4 or typ2 ==None)):
+		# if line[0]=='=' and ((typ1 == None or typ2 == None) or typ1.startswith('*') or typ2.startswith('*') or typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool'):
 
 			asmCode.append('move '+dest+', '+src1)
 			empty_reg(dest)
@@ -614,7 +614,7 @@ def gen_assembly(line):
 		
 ##################################################################
 		# elif x=='=':
-		# 	print "aa gya"
+		# 	# print "aa gya"
 		# 	siz = info1.mysize
 		# 	off1 = info1.offset
 		# 	off2 = info2.offset
@@ -699,8 +699,6 @@ def gen_assembly(line):
 
 ###############################################################
 
-
-				
 
 		if (x == '+='):
 			asmCode.append('add ' + dest + ', ' + dest + ', ' + src1)

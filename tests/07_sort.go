@@ -7,7 +7,6 @@ func main() {
 	b[2] = 9;
 	b[3] = 2;
 	b[4] = 6;
-
 	for i := 0; i < 5; i++ {
 		for j := 0; j < 4; j++ {
 			if b[j] > b[j+1] {

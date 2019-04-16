@@ -17,7 +17,7 @@ func main(){
 	var b type side;
 	a.next = &b;
 	b.len = 3;
-	print a.next.len;
+	print a.next.len,"\n";
 	a.next.len = 1;
 	print b.len;
 };

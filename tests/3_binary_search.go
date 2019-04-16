@@ -1,6 +1,5 @@
 package main;
 
-import "fmt";
 
 func main() {
 	var n int;
@@ -19,13 +18,13 @@ func main() {
 		a[i] = c;
 	};
 	for i = 0; i < n; i++ {
-		print a[i]
+		print a[i]," ";
 	};
 
 	start = 0;
 	end = n - 1;
 	// key = 8;
-	print "enter key to be searched\n";
+	print "\nEnter key to be searched\n";
 	scan key;
 	for ;start <= end; {
 		m = start + (end-start)/2;

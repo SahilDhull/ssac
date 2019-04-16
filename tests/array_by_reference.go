@@ -16,7 +16,6 @@ func main(){
 	var b *[10]int;
 	b = &a;
 	a[1] = 1;
-	print ".....";
 	(*b)[1] = 2;
 	f(b);
 	print a[1], (*b)[1];
