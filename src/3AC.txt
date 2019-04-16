@@ -1,104 +1,56 @@
 label main 
-$sp -536 
+$sp -288 
 = temp_c0 0 
+= temp_c1 -64 
 = var4 temp_c0 
-label l2 
-= temp_c1 4 
-< var5 var4 temp_c1 
-ifgoto var5 l3 
-= temp_c2 -200 
-= var6 var4 
-= temp_c3 40 
-*= var6 temp_c3 
-+ var6 var6 temp_c2 
+= temp_c2 32 
+*= var4 temp_c2 
++ var4 var4 temp_c1 
+mem+ var4 $fp 
+= temp_str0 "hellooooooo" 
+= addr_var4 temp_str0 
+= temp_c3 1 
+= temp_c4 -64 
+= var5 temp_c3 
+= temp_c5 32 
+*= var5 temp_c5 
++ var5 var5 temp_c4 
+mem+ var5 $fp 
+= temp_str1 "worlddddddd" 
+= addr_var5 temp_str1 
+= temp_c6 1 
+= temp_c7 -64 
+= var6 temp_c6 
+= temp_c8 32 
+*= var6 temp_c8 
++ var6 var6 temp_c7 
 mem+ var6 $fp 
-= temp_c4 0 
-+ var7 var6 temp_c4 
-= temp_c5 1 
-+ var8 var4 temp_c5 
-= temp_c6 -200 
-= var9 var8 
-= temp_c7 40 
-*= var9 temp_c7 
-+ var9 var9 temp_c6 
+= temp_c9 0 
+= temp_c10 -64 
+= var7 temp_c9 
+= temp_c11 32 
+*= var7 temp_c11 
++ var7 var7 temp_c10 
+mem+ var7 $fp 
+= addr_var6 addr_var7 
+= temp_c12 0 
+= temp_c13 -64 
+= var8 temp_c12 
+= temp_c14 32 
+*= var8 temp_c14 
++ var8 var8 temp_c13 
+mem+ var8 $fp 
+= temp_str2 "\n" 
+= temp_c15 1 
+= temp_c16 -64 
+= var9 temp_c15 
+= temp_c17 32 
+*= var9 temp_c17 
++ var9 var9 temp_c16 
 mem+ var9 $fp 
-= var10 var9 
-= addr_var7 var10 
-= temp_c8 -200 
-= var11 var4 
-= temp_c9 40 
-*= var11 temp_c9 
-+ var11 var11 temp_c8 
-mem+ var11 $fp 
-= temp_c10 4 
-+ var12 var11 temp_c10 
-= temp_c11 10 
-+ var13 temp_c11 var4 
-= addr_var12 var13 
-++ var4 
-goto l2 
-label l3 
-= temp_c12 4 
-= temp_c13 -200 
-= var14 temp_c12 
-= temp_c14 40 
-*= var14 temp_c14 
-+ var14 var14 temp_c13 
-mem+ var14 $fp 
-= temp_c15 4 
-+ var15 var14 temp_c15 
-= temp_c16 14 
-= addr_var15 temp_c16 
-= temp_str0 "Enter the No. to search: " 
-print_string temp_str0 
-= temp_c17 0 
-= var17 temp_c17 
-scan_int var16 
-= temp_c18 0 
-= temp_c19 -200 
-= var19 temp_c18 
-= temp_c20 40 
-*= var19 temp_c20 
-+ var19 var19 temp_c19 
-mem+ var19 $fp 
-= var20 var19 
-= var18 var20 
-= temp_c21 0 
-= var21 temp_c21 
-label l4 
-= temp_c22 5 
-< var22 var21 temp_c22 
-ifgoto var22 l5 
-= temp_c23 4 
-+ var23 var18 temp_c23 
-print_int addr_var23 
-= temp_c24 4 
-+ var24 var18 temp_c24 
-== var25 var16 addr_var24 
-ifgoto var25 l6 
-= temp_c25 1 
-= var17 temp_c25 
-goto l7 
-label l6 
-goto l7 
-label l7 
-= temp_str1 "\n" 
-print_string temp_str1 
-= temp_c26 0 
-+ var26 var18 temp_c26 
-= var18 addr_var26 
-++ var21 
-goto l4 
-label l5 
-= temp_c27 1 
-== var27 var17 temp_c27 
-ifgoto var27 l8 
-= temp_str2 "Element Found\n" 
+= temp_str3 "\n" 
+print_string addr_var8 
 print_string temp_str2 
-goto l9 
-label l8 
-= temp_str3 "Element Not found\n" 
+print_string addr_var9 
 print_string temp_str3 
-goto l9 
-label l9 
 jr $ra main 

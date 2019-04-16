@@ -481,19 +481,18 @@ def gen_assembly(line):
 			reg1 = get_reg(arg1)
 			src1 = get_reg(arg2)
 			dest = free_reg()
-			regs1 = free_reg()
 
 			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
-			asmCode.append('lw '+regs1+', 0('+reg1+')')
+			asmCode.append('lw '+dest+', 0('+reg1+')')
 			# for reg in regs:
 			# 	if reg != reg1 and reg != src1:
 			# 		empty_reg(reg)
 			# 		dest = reg
 			# 		break
-			asmCode.append('move '+dest+', '+regs1)
-			regsState[regs1] = 0
+			# asmCode.append('move '+dest+', '+regs1)
+			# regsState[regs1] = 0
 
 		elif arg2.startswith('addr_'):
 			if no_of_free_regs()<3:
@@ -537,25 +536,101 @@ def gen_assembly(line):
 		info2 = findinfo(arg2)
 		typ2 = info2.type
 
-		if line[0] == '=' and (info1.mysize==4 or info2.mysize==4):
+		if line[0] == '=' and (info1.mysize==4 and info2.mysize==4):
 		# if line[0]=='=' and (typ1.startswith('*') or typ2.startswith('*') or typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or (typ1 == None and typ2 == None)):
+
 			asmCode.append('move '+dest+', '+src1)
 			empty_reg(dest)
 			empty_reg(src1)
 			# empty_reg(dest)
+		
+##################################################################
+		# elif x=='=':
+		# 	print "aa gya"
+		# 	siz = info1.mysize
+		# 	off1 = info1.offset
+		# 	off2 = info2.offset
+		# 	free_all_reg()
+		# 	regn = free_reg()
+		# 	while siz:
+		# 		asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+		# 		asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+		# 		off1 += 4
+		# 		off2 += 4
+		# 		siz -= 4
+		# 	regsState[regn] = 0
+
+#####################################################################
+
 		elif x=='=':
-			siz = info1.mysize
-			off1 = info1.offset
-			off2 = info2.offset
-			free_all_reg()
-			regn = free_reg()
-			while siz:
-				asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
-				asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
-				off1 += 4
-				off2 += 4
-				siz -= 4
-			regsState[regn] = 0
+			if flag == 2:
+				siz = info2.mysize
+				off2 = info2.offset
+				free_all_reg()
+				regn = free_reg()
+				reg1 = get_reg(arg1)
+
+				off1 = 0
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+					asmCode.append('sw '+regn+', '+str(off1)+'('+reg1+')')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0
+				flag = 0
+
+			elif flag == 3:
+				siz = info1.mysize
+				off1 = info1.mysize
+				free_all_reg()
+				regn = free_reg()
+				reg2 = get_reg(arg1)
+				
+				off2 = 0
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'('+reg2+')')
+					asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0
+				flag = 0
+
+			elif flag == 1:
+				siz = 32
+				off1 = 0
+				off2 = 0
+				free_all_reg()
+				regn = free_reg()
+				reg1 = get_reg(arg1)
+				reg2 = get_reg(arg2)
+
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'('+reg2+')')
+					asmCode.append('sw '+regn+', '+str(off1)+'('+reg1+')')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0
+				flag = 0
+
+			else :
+				siz = info1.mysize
+				off1 = info1.offset
+				off2 = info2.offset
+				free_all_reg()
+				regn = free_reg()
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+					asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0		
+
+
+
 				
 
 		if (x == '+='):
@@ -590,6 +665,7 @@ def gen_assembly(line):
 
 		if flag == 1 or flag==2:
 			asmCode.append('sw '+dest+', 0('+reg1+')')
+			print "Yo "+dest
 			# only_empty(reg1)
 			regsState[reg1] = 0
 			return
