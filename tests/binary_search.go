@@ -13,6 +13,7 @@ func main() {
 	var m int;
 	var flag int;
 	flag = 0;
+	print "Enter 5 elements : \n";
 	for i = 0; i < n; i++ {
 		scan c;
 		a[i] = c;

@@ -10,6 +10,7 @@ func f(a int) int{
 
 func main() {
 	var a int;
+	print "Enter a Number : ";
 	scan a;
 	print f(a);
 };

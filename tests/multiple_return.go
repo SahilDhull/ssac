@@ -12,8 +12,9 @@ func main(){
 	a[2] = 23;
 	b[1][2] = 34;
 	var s,k string;
+	print "Enter a string : ";
 	scan k;
 	s,a,b = f(a,b,k);
-	print s,"\n",a[2],"\n",b[1][2];
+	print s,a[2],"\n",b[1][2];
 };
 

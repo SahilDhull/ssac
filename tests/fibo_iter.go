@@ -14,6 +14,8 @@ func fibo_iter(n int) {
 
 func main() {
 	a := 0;
+	print "First N Fibonacci No\n";
+	print "Enter N : ";
 	scan a;
 	fibo_iter(a);
 };

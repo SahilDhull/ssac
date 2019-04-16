@@ -11,5 +11,6 @@ func ackermann(m int, n int) int {
 };
 
 func main() {
-	print ackermann(3, 4);
+	print "m = 3, n = 4\n";
+	print "A(3,4) = ",ackermann(3, 4);
 };

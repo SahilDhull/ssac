@@ -3,6 +3,7 @@ package main;
 func main() {
 	var b [10]int;
 	len := 10;
+	print "Enter 10 numbers : \n";
 	for i := 0; i < len; i++ {
 		d := 0;
 		scan d;
