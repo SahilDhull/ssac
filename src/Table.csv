@@ -1,17 +1,6 @@
-Scope,        Name,         Type,         CName         Offset,       Child         
-0,            main,         func,         None,         None,         1             
-1,            a,            arr_1_string, var0,         -64,                        
-1,            temp_c0,      int,          None,         -68,                        
-1,            temp_c1,      int,          None,         -72,                        
-1,            var1,         ,             None,         -76,                        
-1,            temp_c2,      int,          None,         -80,                        
-1,            temp_str0,    string,       None,         -112,                       
-1,            b,            string,       var2,         -144,                       
-1,            temp_c3,      int,          None,         -148,                       
-1,            temp_c4,      int,          None,         -152,                       
-1,            var3,         ,             None,         -156,                       
-1,            temp_c5,      int,          None,         -160,                       
-1,            temp_c6,      int,          None,         -164,                       
-1,            temp_c7,      int,          None,         -168,                       
-1,            var4,         ,             None,         -172,                       
-1,            temp_c8,      int,          None,         -176,                       
+Scope,   Name,    Type,    CName    Offset,  Child    
+0,       main,    func,    None,    None,    1        
+2,       temp_c0, int,     None,    -4,               
+2,       i,       int,     var0,    -8,               
+2,       temp_c1, int,     None,    -12,              
+2,       var1,    ,        None,    -16,              

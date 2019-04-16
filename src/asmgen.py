@@ -52,9 +52,13 @@ def update_symbol_table():
 regs = ["$"+str(i) for i in range(5,26)]
 fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18]]
 regsState = dict((i, 0) for i in regs)
+floatState = dict((i,0) for i in fregs)
+fnum = 0
 rnum = 0
 regTovar = {}
 varToreg = {}
+regTofloat = {}
+floatToreg = {}
 
 def free_reg():
 	# print "-------------------------------------------"
@@ -62,6 +66,13 @@ def free_reg():
 	for i in regs:
 		if regsState[i]==0:
 			regsState[i]=1
+			return i
+	return -1
+
+def free_float():
+	for i in fregs:
+		if floatState[i]==0:
+			floatState[i]=1
 			return i
 	return -1
 
@@ -81,6 +92,16 @@ def reg_replace(reg_to_rep,newVar=None):
 		varToreg[newVar] = reg_to_rep
 		off = off_cal(newVar)
 		asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
+
+def float_replace(reg_to_rep,newVar=None):
+	oldVar = regTofloat[reg_to_rep]
+	old_off = off_cal(oldVar)
+	asmCode.append('swc1 '+reg_to_rep+', '+str(old_off)+'($fp)')
+	if newVar:
+		regTofloat[reg_to_rep] = newVar
+		floatToreg[newVar] = reg_to_rep
+		off = off_cal(newVar)
+		asmCode.append('lwc1 '+reg_to_rep+', '+str(off)+'($fp)')
 
 def get_reg(var,load=0):
 	info = findinfo(var)
@@ -104,6 +125,35 @@ def get_reg(var,load=0):
 	varname = regTovar[reg_to_rep]
 	reg_replace(reg_to_rep,varname)
 	return reg_to_rep
+
+def get_float(var, load=0):
+	print "++++++++++++"
+	print var
+	print floatToreg
+	print floatState
+	print "------------"
+	info = findinfo(var)
+	off = off_cal(var)
+	if var in floatToreg:
+		print "hello"
+	if var in floatToreg and floatState[floatToreg[var]]==1:
+		return floatToreg[var]
+
+	freefloat = free_float()
+
+	if type(freefloat) is str:
+		floatToreg[var] = freefloat
+		regTofloat[freefloat] = var
+		floatState[freefloat] = 1
+		if load==0:
+			asmCode.append('lwc1 '+freefloat+', '+str(off)+'($fp)')
+		return freefloat
+	global fnum
+	reg_to_rep = fregs[fnum%len(fregs)]
+	varname = regTofloat[reg_to_rep]
+	float_replace(reg_to_rep,varname)
+	return reg_to_rep
+
 
 def empty_reg(reg):
 	if regsState[reg] == 0:
@@ -180,8 +230,9 @@ def gen_assembly(line):
 		x = test
 
 		if test=='fprint':
+			dest = get_float(line[1])
 			asmCode.append('li, $v0, 2')
-			asmCode.append('mov.s $f12')
+			asmCode.append('mov.s $f12, '+dest)
 			asmCode.append('syscall')
 
 		if test=='fscan':
@@ -191,25 +242,43 @@ def gen_assembly(line):
 		if test in feqop:
 			arg1 = str(line[1])
 			arg2 = str(line[2])
-			dest = get_reg(arg1)
+
+			dest = get_float(arg1)
 
 			if x=='f=' and arg1.startswith('temp_c'):
-				asmCode.append('li.s $f5, '+arg2)
-				asmCode.append('move '+dest+', $f5')
+				asmCode.append('li.s '+dest+', '+arg2)
 				return
 
-			src = get_reg(arg2)
-			if x=='f=':
-				asmCode.append('move '+dest+', '+src)
-			elif x=='f+=':
-				asmCode.append('move ')
-			elif x=='f-=':
-				asmCode.append('')
-			elif x=='f*=':
-				asmCode.append('')
-			elif x=='f/=':
-				asmCode.append('')
+			src = get_float(arg2)		
 
+			if x=='f=':
+				asmCode.append('mov.s '+dest+', '+src)
+			elif x=='f+=':
+				asmCode.append('add.s '+dest+', '+dest+', '+src)
+			elif x=='f-=':
+				asmCode.append('sub.s '+dest+', '+dest+', '+src)
+			elif x=='f*=':
+				asmCode.append('mul.s '+dest+', '+dest+', '+src)
+			elif x=='f/=':
+				asmCode.append('div.s '+dest+', '+dest+', '+src)
+
+		if test in fbop:
+			arg1 = str(line[1])
+			arg2 = str(line[2])
+			arg3 = str(line[3])
+
+			dest = get_float(arg1)
+			src1 = get_float(arg2)
+			src2 = get_float(arg3)
+
+			if x=='f+':
+				asmCode.append('add.s '+dest+', '+src1+', '+src2)
+			if x=='f-':
+				asmCode.append('add.s '+dest+', '+src1+', '+src2)
+			# if x=='f+':
+			# 	asmCode.append('add.s '+dest+', '+src1+', '+src2)
+			# if x=='f+':
+			# 	asmCode.append('add.s '+dest+', '+src1+', '+src2)				
 
 	# If Statement
 	if test=='ifgoto':
