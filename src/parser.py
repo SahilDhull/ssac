@@ -195,6 +195,7 @@ def newconst():
 	scopeDict[curScope].extra['curOffset'] -= 4
 	info.offset = scopeDict[curScope].extra['curOffset']
 	info.mysize = 4
+	info.type = 'int'
 	constNum+=1
 	return val
 
@@ -1210,7 +1211,7 @@ def p_prim_expr(p):
       x =  int(l[1])-k-1
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
-    p[0].extra['arrayvar'] = p[3].place[0]
+    p[0].extra['arrayvar'] = v1
     # print z
     
   # -------------------function case ------------------------
@@ -1307,9 +1308,7 @@ def p_prim_expr(p):
   elif len(p) == 4:
     p[0] = p[1]
     x = p[1].idlist[0]
-    # print x
     info = findinfo(x)
-    # print info.__dict__
     t = info.type
     if t.startswith('arr'):
       l = t.split('_')
@@ -1329,68 +1328,66 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    v = newvar()
     # print x
-    varname = x+'.'+p[3]
-    if info.type.startswith('arr'):
-    	varname = x+'_'+p[1].place[0]+'.'+p[3]
+    # varname = x+'.'+p[3]
+    # if info.type.startswith('arr'):
+    # 	varname = x+'_'+p[1].place[0]+'.'+p[3]
     if not checkid(x,'e',1):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
+    print "-> "+p[1].idlist[0] + "." + p[3]
+    v = newvar()
+    print v
     varinfo = sScope.retrieve(p[3])
+    attr_type = varinfo.type
+    varname = v
+    v_decl(v,curScope,varinfo.mysize)
+    vinfo = findinfo(varname)
+    vinfo.type = p[0].types[0]				#  to check
+    # p[0].types = [varinfo.type]
+    # p[0].place = [v]
+
+    print "info.type = "+info.type
+    print p[1].types[0]
+    # -------------------   a.next.age  ---------------------
     if (info.type).startswith('*'):
-    	# v1 = newvar()
-    	v_decl(v,curScope)
-    	# print p[0].extra['array']
+    	print p[1].place
     	c = newconst()
     	curoff = (sinfo.mysize + varinfo.offset)
     	p[0].code.append(['=',c,str(curoff)])
-    	p[0].code.append(['+',v,'addr_'+p[1].place[0],c])
-
-    if checkid(varname,'e'):
-      # coming here if already exists
-      info1 = findinfo(varname)
-      p[0].place = [info1.place]
-      p[0].types = [info1.type]
-    elif info.type.startswith('arr') and varinfo.type.startswith('*type'):
-        pl = p[1].extra['arrayvar']
-        print pl
-        curoff = info.offset + (sinfo.mysize + varinfo.offset)
-        c1 = newconst()
-        p[0].code.append(['=',c1,str(curoff)])
-        c2 = newconst()
-        p[0].code.append(['=',c2,str(sinfo.mysize)])
-        p[0].code.append(['*=',c2,pl])
-        p[0].code.append(['+',c1,c1,c2])
-        p[0].code.append(['=',v,c1])
-        p[0].code.append(['mem+',v,'$fp'])
-        # print "...."+v
-        # p[0].place = ['addr_'+v]
-        p[0].place = [v]
-        p[0].types = [varinfo.type]
-        scopeDict[curScope].insert(varname,p[0].types[0])
-        vinfo = findinfo(varname)
-        vinfo.mysize = varinfo.mysize
-        scopeDict[curScope].updateAttr(varname,'place',v)
-        scopeDict[curScope].updateAttr(varname,'offset',curoff)
-    else:
-        curoff = info.offset + (sinfo.mysize + varinfo.offset)
-        # v = newvar()
-        p[0].types = [varinfo.type]
-        p[0].place = [v]
-        scopeDict[curScope].insert(varname,p[0].types[0])
-        vinfo = findinfo(varname)
-        vinfo.mysize = varinfo.mysize
-        scopeDict[curScope].updateAttr(varname,'place',v)
-        scopeDict[curScope].updateAttr(varname,'offset',curoff)
-        # scopeDict[curScope].updateExtra(varname,'defined',False)
-    p[0].idlist = [varname]
-    if (info.type).startswith('*'):
-    # 	if varinfo.type == 'string':
-    # 		p[0].place = [v1]
-    # 	else:
+    	p[0].code.append(['+',v,p[1].place[0],c])
+    	p[0].types = [varinfo.type]
     	p[0].place = ['addr_'+v]
-    # p[0] = p[1]
+    #  	----------------    a[i].next, a[i].age  ------------------------- 
+    elif (info.type).startswith('arr'):
+        # pl = p[1].extra['arrayvar']
+        x = p[1].place[0]
+        print "Case of a[i].next.age:"
+        print x
+        x=x[5:]
+        p[0].types = [varinfo.type]
+        vinfo.type = attr_type
+        print varinfo.type
+        p[0].place = ['addr_'+v]
+        curoff = sinfo.mysize + varinfo.offset
+        c = newconst()
+        p[0].code.append(['=',c,str(curoff)])
+        p[0].code.append(['+',v,x,c])
+    # ----------------------  a.age, a.next    ---------------
+    else:
+        curoff = (sinfo.mysize + varinfo.offset)
+        i = p[1].idlist[0]
+        i_info = findinfo(i)
+        c = newconst()
+        c1 = newconst()
+        p[0].types = [attr_type]
+        vinfo.type = attr_type
+        p[0].code.append(['=',c,str(i_info.offset)])
+        p[0].code.append(['=',c1,str(curoff)])
+        p[0].code.append(['+',v,c,c1])
+        p[0].code.append(['mem+',v,'$fp'])
+        p[0].place = ['addr_'+v]
+    p[0].idlist = [varname]
   else:
     
     if not len(p[3].place):

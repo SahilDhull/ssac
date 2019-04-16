@@ -8,22 +8,25 @@ type rect struct {
 
 
 func main(){
-	var a [5]type rect;
-	var k string = "----->>>>>>>>>>>";
-	a[0].next = &a[1];
-	a[1].next = &a[2];
-	a[2].next = &a[3];
-	a[3].next = &a[4];
-	// a[0].age = 23;
-	var g string = "............";
-	a[2].age = 34;
-	// var f string = ",,,,,,,,,,,,"; 
-	// a[2].age = 35;
-	// a[2].name = "ankit apna bhai hai\n";
-	// a[3].age = 67;
-	// a[4].age = 89;
-	var s string = "-----------------";
-	print a[1].age;
-	print a[1].next.age;
-	// print a[0].name;
+	var a,b,c,d,e type rect;
+	a.next, b.next, c.next, d.next = &b, &c, &d, &e;
+	var an,bn,cn,dn *type rect;
+	an,bn,cn,dn = a.next, b.next, c.next, d.next;
+	b.name = "name of b\n";
+	b.age = 4;
+	c.name = "name of c\n";
+	c.age = 5;
+	d.name = "name of d\n";
+	d.age = 6;
+	e.name = "name of e\n";
+	e.age = 7;
+	var s string = "-----------";
+	print a.next.age;						// 4
+	print "\n",	a.next.name;				// name of b
+	print an.age;							// 4
+	print "\n",an.next.name;				// name of c
+	print bn.name; 							// name of c
+	print a.next.next.next.name; 			// name of d
+	print a.next.next.next.next.age; 		// 7
+	print "\n";
 };

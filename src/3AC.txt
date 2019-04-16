@@ -1,130 +1,104 @@
 label main 
-$sp -636 
-= temp_str0 "----->>>>>>>>>>>" 
-= var4 temp_str0 
+$sp -536 
 = temp_c0 0 
-= temp_c1 -200 
-= var5 temp_c0 
-= temp_c2 40 
-*= var5 temp_c2 
-+ var5 var5 temp_c1 
-mem+ var5 $fp 
-= temp_c3 -200 
-= temp_c4 40 
-*= temp_c4 temp_c0 
-+ temp_c3 temp_c3 temp_c4 
-= var6 temp_c3 
+= var4 temp_c0 
+label l2 
+= temp_c1 4 
+< var5 var4 temp_c1 
+ifgoto var5 l3 
+= temp_c2 -200 
+= var6 var4 
+= temp_c3 40 
+*= var6 temp_c3 
++ var6 var6 temp_c2 
 mem+ var6 $fp 
+= temp_c4 0 
++ var7 var6 temp_c4 
 = temp_c5 1 
++ var8 var4 temp_c5 
 = temp_c6 -200 
-= var7 temp_c5 
+= var9 var8 
 = temp_c7 40 
-*= var7 temp_c7 
-+ var7 var7 temp_c6 
-mem+ var7 $fp 
-= var8 var7 
-= var6 var8 
-= temp_c8 1 
-= temp_c9 -200 
-= var9 temp_c8 
-= temp_c10 40 
-*= var9 temp_c10 
-+ var9 var9 temp_c9 
+*= var9 temp_c7 
++ var9 var9 temp_c6 
 mem+ var9 $fp 
-= temp_c11 -200 
-= temp_c12 40 
-*= temp_c12 temp_c8 
-+ temp_c11 temp_c11 temp_c12 
-= var10 temp_c11 
-mem+ var10 $fp 
-= temp_c13 2 
-= temp_c14 -200 
-= var11 temp_c13 
-= temp_c15 40 
-*= var11 temp_c15 
-+ var11 var11 temp_c14 
+= var10 var9 
+= addr_var7 var10 
+= temp_c8 -200 
+= var11 var4 
+= temp_c9 40 
+*= var11 temp_c9 
++ var11 var11 temp_c8 
 mem+ var11 $fp 
-= var12 var11 
-= var10 var12 
-= temp_c16 2 
-= temp_c17 -200 
-= var13 temp_c16 
-= temp_c18 40 
-*= var13 temp_c18 
-+ var13 var13 temp_c17 
-mem+ var13 $fp 
-= temp_c19 -200 
-= temp_c20 40 
-*= temp_c20 temp_c16 
-+ temp_c19 temp_c19 temp_c20 
-= var14 temp_c19 
+= temp_c10 4 
++ var12 var11 temp_c10 
+= temp_c11 10 
++ var13 temp_c11 var4 
+= addr_var12 var13 
+++ var4 
+goto l2 
+label l3 
+= temp_c12 4 
+= temp_c13 -200 
+= var14 temp_c12 
+= temp_c14 40 
+*= var14 temp_c14 
++ var14 var14 temp_c13 
 mem+ var14 $fp 
-= temp_c21 3 
-= temp_c22 -200 
-= var15 temp_c21 
-= temp_c23 40 
-*= var15 temp_c23 
-+ var15 var15 temp_c22 
-mem+ var15 $fp 
-= var16 var15 
-= var14 var16 
-= temp_c24 3 
-= temp_c25 -200 
-= var17 temp_c24 
-= temp_c26 40 
-*= var17 temp_c26 
-+ var17 var17 temp_c25 
-mem+ var17 $fp 
-= temp_c27 -200 
-= temp_c28 40 
-*= temp_c28 temp_c24 
-+ temp_c27 temp_c27 temp_c28 
-= var18 temp_c27 
-mem+ var18 $fp 
-= temp_c29 4 
-= temp_c30 -200 
-= var19 temp_c29 
-= temp_c31 40 
-*= var19 temp_c31 
-+ var19 var19 temp_c30 
+= temp_c15 4 
++ var15 var14 temp_c15 
+= temp_c16 14 
+= addr_var15 temp_c16 
+= temp_str0 "Enter the No. to search: " 
+print_string temp_str0 
+= temp_c17 0 
+= var17 temp_c17 
+scan_int var16 
+= temp_c18 0 
+= temp_c19 -200 
+= var19 temp_c18 
+= temp_c20 40 
+*= var19 temp_c20 
++ var19 var19 temp_c19 
 mem+ var19 $fp 
 = var20 var19 
 = var18 var20 
-= temp_str1 "............" 
-= var21 temp_str1 
-= temp_c32 2 
-= temp_c33 -200 
-= var22 temp_c32 
-= temp_c34 40 
-*= var22 temp_c34 
-+ var22 var22 temp_c33 
-mem+ var22 $fp 
-= temp_c35 34 
-= var23 temp_c35 
-= temp_str2 "-----------------" 
-= var24 temp_str2 
-= temp_c36 1 
-= temp_c37 -200 
-= var25 temp_c36 
-= temp_c38 40 
-*= var25 temp_c38 
-+ var25 var25 temp_c37 
-mem+ var25 $fp 
-print_int var26 
-= temp_c39 1 
-= temp_c40 -200 
-= var27 temp_c39 
-= temp_c41 40 
-*= var27 temp_c41 
-+ var27 var27 temp_c40 
-mem+ var27 $fp 
-= temp_c42 -200 
-= temp_c43 40 
-*= temp_c43 temp_c39 
-+ temp_c42 temp_c42 temp_c43 
-= var28 temp_c42 
-mem+ var28 $fp 
-= temp_c44 4 
-+ var29 addr_var28 temp_c44 
-print_int addr_var29 
+= temp_c21 0 
+= var21 temp_c21 
+label l4 
+= temp_c22 5 
+< var22 var21 temp_c22 
+ifgoto var22 l5 
+= temp_c23 4 
++ var23 var18 temp_c23 
+print_int addr_var23 
+= temp_c24 4 
++ var24 var18 temp_c24 
+== var25 var16 addr_var24 
+ifgoto var25 l6 
+= temp_c25 1 
+= var17 temp_c25 
+goto l7 
+label l6 
+goto l7 
+label l7 
+= temp_str1 "\n" 
+print_string temp_str1 
+= temp_c26 0 
++ var26 var18 temp_c26 
+= var18 addr_var26 
+++ var21 
+goto l4 
+label l5 
+= temp_c27 1 
+== var27 var17 temp_c27 
+ifgoto var27 l8 
+= temp_str2 "Element Found\n" 
+print_string temp_str2 
+goto l9 
+label l8 
+= temp_str3 "Element Not found\n" 
+print_string temp_str3 
+goto l9 
+label l9 
 jr $ra main 

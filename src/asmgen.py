@@ -537,8 +537,8 @@ def gen_assembly(line):
 		info2 = findinfo(arg2)
 		typ2 = info2.type
 
-
-		if line[0]=='=' and (typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or (typ1 == None and typ2 == None)):
+		if line[0] == '=' and (info1.mysize==4 or info2.mysize==4):
+		# if line[0]=='=' and (typ1.startswith('*') or typ2.startswith('*') or typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or (typ1 == None and typ2 == None)):
 			asmCode.append('move '+dest+', '+src1)
 			empty_reg(dest)
 			empty_reg(src1)
