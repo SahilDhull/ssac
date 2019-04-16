@@ -706,8 +706,7 @@ def p_identifier_rep(p):
 
 
 def p_expr_list(p):
-		'''ExpressionList : Expression ExpressionRep
-												|	NULL'''
+		'''ExpressionList : Expression ExpressionRep'''
 		if len(p) == 3:
 			p[0]=p[2]
 			p[0].code = p[1].code+p[0].code
@@ -719,9 +718,6 @@ def p_expr_list(p):
 				p[1].extra['AddrList'] = ['None']
 			p[0].extra['AddrList'] += p[1].extra['AddrList']
 			p[0].extra['ParamSize'] = [p[1].bytesize] + p[2].extra['ParamSize']
-		else:
-			p[0] = node()
-			p[0].types = ['*NULL']
 
 def p_expr_rep(p):
 		'''ExpressionRep : ExpressionRep COMMA Expression
@@ -1095,7 +1091,10 @@ def p_operand_name(p):
 	p[0] = node()
 	info = findinfo(p[1])
 	if info.type == 'sigType':
-		p[0].bytesize = info.retsize[0]
+		if len(info.retsize)==0:
+			p[0].bytesize = 0
+		else:
+			p[0].bytesize = info.retsize[0]
 	else:
 		p[0].bytesize = info.mysize
 	if type(info.type) is list:
@@ -1171,7 +1170,6 @@ def p_prim_expr(p):
       raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
     k = p[1].extra['layerNum']
     # check on index range
-    # print lsize
     if p[1].extra['layerNum'] == len(lsize)-1:
       raise IndexError("Line "+str(p.lineno(1))+" : "+'Dimension of array '+p[1].extra['operand'] + ' doesnt match')
 
@@ -1212,7 +1210,6 @@ def p_prim_expr(p):
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
     p[0].extra['arrayvar'] = v1
-    # print z
     
   # -------------------function case ------------------------
   elif p[2]=='(':
@@ -1328,16 +1325,13 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    # print x
     # varname = x+'.'+p[3]
     # if info.type.startswith('arr'):
     # 	varname = x+'_'+p[1].place[0]+'.'+p[3]
     if not checkid(x,'e',1):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
-    print "-> "+p[1].idlist[0] + "." + p[3]
     v = newvar()
-    print v
     varinfo = sScope.retrieve(p[3])
     attr_type = varinfo.type
     varname = v
@@ -1347,11 +1341,8 @@ def p_prim_expr(p):
     # p[0].types = [varinfo.type]
     # p[0].place = [v]
 
-    print "info.type = "+info.type
-    print p[1].types[0]
     # -------------------   a.next.age  ---------------------
     if (info.type).startswith('*'):
-    	print p[1].place
     	c = newconst()
     	curoff = (sinfo.mysize + varinfo.offset)
     	p[0].code.append(['=',c,str(curoff)])
@@ -1362,12 +1353,9 @@ def p_prim_expr(p):
     elif (info.type).startswith('arr'):
         # pl = p[1].extra['arrayvar']
         x = p[1].place[0]
-        print "Case of a[i].next.age:"
-        print x
         x=x[5:]
         p[0].types = [varinfo.type]
         vinfo.type = attr_type
-        print varinfo.type
         p[0].place = ['addr_'+v]
         curoff = sinfo.mysize + varinfo.offset
         c = newconst()
@@ -1435,19 +1423,14 @@ def p_expr(p):
 									| Expression MULTIPLY Expression
 									| Expression AND Expression'''
 		if len(p)==2:
-			if p[1]=='null':
-				# print "here"
-				p[0] = node()
-				p[0].types = ['*NULL']
-			else:
-				p[0]=p[1]
+			p[0]=p[1]
 		else:
 
 			p[0]=node()
 ################################### pointer = NULL ###################################
 			
 
-			if p[2]=='==':
+			if p[2]=='==' or p[2]=='!=':
 				if p[1].types[0].startswith('*'):
 					if p[3].types[0]=='*NULL':
 						c = newconst()
@@ -1547,9 +1530,13 @@ def p_expr_opt(p):
 
 def p_unary_expr(p):
 		'''UnaryExpr : PrimaryExpr
-								 | UnaryOp UnaryExpr
-								 | NOT UnaryExpr'''
-		if len(p) == 2:
+					 | UnaryOp UnaryExpr
+					 | NOT UnaryExpr
+					 | NULL'''
+		if p[1]=='null':
+			p[0] = node()
+			p[0].types = ['*NULL']
+		elif len(p) == 2:
 				p[0] = p[1]
 		elif p[1] == "!":
 			p[0] = p[2]
