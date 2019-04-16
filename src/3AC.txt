@@ -1,69 +1,93 @@
 label f 
-$sp -52 
-= var1 var0 
-= var3 var0 
-= temp_c0 1 
-= var4 temp_c0 
-= temp_c1 4 
-*= var4 temp_c1 
-+ var4 var4 var3 
-= temp_c2 23 
-= addr_var4 temp_c2 
-= var6 var1 
-= temp_c3 1 
-= var7 temp_c3 
-= temp_c4 4 
-*= var7 temp_c4 
-+ var7 var7 var6 
-= temp_c5 90 
-= addr_var7 temp_c5 
+$sp -24 
+= temp_c0 0 
+== var3 var2 temp_c0 
+ifgoto var3 l2 
 jret $ra f 
+goto l3 
+label l2 
+goto l3 
+label l3 
+= temp_c1 0 
++ var4 var2 temp_c1 
+addi $sp $sp -12 
+push $ra -20 
+push addr_var4 4 -24 
+push -28 -28 
+addi $fp $fp -28 
+jal f 
+addi $fp $fp 28 
+loadra $ra -20($fp) 
+addi $sp $sp 12 
+= temp_c2 4 
++ var5 var2 temp_c2 
+print_int addr_var5 
 jr $ra f 
 label main 
-$sp -160 
-addr var10 var8 
-= var9 var10 
-= temp_c6 1 
-= temp_c7 -40 
-= var11 temp_c6 
-= temp_c8 4 
-*= var11 temp_c8 
-+ var11 var11 temp_c7 
+$sp -168 
+= temp_c3 0 
+= var7 temp_c3 
+label l5 
+= temp_c4 4 
+< var8 var7 temp_c4 
+ifgoto var8 l6 
+= temp_c5 -40 
+= var9 var7 
+= temp_c6 8 
+*= var9 temp_c6 
++ var9 var9 temp_c5 
+mem+ var9 $fp 
+= temp_c7 4 
++ var10 var9 temp_c7 
+= addr_var10 var7 
+= temp_c8 -40 
+= var11 var7 
+= temp_c9 8 
+*= var11 temp_c9 
++ var11 var11 temp_c8 
 mem+ var11 $fp 
-= temp_c9 1 
-= addr_var11 temp_c9 
-= temp_str0 "....." 
-print_string temp_str0 
-= var13 var9 
-= temp_c10 1 
-= var14 temp_c10 
-= temp_c11 4 
-*= var14 temp_c11 
-+ var14 var14 var13 
-= temp_c12 2 
-= addr_var14 temp_c12 
-addi $sp $sp -12 
-push $ra -128 
-push var9 4 -132 
-push -136 -136 
-addi $fp $fp -136 
+= temp_c10 0 
++ var12 var11 temp_c10 
+= temp_c11 1 
++ var13 var7 temp_c11 
+= temp_c12 -40 
+= var14 var13 
+= temp_c13 8 
+*= var14 temp_c13 
++ var14 var14 temp_c12 
+mem+ var14 $fp 
+= var15 var14 
+= addr_var12 var15 
+++ var7 
+goto l5 
+label l6 
+= temp_c14 4 
+= temp_c15 -40 
+= var16 temp_c14 
+= temp_c16 8 
+*= var16 temp_c16 
++ var16 var16 temp_c15 
+mem+ var16 $fp 
+= temp_c17 0 
++ var17 var16 temp_c17 
+= temp_c18 0 
+= addr_var17 temp_c18 
+= temp_c19 0 
+= temp_c20 -40 
+= var18 temp_c19 
+= temp_c21 8 
+*= var18 temp_c21 
++ var18 var18 temp_c20 
+mem+ var18 $fp 
+= var19 var18 
+= var20 var19 
+addi $sp $sp -8 
+push $ra -172 
+push var20 0 -172 
+push -176 -176 
+addi $fp $fp -176 
 jal f 
-addi $fp $fp 136 
-loadra $ra -128($fp) 
-addi $sp $sp 12 
-= temp_c13 1 
-= temp_c14 -40 
-= var15 temp_c13 
-= temp_c15 4 
-*= var15 temp_c15 
-+ var15 var15 temp_c14 
-mem+ var15 $fp 
-= var17 var9 
-= temp_c16 1 
-= var18 temp_c16 
-= temp_c17 4 
-*= var18 temp_c17 
-+ var18 var18 var17 
-print_int addr_var15 
-print_int addr_var18 
+addi $fp $fp 176 
+loadra $ra -172($fp) 
+addi $sp $sp 8 
 jr $ra main 

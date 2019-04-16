@@ -549,7 +549,7 @@ def p_param_decl(p):
 					info.listsize = p[2].limits + [str(p[2].size[len(p[2].size)-1])]
 			else:
 				for x in p[1].idlist:
-					scopeDict[curScope].updateAttr(x,'type',p[2].types)
+					scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
 					scopeDict[curScope].updateAttr(x,'size',p[2].size)
 					scopeDict[curScope].updateExtra(x,p[2].limits)
 					p[0].types += p[2].types
@@ -1316,6 +1316,12 @@ def p_prim_expr(p):
     x = p[1].idlist[0]
     info = findinfo(x)
     t = info.type
+    print t
+    print p.lineno(1)
+    if type(t) is list:
+    	t = str(t[0])
+
+    print t
     if t.startswith('arr'):
       l = t.split('_')
       t = l[2][4:]
