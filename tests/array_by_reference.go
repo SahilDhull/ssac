@@ -1,7 +1,13 @@
 package main;
 
+func g(e *[10]int){
+	(*e)[1] = 45;
+	return;
+};
+
 func f(d *[10]int){
 	(*d)[1] = 23;
+	g(d);
 	return;
 };
 

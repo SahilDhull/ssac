@@ -214,7 +214,7 @@ def gen_assembly(line):
 				cnt+=1
 			reg1 = get_reg(arg1)
 			info = findinfo(arg1)
-			print info.mysize
+			# print info.mysize
 			asmCode.append('move $4, '+reg1)
 			while cnt:
 				cnt-=1
@@ -342,7 +342,12 @@ def gen_assembly(line):
 			arg3 = int(line[3])
 			free_all_reg()
 			src = free_reg()
-			print arg1
+			if arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				reg1 = get_reg(arg1)
+				asmCode.append('lw '+src+', 0('+reg1+')')
+				asmCode.append('sw '+src+', '+str(arg3)+'($fp)')
+				return
 			info = findinfo(arg1)
 			off = info.offset
 			num = arg2
@@ -642,6 +647,7 @@ def gen_assembly(line):
 					siz -= 4
 				regsState[regn] = 0		
 
+###############################################################
 
 
 				
