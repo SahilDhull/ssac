@@ -1,5 +1,5 @@
 # ssac
-Compiler for Golang in Python to MIPS
+Compiler for Golang to MIPS in Python
 
 ## Group Members: ##
 * Ankit Kumar - 160120
