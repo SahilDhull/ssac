@@ -1,0 +1,37 @@
+label main 
+$sp -288 
+f= temp_c0 5.2 
+f= var0 temp_c0 
+f= temp_c1 4.3 
+f= var1 temp_c1 
+= temp_str0 "\n" 
+= var2 temp_str0 
+= temp_str1 "a : " 
+print_string temp_str1 
+fprint var0 
+print_string var2 
+= temp_str2 "b : " 
+print_string temp_str2 
+fprint var1 
+print_string var2 
+= temp_str3 "a+b : " 
+f+ var3 var0 var1 
+print_string temp_str3 
+fprint var3 
+print_string var2 
+= temp_str4 "a-b : " 
+f- var4 var0 var1 
+print_string temp_str4 
+fprint var4 
+print_string var2 
+= temp_str5 "a*b : " 
+f* var5 var0 var1 
+print_string temp_str5 
+fprint var5 
+print_string var2 
+= temp_str6 "a/b : " 
+f/ var6 var0 var1 
+print_string temp_str6 
+fprint var6 
+print_string var2 
+jr $ra main 

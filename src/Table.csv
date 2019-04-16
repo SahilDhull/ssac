@@ -1,0 +1,18 @@
+Scope,     Name,      Type,      CName      Offset,    Child      
+0,         main,      func,      None,      None,      1          
+1,         a,         float,     var0,      -8,                   
+1,         temp_c0,   float,     None,      -4,                   
+1,         b,         float,     var1,      -16,                  
+1,         temp_c1,   float,     None,      -12,                  
+1,         n,         string,    var2,      -80,                  
+1,         temp_str0, string,    None,      -48,                  
+1,         temp_str1, string,    None,      -112,                 
+1,         temp_str2, string,    None,      -144,                 
+1,         temp_str3, string,    None,      -176,                 
+1,         var3,      ,          None,      -180,                 
+1,         temp_str4, string,    None,      -212,                 
+1,         var4,      ,          None,      -216,                 
+1,         temp_str5, string,    None,      -248,                 
+1,         var5,      ,          None,      -252,                 
+1,         temp_str6, string,    None,      -284,                 
+1,         var6,      ,          None,      -288,                 

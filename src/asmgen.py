@@ -50,7 +50,7 @@ def update_symbol_table():
 # Registers:----------------------------------
 
 regs = ["$"+str(i) for i in range(5,26)]
-fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18]]
+fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18,19,20,21,22,23,24,25,26,27,28,29]]
 regsState = dict((i, 0) for i in regs)
 floatState = dict((i,0) for i in fregs)
 fnum = 0
@@ -132,15 +132,8 @@ def get_reg(var,load=0):
 	return reg_to_rep
 
 def get_float(var, load=0):
-	print "++++++++++++"
-	print var
-	print floatToreg
-	print floatState
-	print "------------"
 	info = findinfo(var)
 	off = off_cal(var)
-	if var in floatToreg:
-		print "hello"
 	if var in floatToreg and floatState[floatToreg[var]]==1:
 		return floatToreg[var]
 
@@ -155,6 +148,7 @@ def get_float(var, load=0):
 		return freefloat
 	global fnum
 	reg_to_rep = fregs[fnum%len(fregs)]
+	fnum += 1
 	varname = regTofloat[reg_to_rep]
 	float_replace(reg_to_rep,varname)
 	return reg_to_rep
@@ -288,11 +282,11 @@ def gen_assembly(line):
 			if x=='f+':
 				asmCode.append('add.s '+dest+', '+src1+', '+src2)
 			if x=='f-':
-				asmCode.append('add.s '+dest+', '+src1+', '+src2)
-			# if x=='f+':
-			# 	asmCode.append('add.s '+dest+', '+src1+', '+src2)
-			# if x=='f+':
-			# 	asmCode.append('add.s '+dest+', '+src1+', '+src2)				
+				asmCode.append('sub.s '+dest+', '+src1+', '+src2)
+			if x=='f*':
+				asmCode.append('mul.s '+dest+', '+src1+', '+src2)
+			if x=='f/':
+				asmCode.append('div.s '+dest+', '+src1+', '+src2)				
 
 	# If Statement
 	if test=='ifgoto':
