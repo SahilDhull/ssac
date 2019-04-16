@@ -1,0 +1,155 @@
+label arglist 
+$sp -360 
+= temp_str0 "   " 
+= temp_str1 "   " 
+= temp_c0 3 
+= temp_c1 68 
+= var8 temp_c0 
+= temp_c2 4 
+*= var8 temp_c2 
++ var8 var8 temp_c1 
+mem+ var8 $fp 
+= temp_str2 "   " 
+= temp_c3 1 
+= temp_c4 20 
+= var9 temp_c3 
+= temp_c5 4 
+*= var9 temp_c5 
+= temp_c6 4 
+*= var9 temp_c6 
++ var9 var9 temp_c4 
+= temp_c7 2 
+= var10 temp_c7 
+= temp_c8 4 
+*= var10 temp_c8 
++ var10 var10 var9 
+mem+ var10 $fp 
+= temp_str3 "   " 
+= temp_str4 "   " 
+= temp_str5 "   " 
+= temp_str6 "   " 
+= temp_str7 "\n" 
+print_int var0 
+print_string temp_str0 
+print_string var1 
+print_string temp_str1 
+print_int addr_var8 
+print_string temp_str2 
+print_int addr_var10 
+print_string temp_str3 
+print_int var4 
+print_string temp_str4 
+print_int var5 
+print_string temp_str5 
+print_int var6 
+print_string temp_str6 
+print_int var7 
+print_string temp_str7 
+= temp_c9 3 
+= temp_c10 68 
+= var11 temp_c9 
+= temp_c11 4 
+*= var11 temp_c11 
++ var11 var11 temp_c10 
+mem+ var11 $fp 
+= temp_c12 99 
+= addr_var11 temp_c12 
+= temp_c13 2 
+= temp_c14 20 
+= var12 temp_c13 
+= temp_c15 4 
+*= var12 temp_c15 
+= temp_c16 4 
+*= var12 temp_c16 
++ var12 var12 temp_c14 
+= temp_c17 3 
+= var13 temp_c17 
+= temp_c18 4 
+*= var13 temp_c18 
++ var13 var13 var12 
+mem+ var13 $fp 
+= temp_c19 105 
+= addr_var13 temp_c19 
+push var3 48 124 
+push var2 20 172 
+jret $ra arglist 
+jr $ra arglist 
+label main 
+$sp -360 
+= temp_c20 3 
+= temp_c21 -20 
+= var15 temp_c20 
+= temp_c22 4 
+*= var15 temp_c22 
++ var15 var15 temp_c21 
+mem+ var15 $fp 
+= temp_c23 54 
+= addr_var15 temp_c23 
+= temp_c24 1 
+= temp_c25 -88 
+= var17 temp_c24 
+= temp_c26 4 
+*= var17 temp_c26 
+= temp_c27 4 
+*= var17 temp_c27 
++ var17 var17 temp_c25 
+= temp_c28 2 
+= var18 temp_c28 
+= temp_c29 4 
+*= var18 temp_c29 
++ var18 var18 var17 
+mem+ var18 $fp 
+= temp_c30 23 
+= addr_var18 temp_c30 
+= temp_c31 1 
+= temp_str8 "Okay" 
+= temp_c32 5 
+= temp_c33 6 
+= temp_c34 7 
+= temp_c35 8 
+addi $sp $sp -196 
+push $ra -180 
+push temp_c31 4 -252 
+push temp_str8 32 -284 
+push var14 20 -304 
+push var16 48 -352 
+push temp_c32 4 -356 
+push temp_c33 4 -360 
+push temp_c34 4 -364 
+push temp_c35 4 -368 
+push -372 -372 
+addi $fp $fp -372 
+jal arglist 
+addi $fp $fp 372 
+loadra $ra -180($fp) 
+addi $sp $sp 196 
+= var14 var19 
+= var16 var20 
+= temp_c36 3 
+= temp_c37 -20 
+= var21 temp_c36 
+= temp_c38 4 
+*= var21 temp_c38 
++ var21 var21 temp_c37 
+mem+ var21 $fp 
+= temp_str9 " " 
+= temp_c39 2 
+= temp_c40 -88 
+= var22 temp_c39 
+= temp_c41 4 
+*= var22 temp_c41 
+= temp_c42 4 
+*= var22 temp_c42 
++ var22 var22 temp_c40 
+= temp_c43 3 
+= var23 temp_c43 
+= temp_c44 4 
+*= var23 temp_c44 
++ var23 var23 var22 
+mem+ var23 $fp 
+= temp_str10 "\n" 
+print_int addr_var21 
+print_string temp_str9 
+print_int addr_var23 
+print_string temp_str10 
+jr $ra main 

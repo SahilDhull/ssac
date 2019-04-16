@@ -14,8 +14,6 @@ func main(){
 	var s,k string;
 	scan k;
 	s,a,b = f(a,b,k);
-	print s;
-	print a[2];
-	print b[1][2];
+	print s,"\n",a[2],"\n",b[1][2];
 };
 
