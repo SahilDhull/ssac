@@ -443,7 +443,7 @@ def p_field_decl(p):
 def p_point_type(p):
 		'''PointerType : MULTIPLY BaseType'''
 		p[0] = p[2]
-		p[0].size = ['inf']+p[0].size
+		p[0].size = p[0].size
 		p[0].types[0]="*"+p[0].types[0]
 		p[0].bytesize = 4
 		
@@ -537,7 +537,7 @@ def p_param_decl(p):
 		if len(p)==2:
 			p[0].retsize.append(p[1].bytesize)
 		if len(p) == 3:
-			if (p[2].types[0]).startswith('arr'):
+			if (p[2].types[0]).startswith('arr') or (p[2].types[0]).startswith('*arr'):
 				for x in p[1].idlist:
 					scopeDict[curScope].updateExtra(x,p[2].limits)
 					scopeDict[curScope].updateAttr(x,'type',p[2].types)
@@ -550,18 +550,21 @@ def p_param_decl(p):
 			else:
 				for x in p[1].idlist:
 					scopeDict[curScope].updateAttr(x,'type',p[2].types[0])
-					p[0].types.append(p[2].types[0])
+					scopeDict[curScope].updateAttr(x,'size',p[2].size)
+					scopeDict[curScope].updateExtra(x,p[2].limits)
+					p[0].types += p[2].types
+					# p[0].types.append(p[2].types[0])
 					info = findinfo(x)
 					info.mysize = p[2].bytesize
 					p[0].bytesize += p[2].bytesize
 					# if pointer
-					if (p[2].types[0]).startswith('*'):
-						t = p[2].types[0]
-						for i in range(len(t)):
-							if t[i]!='*':
-								break
-						if t[i:] == 'int' or t[i:]=='float':
-							scopeDict[curScope].updateAttr(x,'size',['inf',4])
+					# if (p[2].types[0]).startswith('*'):
+					# 	t = p[2].types[0]
+					# 	for i in range(len(t)):
+					# 		if t[i]!='*':
+					# 			break
+					# 	if t[i:] == 'int' or t[i:]=='float':
+					# 		scopeDict[curScope].updateAttr(x,'size',[4])
 
 
 #-----------------------BLOCKS---------------------------
@@ -706,8 +709,7 @@ def p_identifier_rep(p):
 
 
 def p_expr_list(p):
-		'''ExpressionList : Expression ExpressionRep
-												|	NULL'''
+		'''ExpressionList : Expression ExpressionRep'''
 		if len(p) == 3:
 			p[0]=p[2]
 			p[0].code = p[1].code+p[0].code
@@ -719,9 +721,6 @@ def p_expr_list(p):
 				p[1].extra['AddrList'] = ['None']
 			p[0].extra['AddrList'] += p[1].extra['AddrList']
 			p[0].extra['ParamSize'] = [p[1].bytesize] + p[2].extra['ParamSize']
-		else:
-			p[0] = node()
-			p[0].types = ['*NULL']
 
 def p_expr_rep(p):
 		'''ExpressionRep : ExpressionRep COMMA Expression
@@ -823,7 +822,6 @@ def p_var_spec(p):
 		p[0]=p[1]
 		p[0].code+=p[2].code
 		# p[0].bytesize = p[2].bytesize
-		
 		for i in range(len(p[1].idlist)):
 			x = p[1].idlist[i]
 			s = findscope(x)
@@ -845,7 +843,8 @@ def p_var_spec(p):
 			else:
 				scopeDict[s].updateAttr(x,'type',p[2].types[0])
 				p[0].bytesize += p[2].bytesize
-				
+				scopeDict[s].updateAttr(p[1].idlist[i],'size',p[2].size)
+				scopeDict[curScope].updateExtra(x,p[2].limits)
 				info.mysize = p[2].bytesize
 				scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
 				info.offset = scopeDict[curScope].extra['curOffset']
@@ -858,7 +857,6 @@ def p_var_spec(p):
 	p[0].code = p[1].code + p[3].code
 	if len(p[1].place)!=len(p[3].place):
 		raise ValueError("Line "+str(p.lineno(1))+" : "+"Mismatch in number of expressions assigned to variables")
-
 
 	for i in range(len(p[1].place)):
 		x = p[1].idlist[i]
@@ -873,8 +871,9 @@ def p_var_spec(p):
 		info.offset = scopeDict[curScope].extra['curOffset']
 		info.mysize = p[2].bytesize
 		#pointer case
-		if p[2].types[0][0]=='*':
+		if (p[2].types[0]).startswith('arr') or (p[2].types[0]).startswith('*arr'):
 			scopeDict[scope].updateAttr(x,'size',p[2].size)
+			scopeDict[curScope].updateExtra(x,p[2].limits)
 
 		if type(p[3].types[i]) is list:
 			s = p[3].types[i][0]
@@ -922,7 +921,6 @@ def p_short_var_decl(p):
 		info.type = x[1:]
 	else:
 		info.type = x
-	# print info.type
 	scopeDict[curScope].extra['curOffset'] -= p[0].bytesize
 	info.offset = scopeDict[curScope].extra['curOffset']
 	info.mysize = p[0].bytesize
@@ -934,7 +932,7 @@ def p_short_var_decl(p):
 # ----------------FUNCTION DECLARATIONS------------------
 def p_func_decl(p):
 	'''FunctionDecl : FUNC FunctionName CreateScope Function EndScope
-									| FUNC FunctionName CreateScope Signature EndScope'''
+					| FUNC FunctionName CreateScope Signature EndScope'''
 	p[0]=node()
 	info = findinfo(p[2])
 	info.name = p[2]
@@ -1095,7 +1093,10 @@ def p_operand_name(p):
 	p[0] = node()
 	info = findinfo(p[1])
 	if info.type == 'sigType':
-		p[0].bytesize = info.retsize[0]
+		if len(info.retsize)==0:
+			p[0].bytesize = 0
+		else:
+			p[0].bytesize = info.retsize[0]
 	else:
 		p[0].bytesize = info.mysize
 	if type(info.type) is list:
@@ -1118,7 +1119,7 @@ def p_operand_name(p):
 					break;
 			if s[i:]=='int':
 				
-				p[0].size = ['inf','4']
+				p[0].size = ['4']
 	p[0].idlist = [p[1]]
 		
 # ---------------------------------------------------------
@@ -1169,22 +1170,27 @@ def p_prim_expr(p):
     l = s.split('_')
     if p[3].types[0]!='int' and p[3].types[0]!='cint':
       raise IndexError("Line "+str(p.lineno(1))+" : "+"Array index of array " + p[1].extra['operand'] + " is not integer")
-    k = p[1].extra['layerNum']
     # check on index range
-    # print lsize
+    if (p[1].types[0]).startswith('*arr'):
+    	lsize = lsize[1:]
+    flag = 0
+    if p[0].extra['layerNum']==0:
+      c = newconst()
+      p[0].code.append(['=',c,str(info.offset)])
+      p[0].place = [c]
+    elif p[0].extra['layerNum']==-1:
+    	flag = 1
+    	p[0].extra['layerNum'] = 0
+
+    k = p[1].extra['layerNum']
     if p[1].extra['layerNum'] == len(lsize)-1:
       raise IndexError("Line "+str(p.lineno(1))+" : "+'Dimension of array '+p[1].extra['operand'] + ' doesnt match')
-
     if 'operandValue' in p[3].extra:
       z = p[3].extra['operandValue'][0]
       y = scopeDict[curScope].extra[p[1].extra['operand']]
       if z>=y[k]:
         raise IndexError("Line "+str(p.lineno(1))+" : "+"Array "+ p[1].extra['operand'] +" out of Bounds "+" at level = "+str(k))
     
-    if p[0].extra['layerNum']==0:
-      c = newconst()
-      p[0].code.append(['=',c,str(info.offset)])
-      p[0].place = [c]
     v1 = newvar()
     scopeDict[curScope].insert(v1,None)
     vinfo = findinfo(v1)
@@ -1202,7 +1208,8 @@ def p_prim_expr(p):
 
     p[0].place = [v1]
     if p[1].extra['layerNum'] == len(lsize)-2:
-      p[0].code.append(['mem+',v1,'$fp'])
+      if flag==0:
+      	p[0].code.append(['mem+',v1,'$fp'])
       p[0].place = ['addr_'+v1]
     p[0].extra['AddrList'] = [v1]
     if k==len(lsize)-2:
@@ -1212,7 +1219,6 @@ def p_prim_expr(p):
       p[0].types = [l[0]+'_'+str(x)+'_'+l[2]]
     p[0].extra['layerNum'] += 1
     p[0].extra['arrayvar'] = v1
-    # print z
     
   # -------------------function case ------------------------
   elif p[2]=='(':
@@ -1310,6 +1316,12 @@ def p_prim_expr(p):
     x = p[1].idlist[0]
     info = findinfo(x)
     t = info.type
+    print t
+    print p.lineno(1)
+    if type(t) is list:
+    	t = str(t[0])
+
+    print t
     if t.startswith('arr'):
       l = t.split('_')
       t = l[2][4:]
@@ -1328,16 +1340,13 @@ def p_prim_expr(p):
     sScope = sinfo.child
     if p[3] not in sScope.table:
       raise NameError("Line "+str(p.lineno(1))+" : "+"identifier " + p[3]+ " is not defined inside the struct " + x)
-    # print x
     # varname = x+'.'+p[3]
     # if info.type.startswith('arr'):
     # 	varname = x+'_'+p[1].place[0]+'.'+p[3]
     if not checkid(x,'e',1):
       raise NameError("Line "+str(p.lineno(1))+" : "+x+" does not exist")
     
-    print "-> "+p[1].idlist[0] + "." + p[3]
     v = newvar()
-    print v
     varinfo = sScope.retrieve(p[3])
     attr_type = varinfo.type
     varname = v
@@ -1347,11 +1356,8 @@ def p_prim_expr(p):
     # p[0].types = [varinfo.type]
     # p[0].place = [v]
 
-    print "info.type = "+info.type
-    print p[1].types[0]
     # -------------------   a.next.age  ---------------------
     if (info.type).startswith('*'):
-    	print p[1].place
     	c = newconst()
     	curoff = (sinfo.mysize + varinfo.offset)
     	p[0].code.append(['=',c,str(curoff)])
@@ -1362,12 +1368,9 @@ def p_prim_expr(p):
     elif (info.type).startswith('arr'):
         # pl = p[1].extra['arrayvar']
         x = p[1].place[0]
-        print "Case of a[i].next.age:"
-        print x
         x=x[5:]
         p[0].types = [varinfo.type]
         vinfo.type = attr_type
-        print varinfo.type
         p[0].place = ['addr_'+v]
         curoff = sinfo.mysize + varinfo.offset
         c = newconst()
@@ -1435,19 +1438,14 @@ def p_expr(p):
 									| Expression MULTIPLY Expression
 									| Expression AND Expression'''
 		if len(p)==2:
-			if p[1]=='null':
-				# print "here"
-				p[0] = node()
-				p[0].types = ['*NULL']
-			else:
-				p[0]=p[1]
+			p[0]=p[1]
 		else:
 
 			p[0]=node()
 ################################### pointer = NULL ###################################
 			
 
-			if p[2]=='==':
+			if p[2]=='==' or p[2]=='!=':
 				if p[1].types[0].startswith('*'):
 					if p[3].types[0]=='*NULL':
 						c = newconst()
@@ -1460,7 +1458,7 @@ def p_expr(p):
 						p[0].place = [v]
 						return
 ################################### pointer = NULL ###################################
-			# print 
+
 			p[0].code = p[1].code + p[3].code
 			p[0].idlist = p[1].idlist + p[3].idlist
 			p[0].bytesize = p[1].bytesize
@@ -1547,9 +1545,13 @@ def p_expr_opt(p):
 
 def p_unary_expr(p):
 		'''UnaryExpr : PrimaryExpr
-								 | UnaryOp UnaryExpr
-								 | NOT UnaryExpr'''
-		if len(p) == 2:
+					 | UnaryOp UnaryExpr
+					 | NOT UnaryExpr
+					 | NULL'''
+		if p[1]=='null':
+			p[0] = node()
+			p[0].types = ['*NULL']
+		elif len(p) == 2:
 				p[0] = p[1]
 		elif p[1] == "!":
 			p[0] = p[2]
@@ -1581,10 +1583,15 @@ def p_unary_expr(p):
 				# if (p[2].place[0]).startswith('addr_'):
 				# 	p[0].place = [p[2].place[0]]
 				# else:
-				p[0].place = ['addr_'+p[2].place[0]]
+				v=newvar()
+				v_decl(v,curScope)
+				p[0].code.append(['=',v,p[2].place[0]])
+				# p[0].place = ['addr_'+p[2].place[0]]
+				p[0].place = [v]
 				if p[2].types[0][0]!='*':
 					raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot reference a non pointer")
 				p[0].types[0]=p[2].types[0][1:]
+				p[0].extra['layerNum']=-1
 			else:
 				info = findinfo(p[2].idlist[0])
 				if (info.type).startswith('arr') and 'AddrList' in p[0].extra:
@@ -1768,7 +1775,6 @@ def p_assignment(p):
 	p[0] = node()
 	p[0].code = p[1].code
 	p[0].code+=p[3].code
-	# print p[1]
 	for i in range(len(p[1].place)):
 		if p[2]=='=':
 			if not equalcheck(p[1].types[i],p[3].types[i]):
@@ -1983,11 +1989,9 @@ def p_for(p):
 	'''ForStmt : FOR CCreateScope ConditionBlockOpt Block EndScope_1'''
 	p[0] = node()
 	l1 = p[3].extra['before']
-	# print l1
 	p[0].code = p[3].code + p[4].code
 	if 'incr' in p[3].extra:
 		p[0].code += p[3].extra['incr']
-	# print p[3].extra['incr']
 	p[0].code += [['goto',l1]]
 	l2 = p[3].extra['after']
 	p[0].code += [['label',l2]]
@@ -2019,12 +2023,10 @@ def p_forclause(p):
 	'''ForClause : SimpleStmt Semi ConditionOpt Semi SimpleStmt'''
 	p[0] = p[1]
 	l1 = newlabel()
-	print l1
 	p[0].code += [['label',l1]]
 	p[0].extra['before'] = l1
 	p[0].code += p[3].code
 	p[0].extra['before'] = l1
-	print p[0].extra['before'] 
 	l2 = newlabel()
 	scopeDict[curScope].updateExtra('beginFor',l1)
 	scopeDict[curScope].updateExtra('endFor',l2)

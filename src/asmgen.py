@@ -342,6 +342,7 @@ def gen_assembly(line):
 			arg3 = int(line[3])
 			free_all_reg()
 			src = free_reg()
+			print arg1
 			info = findinfo(arg1)
 			off = info.offset
 			num = arg2
