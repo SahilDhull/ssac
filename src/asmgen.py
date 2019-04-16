@@ -677,7 +677,6 @@ def gen_assembly(line):
 		
 ##################################################################
 		# elif x=='=':
-		# 	# print "aa gya"
 		# 	siz = info1.mysize
 		# 	off1 = info1.offset
 		# 	off2 = info2.offset
