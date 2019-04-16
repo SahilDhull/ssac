@@ -1316,12 +1316,9 @@ def p_prim_expr(p):
     x = p[1].idlist[0]
     info = findinfo(x)
     t = info.type
-    print t
-    print p.lineno(1)
     if type(t) is list:
     	t = str(t[0])
 
-    print t
     if t.startswith('arr'):
       l = t.split('_')
       t = l[2][4:]
@@ -1587,7 +1584,10 @@ def p_unary_expr(p):
 				v_decl(v,curScope)
 				p[0].code.append(['=',v,p[2].place[0]])
 				# p[0].place = ['addr_'+p[2].place[0]]
-				p[0].place = [v]
+				if (p[2].types[0]).startswith('*arr'):
+					p[0].place = [v]
+				else:
+					p[0].place = ['addr_'+v]
 				if p[2].types[0][0]!='*':
 					raise TypeError("Line "+str(p.lineno(1))+" : "+"Cannot reference a non pointer")
 				p[0].types[0]=p[2].types[0][1:]
