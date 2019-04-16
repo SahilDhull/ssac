@@ -1,40 +1,60 @@
 package main;
 
-type rect struct {
+type node struct {
     val  int;
-    next *type rect;
+    next *type node;
+};
+
+func insert(head *type node, c int) *type node{
+	if head == null{
+		head = malloc(8);
+		head.val = c;
+		head.next = null;
+	} else{
+		head.next = insert(head.next,c);
+	};
+	return head;
+};
+
+func print_linked_list(head *type node){
+	if head == null{
+		return;
+	}
+	else{
+		print head.val," ";
+		print_linked_list(head.next);
+	};
+	return;
+};
+
+func search(head *type node,c int){
+	if head == null{
+		print c," : Not Found\n";
+		return;
+	}
+	else if head.val==c{
+		print c," : Found\n";
+		return;
+	}
+	else{
+		search(head.next,c);
+	};
+	return;
 };
 
 func main(){
-	var a [5]type rect;
-	for i:=0;i<4;i++{
-		a[i].next = &a[i+1];
-		a[i].val = 10+i;
+	var head *type node;
+	head = null;
+	var n,c int;
+	print "No. of nodes in Linked List : ";
+	scan n;
+	for i:=0;i<n;i++{
+		scan c;
+		head = insert(head,c);
 	};
-	a[4].val = 14;
-	a[4].next = null;
-	print "Enter the No. to search: ";
-	var k int;
-	var flag int = 0;
-	scan k;
-	var b *type rect;
-	b = &a[0];
-	var j bool=true;
-	for ;j;{
-		print b.val;
-		if k==b.val{
-			flag=1;
-			j=false;
-		};
-		print "\n";
-		b = b.next;
-		if b==null{
-			j=false;
-		};
-	};
-	if flag==1{
-		print "Element Found\n";
-	} else{
-		print "Element Not found\n";
-	};
+	print "Linked List is as follows: ";
+	print_linked_list(head);
+	print "\nEnter the No. to search: ";
+	scan c;
+	search(head,c);
 };

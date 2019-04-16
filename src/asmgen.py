@@ -85,6 +85,9 @@ def reg_replace(reg_to_rep,newVar=None):
 def get_reg(var,load=0):
 	info = findinfo(var)
 	off = off_cal(var)
+	flag = 0
+	if off==None:
+		flag = 1
 
 	if var in varToreg and regsState[varToreg[var]]==1:
 		return varToreg[var]
@@ -95,7 +98,9 @@ def get_reg(var,load=0):
 		varToreg[var] = freereg
 		regTovar[freereg] = var
 		regsState[freereg] = 1
-		if load==0:
+		if load==0 and flag==0:
+			asmCode.append('lw '+freereg+', '+str(off)+'($fp)')
+		elif flag == 1:
 			asmCode.append('lw '+freereg+', '+str(off)+'($fp)')
 		return freereg
 	global rnum
@@ -173,6 +178,15 @@ asmCode.append('.globl main')
 
 def gen_assembly(line):
 	test = line[0]
+
+	if test == 'call_malloc':
+		dest = get_reg(line[1])
+		asmCode.append('li $a0, '+str(line[2]))
+		asmCode.append('li $v0, 9')
+		asmCode.append('syscall')
+		asmCode.append('move '+dest+', $v0')
+		empty_reg(dest)
+
 
 	# ---------   FLOAT  -------------------
 	# To complete

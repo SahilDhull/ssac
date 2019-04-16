@@ -1,29 +1,154 @@
-label main 
-$sp -176 
+label insert 
+$sp -52 
 = temp_c0 0 
-= temp_c1 -64 
-= var1 temp_c0 
-= temp_c2 32 
-*= var1 temp_c2 
-+ var1 var1 temp_c1 
-mem+ var1 $fp 
-= temp_str0 "shubham\n" 
-= addr_var1 temp_str0 
+== var4 var2 temp_c0 
+ifgoto var4 l2 
+call_malloc var2 8 
+= temp_c1 4 
++ var5 var2 temp_c1 
+= addr_var5 var3 
+= temp_c2 0 
++ var6 var2 temp_c2 
 = temp_c3 0 
-= temp_c4 -64 
-= var3 temp_c3 
-= temp_c5 32 
-*= var3 temp_c5 
-+ var3 var3 temp_c4 
-mem+ var3 $fp 
-= var2 addr_var3 
+= addr_var6 temp_c3 
+goto l3 
+label l2 
+= temp_c4 0 
++ var7 var2 temp_c4 
+= temp_c5 0 
++ var8 var2 temp_c5 
+addi $sp $sp -20 
+push $ra -48 
+push addr_var8 4 -56 
+push var3 4 -60 
+push -64 -64 
+addi $fp $fp -64 
+jal insert 
+addi $fp $fp 64 
+loadra $ra -48($fp) 
+addi $sp $sp 20 
+= addr_var7 var9 
+goto l3 
+label l3 
+push var2 4 12 
+jret $ra insert 
+jr $ra insert 
+label print_linked_list 
+$sp -56 
 = temp_c6 0 
-= temp_c7 -64 
-= var4 temp_c6 
-= temp_c8 32 
-*= var4 temp_c8 
-+ var4 var4 temp_c7 
-mem+ var4 $fp 
-print_string addr_var4 
-print_string var2 
+== var11 var10 temp_c6 
+ifgoto var11 l5 
+jret $ra print_linked_list 
+goto l6 
+label l5 
+= temp_c7 4 
++ var12 var10 temp_c7 
+= temp_str0 " " 
+print_int addr_var12 
+print_string temp_str0 
+= temp_c8 0 
++ var13 var10 temp_c8 
+addi $sp $sp -12 
+push $ra -60 
+push addr_var13 4 -64 
+push -68 -68 
+addi $fp $fp -68 
+jal print_linked_list 
+addi $fp $fp 68 
+loadra $ra -60($fp) 
+addi $sp $sp 12 
+goto l6 
+label l6 
+jret $ra print_linked_list 
+jr $ra print_linked_list 
+label search 
+$sp -92 
+= temp_c9 0 
+== var16 var14 temp_c9 
+ifgoto var16 l10 
+= temp_str1 " : Not Found\n" 
+print_int var15 
+print_string temp_str1 
+jret $ra search 
+goto l11 
+label l10 
+= temp_c10 4 
++ var17 var14 temp_c10 
+== var18 addr_var17 var15 
+ifgoto var18 l8 
+= temp_str2 " : Found\n" 
+print_int var15 
+print_string temp_str2 
+jret $ra search 
+goto l9 
+label l8 
+= temp_c11 0 
++ var19 var14 temp_c11 
+addi $sp $sp -16 
+push $ra -96 
+push addr_var19 4 -100 
+push var15 4 -104 
+push -108 -108 
+addi $fp $fp -108 
+jal search 
+addi $fp $fp 108 
+loadra $ra -96($fp) 
+addi $sp $sp 16 
+goto l9 
+label l9 
+goto l11 
+label l11 
+jret $ra search 
+jr $ra search 
+label main 
+$sp -132 
+= temp_c12 0 
+= var20 temp_c12 
+= temp_str3 "No. of nodes in Linked List : " 
+print_string temp_str3 
+scan_int var21 
+= temp_c13 0 
+= var23 temp_c13 
+label l13 
+< var24 var23 var21 
+ifgoto var24 l14 
+scan_int var22 
+addi $sp $sp -20 
+push $ra -64 
+push var20 4 -72 
+push var22 4 -76 
+push -80 -80 
+addi $fp $fp -80 
+jal insert 
+addi $fp $fp 80 
+loadra $ra -64($fp) 
+addi $sp $sp 20 
+= var20 var25 
+++ var23 
+goto l13 
+label l14 
+= temp_str4 "Linked List is as follows: " 
+print_string temp_str4 
+addi $sp $sp -12 
+push $ra -104 
+push var20 4 -108 
+push -112 -112 
+addi $fp $fp -112 
+jal print_linked_list 
+addi $fp $fp 112 
+loadra $ra -104($fp) 
+addi $sp $sp 12 
+= temp_str5 "\nEnter the No. to search: " 
+print_string temp_str5 
+scan_int var22 
+addi $sp $sp -16 
+push $ra -136 
+push var20 4 -140 
+push var22 4 -144 
+push -148 -148 
+addi $fp $fp -148 
+jal search 
+addi $fp $fp 148 
+loadra $ra -136($fp) 
+addi $sp $sp 16 
 jr $ra main 
