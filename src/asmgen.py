@@ -459,14 +459,6 @@ def gen_assembly(line):
 			# 		dest = reg
 			# 		cnt -= 1
 			# 		continue
-			print "&&&&&&&&&&"
-			print "reg1 : "+reg1
-			print "reg2 : "+reg2
-			print "src1 : "+src1
-			print "dest : "+dest
-			print "regs1 : "+regs1
-			print ">>>>>>>>>>>"
-
 			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
@@ -524,15 +516,17 @@ def gen_assembly(line):
 			reg2 = get_reg(arg2)
 			dest = get_reg(arg1)
 			src1 = free_reg()
-			while cnt2:
+			while cnt2>1:
 				cnt2-=1
 				asmCode.append('lw '+reg2+', 0('+reg2+')')
-			asmCode.append('move '+src1+', '+reg2)
+			asmCode.append('lw '+src1+', 0('+reg2+')')
+			# asmCode.append('move '+src1+', '+regs2)
 			# for reg in regs:
 			# 	if reg != reg2 and reg != dest:
 			# 		empty_reg(reg)
 			# 		src1 = reg
 			# 		break
+
 
 		else:
 			info1 = findinfo(arg1)
@@ -599,11 +593,12 @@ def gen_assembly(line):
 				flag = 0
 
 			elif flag == 3:
+				print "yoooooo hoooooo"
 				siz = info1.mysize
-				off1 = info1.mysize
+				off1 = info1.offset
 				free_all_reg()
 				regn = free_reg()
-				reg2 = get_reg(arg1)
+				reg2 = get_reg(arg2)
 				
 				off2 = 0
 				while siz:
