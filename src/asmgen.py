@@ -420,6 +420,7 @@ def gen_assembly(line):
 		if arg1.startswith('addr_') and arg2.startswith('addr_'):
 			if no_of_free_regs()<6:
 				free_all_reg()
+			flag = 1
 			# arg1 = arg1[5:]
 			# arg2 = arg2[5:]
 			cnt1 = 0
@@ -433,12 +434,12 @@ def gen_assembly(line):
 			reg1 = get_reg(arg1)
 			reg2 = get_reg(arg2)
 
-			flag = 1
 			# cnt = 2
 
 			src1 = free_reg()
 			dest = free_reg()
 			regs1 = free_reg()
+			regs2 = free_reg()
 
 			# for reg in regs:
 			# 	if cnt == 0:
@@ -453,20 +454,30 @@ def gen_assembly(line):
 			# 		dest = reg
 			# 		cnt -= 1
 			# 		continue
+			print "&&&&&&&&&&"
+			print "reg1 : "+reg1
+			print "reg2 : "+reg2
+			print "src1 : "+src1
+			print "dest : "+dest
+			print "regs1 : "+regs1
+			print ">>>>>>>>>>>"
+
 			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
 			asmCode.append('lw '+regs1+', 0('+reg1+')')
 
-			while cnt2:
+			while cnt2>1:
 				cnt2-=1
 				asmCode.append('lw '+reg2+', 0('+reg2+')')
-
+			asmCode.append('lw '+regs2+', 0('+reg2+')')
+			
 			asmCode.append('move '+dest+', '+regs1)
-			asmCode.append('move '+src1+', '+reg2)
+			asmCode.append('move '+src1+', '+regs2)
 			# only_empty(reg1)
-			only_empty(reg2)
+			# only_empty(reg2)
 			regsState[regs1] = 0
+			regsState[regs2] = 0
 
 
 		elif arg1.startswith('addr_'):
@@ -482,6 +493,7 @@ def gen_assembly(line):
 			reg1 = get_reg(arg1)
 			src1 = get_reg(arg2)
 			dest = free_reg()
+			# regs1 = free_reg()
 
 			while cnt1>1:
 				cnt1-=1
@@ -537,7 +549,7 @@ def gen_assembly(line):
 		info2 = findinfo(arg2)
 		typ2 = info2.type
 
-		if line[0] == '=' and (info1.mysize==4 and info2.mysize==4):
+		if line[0] == '=' and (info1.mysize==4 and info2.mysize==4) and (flag != 1):
 		# if line[0]=='=' and (typ1.startswith('*') or typ2.startswith('*') or typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or (typ1 == None and typ2 == None)):
 
 			asmCode.append('move '+dest+', '+src1)
@@ -666,7 +678,6 @@ def gen_assembly(line):
 
 		if flag == 1 or flag==2:
 			asmCode.append('sw '+dest+', 0('+reg1+')')
-			print "Yo "+dest
 			# only_empty(reg1)
 			regsState[reg1] = 0
 			return
