@@ -1,0 +1,5 @@
+label main 
+$sp -8 
+f= temp_c0 1.2 
+f= var0 temp_c0 
+jr $ra main 

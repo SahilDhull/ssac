@@ -1,0 +1,9 @@
+.data
+		str1: .asciiz "----\n" 
+.text
+.globl main
+main:
+	addi $fp, $sp, 0
+	addi $sp, $sp, -8
+	addi $sp, $sp, 8
+	jr $ra
