@@ -1054,6 +1054,7 @@ def p_basic_lit(p):
     scopeDict[curScope].extra['curOffset'] -= 32
     info.offset = scopeDict[curScope].extra['curOffset']
     info.mysize = 32
+    p[0].code.append(["=",c,p[2]])
   elif p[1].types[0]=='cfloat':
     c = newconst('float')
     p[0].code.append(["f=",c,p[2]])
