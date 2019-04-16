@@ -187,7 +187,7 @@ def newvar():
 	varNum+=1
 	return val
 
-def newconst():
+def newconst(typ='int'):
 	global constNum
 	val = 'temp_c'+str(constNum)
 	scopeDict[curScope].insert(val,None)
@@ -195,7 +195,7 @@ def newconst():
 	scopeDict[curScope].extra['curOffset'] -= 4
 	info.offset = scopeDict[curScope].extra['curOffset']
 	info.mysize = 4
-	info.type = 'int'
+	info.type = typ
 	constNum+=1
 	return val
 
@@ -860,10 +860,14 @@ def p_var_spec(p):
 
 	for i in range(len(p[1].place)):
 		x = p[1].idlist[i]
+		if p[2].types[0]=='float' or p[2].types[0]=='cfloat':
+			eq = 'f='
+		else:
+			eq = '='
 		# p[1].place[i] = p[3].place[i]
 		scope = findscope(x)
 		info = findinfo(x)
-		p[0].code.append(['=',p[1].place[i],p[3].place[i]])
+		p[0].code.append([eq,p[1].place[i],p[3].place[i]])
 		scopeDict[scope].updateAttr(x,'place',p[1].place[i])
 		scopeDict[scope].updateAttr(x,'type',p[2].types[0])
 		p[0].bytesize += p[2].bytesize
@@ -1050,9 +1054,12 @@ def p_basic_lit(p):
     scopeDict[curScope].extra['curOffset'] -= 32
     info.offset = scopeDict[curScope].extra['curOffset']
     info.mysize = 32
+  elif p[1].types[0]=='cfloat':
+    c = newconst('float')
+    p[0].code.append(["f=",c,p[2]])
   else:
     c = newconst()
-  p[0].code.append(["=",c,p[2]])
+    p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
 
@@ -1461,6 +1468,10 @@ def p_expr(p):
 			p[0].bytesize = p[1].bytesize
 			if (p[2]=='<<' or p[2]=='>>' or p[2]=='^' or p[2]=='&^' or p[2]=='%' or p[2]=='|' or p[2]=='&') and ((p[3].types[0]!='int' and p[3].types[0]!='cint') or (p[1].types[0]!='int' and p[1].types[0]!='cint')):
 				raise TypeError("Line "+str(p.lineno(1))+" : "+"RHS/LHS of "+p[2]+" is not integer")
+			if p[1].types[0]=='float' or p[3].types[0]=='float' or p[1].types[0]=='cfloat' or p[3].types[0]=='cfloat':
+				op = 'f' + p[2]
+			else:
+				op = p[2]
 			if not opTypeCheck(p[1].types[0],p[3].types[0],'.'):
 				if (p[2]=='+' or p[2]=='-' or p[2]=='*' or p[2]=='/') and (p[1].types[0]=='cint'or p[1].types[0]=='int') and (p[3].types[0]=='cfloat'or p[3].types[0]=='float'):
 					x=1
@@ -1483,7 +1494,7 @@ def p_expr(p):
 			vinfo.offset = scopeDict[curScope].extra['curOffset']
 			vinfo.mysize = 4
 			if p[2]=='*':
-				p[0].code.append(['*',v,p[1].place[0],p[3].place[0]])
+				p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 			elif p[2]=='&&':
 				p[0].code.append(['&',v,p[1].place[0],p[3].place[0]])
 			elif p[2]=='||':
@@ -1519,14 +1530,14 @@ def p_expr(p):
 					p[0].code.append(['typecast','float',p[1].place[0]])
 					p[1].types = ['float']
 					p[0].types = ['float']
-					p[0].code.append([p[2]+'f',v,p[1].place[0],p[3].place[0]])
+					p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 				elif (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
 					p[0].code.append(['typecast','float',p[3].place[0]])
 					p[3].types = ['float']
 					p[0].types = ['float']
-					p[0].code.append([p[2]+'f',v,p[1].place[0],p[3].place[0]])
+					p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 				else:
-					p[0].code.append([p[2],v,p[1].place[0],p[3].place[0]])
+					p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 			else:
 				p[0].code.append([p[2],v,p[1].place[0],p[3].place[0]])
 			p[0].place = [v]
@@ -1567,9 +1578,16 @@ def p_unary_expr(p):
 			v = newvar()
 			v_decl(v,curScope)
 			if p[1][0]=='+' or p[1][0]=='-':
-				c = newconst()
-				p[0].code.append(['=',c,0])
-				p[0].code.append([p[1][0],v,c,p[2].place[0]])
+				if p[2].types[0]=='float' or p[2].types[0]=='float':
+					op = 'f' + p[1][0]
+					op1 = 'f='
+					c = newconst('float')
+				else:
+					op = p[1][0]
+					op1 = '='
+					c = newconst()
+				p[0].code.append([op1,c,0])
+				p[0].code.append([op,v,c,p[2].place[0]])
 				p[0].place=[v]
 			elif p[1][0]=='*':
 				# p[0].code.append(['load',v,p[2].place[0]])
@@ -1676,7 +1694,7 @@ def p_print_stmt(p):
 		#   if x!='float' and x!='cfloat':
 		#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than float using '%f'")
 		if x=='float' or x=='cfloat':
-			p[0].code.append(['print_float',p[2].place[i]])
+			p[0].code.append(['fprint',p[2].place[i]])
 		# if p[2]=="%s":
 		#   if x!='string' and x!='cstring':
 		#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Print Expr of type other than string using '%s'")
@@ -1700,7 +1718,7 @@ def p_scan_stmt(p):
 	#   if p[3].types[0]!='float' and p[3].types[0]!='cfloat':
 	#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than float using '%f'")
 	if x=='float' or x=='cfloat':
-		p[0].code.append(['scan_float',p[2].place[0]])
+		p[0].code.append(['fscan',p[2].place[0]])
 	# if p[2]=="%s":
 	#   if p[3].types[0]!='string' and p[3].types[0]!='cstring':
 	#     raise TypeError("Line "+str(p.lineno(1))+" : "+"Can't Scan Expr of type other than string using '%s'")
@@ -1776,6 +1794,8 @@ def p_assignment(p):
 	p[0].code = p[1].code
 	p[0].code+=p[3].code
 	for i in range(len(p[1].place)):
+		if p[1].types[i]=='float' or p[1].types[i]=='cfloat':
+			p[2] = 'f' + p[2]
 		if p[2]=='=':
 			if not equalcheck(p[1].types[i],p[3].types[i]):
 				raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of = don't match")

@@ -50,6 +50,7 @@ def update_symbol_table():
 # Registers:----------------------------------
 
 regs = ["$"+str(i) for i in range(5,26)]
+fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18]]
 regsState = dict((i, 0) for i in regs)
 rnum = 0
 regTovar = {}
@@ -159,9 +160,12 @@ binaryop = ['+','-','*','/','%','&','|','^','!=','<=','>=','==','<','>','<<','>>
 eqop = ['=','+=','-=','*=','/=','%=','<<=','>>=',':=','!']  
 op = binaryop + eqop
 
+feqop = ['f=','f+=','f-=','f*=','f/=']
+fbop = ['f+','f-','f*','f/']
+
 # Start of MIPS
 asmCode.append('.data')
-asmCode.append("\tstr1: .asciiz \"----\\n\" ")
+# asmCode.append("\tstr1: .asciiz \"----\\n\" ")
 global_variables()
 asmCode.append('.text')
 asmCode.append('.globl main')
@@ -169,6 +173,43 @@ asmCode.append('.globl main')
 
 def gen_assembly(line):
 	test = line[0]
+
+	# ---------   FLOAT  -------------------
+	# To complete
+	if test.startswith('f'):
+		x = test
+
+		if test=='fprint':
+			asmCode.append('li, $v0, 2')
+			asmCode.append('mov.s $f12')
+			asmCode.append('syscall')
+
+		if test=='fscan':
+			asmCode.append('li $2, 6')
+			asmCode.append('syscall')
+
+		if test in feqop:
+			arg1 = str(line[1])
+			arg2 = str(line[2])
+			dest = get_reg(arg1)
+
+			if x=='f=' and arg1.startswith('temp_c'):
+				asmCode.append('li.s $f5, '+arg2)
+				asmCode.append('move '+dest+', $f5')
+				return
+
+			src = get_reg(arg2)
+			if x=='f=':
+				asmCode.append('move '+dest+', '+src)
+			elif x=='f+=':
+				asmCode.append('move ')
+			elif x=='f-=':
+				asmCode.append('')
+			elif x=='f*=':
+				asmCode.append('')
+			elif x=='f/=':
+				asmCode.append('')
+
 
 	# If Statement
 	if test=='ifgoto':
@@ -459,6 +500,7 @@ def gen_assembly(line):
 			# 		dest = reg
 			# 		cnt -= 1
 			# 		continue
+
 			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
@@ -593,7 +635,6 @@ def gen_assembly(line):
 				flag = 0
 
 			elif flag == 3:
-				print "yoooooo hoooooo"
 				siz = info1.mysize
 				off1 = info1.offset
 				free_all_reg()
