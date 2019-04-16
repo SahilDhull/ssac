@@ -1,6 +1,0 @@
-Scope,   Name,    Type,    CName    Offset,  Child    
-0,       main,    func,    None,    None,    1        
-2,       temp_c0, int,     None,    -4,               
-2,       i,       int,     var0,    -8,               
-2,       temp_c1, int,     None,    -12,              
-2,       var1,    ,        None,    -16,              

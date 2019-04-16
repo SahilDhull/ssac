@@ -717,6 +717,8 @@ def p_expr_list(p):
 			p[0].types = p[1].types + p[0].types
 			p[0].idlist = p[1].idlist + p[0].idlist
 			p[0].bytesize = p[1].bytesize + p[2].bytesize
+			if 'malloc' in p[1].extra:
+				p[0].extra['malloc'] = 1
 			if 'AddrList' not in p[1].extra:
 				p[1].extra['AddrList'] = ['None']
 			p[0].extra['AddrList'] += p[1].extra['AddrList']
@@ -732,6 +734,8 @@ def p_expr_rep(p):
 				p[0].place+=p[3].place
 				p[0].idlist += p[3].idlist
 				p[0].bytesize += p[3].bytesize
+				if 'malloc' in p[1].extra:
+					p[0].extra['malloc'] = 1
 				if 'AddrList' not in p[3].extra:
 					p[3].extra['AddrList'] = ['None']
 				p[0].extra['AddrList'] += p[3].extra['AddrList']
@@ -812,7 +816,7 @@ def p_var_spec_rep(p):
 def p_var_spec(p):
 	'''VarSpec : IdentifierList Type ExpressionListOpt'''
 	if len(p[3].place)==0:
-		a=0
+		a = 0
 		if 'malloc' in p[3].extra:
 			if p[2].types[0].startswith('*'):
 				a=1
@@ -826,6 +830,15 @@ def p_var_spec(p):
 			x = p[1].idlist[i]
 			s = findscope(x)
 			info = findinfo(x)
+			if a==1:      #  malloc
+				if p[2].types[0]=='*arr':
+					raise TypeError("Line "+str(p.lineno(1))+" : "+"Malloc for array must be in a loop")
+				p[0].code.append(['call_malloc',p[1].place[0],str(p[3].bytesize)])
+				scopeDict[s].updateAttr(x,'type',p[2].types)
+				info.mysize = 4
+				scopeDict[curScope].extra['curOffset'] -= 4
+				info.offset = scopeDict[curScope].extra['curOffset']
+				return
 			#For arraysDeclaration
 			if (p[2].types[0]).startswith('arr'):
 				scopeDict[curScope].updateExtra(x,p[2].limits)
@@ -835,11 +848,6 @@ def p_var_spec(p):
 				info.mysize = p[2].bytesize
 				scopeDict[curScope].extra['curOffset'] -= p[2].bytesize
 				info.offset = scopeDict[curScope].extra['curOffset']
-			elif a==1:      #  malloc
-				if p[2].types[0]=='*arr':
-					raise TypeError("Line "+str(p.lineno(1))+" : "+"Malloc for array must be in a loop")
-				p[0].code.append(['call_malloc',x,str(p[3].bytesize)])
-				scopeDict[s].updateAttr(x,'type',p[2].types)
 			else:
 				scopeDict[s].updateAttr(x,'type',p[2].types[0])
 				p[0].bytesize += p[2].bytesize
@@ -855,6 +863,7 @@ def p_var_spec(p):
 	
 	p[0]=node()
 	p[0].code = p[1].code + p[3].code
+	
 	if len(p[1].place)!=len(p[3].place):
 		raise ValueError("Line "+str(p.lineno(1))+" : "+"Mismatch in number of expressions assigned to variables")
 
@@ -875,10 +884,10 @@ def p_var_spec(p):
 		info.offset = scopeDict[curScope].extra['curOffset']
 		info.mysize = p[2].bytesize
 		#pointer case
+		
 		if (p[2].types[0]).startswith('arr') or (p[2].types[0]).startswith('*arr'):
 			scopeDict[scope].updateAttr(x,'size',p[2].size)
 			scopeDict[curScope].updateExtra(x,p[2].limits)
-
 		if type(p[3].types[i]) is list:
 			s = p[3].types[i][0]
 		else:
@@ -890,14 +899,9 @@ def p_var_spec(p):
 
 def p_expr_list_opt(p):
 		'''ExpressionListOpt : EQUALS ExpressionList
-												 | epsilon
-												 | EQUALS MALLOC LPAREN I INT_LIT RPAREN'''
+							 | epsilon'''
 		if len(p) == 3:
 				p[0] = p[2]
-		elif len(p) == 7:
-			p[0] = node()
-			p[0].bytesize = 4*int(p[5])
-			p[0].extra['malloc'] = 1
 		else:
 			p[0]=p[1]
 # -------------------------------------------------------
@@ -1060,6 +1064,7 @@ def p_basic_lit(p):
     p[0].code.append(["f=",c,p[2]])
   else:
     c = newconst()
+    p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
 
@@ -1422,25 +1427,25 @@ def p_expr_list_type_opt(p):
 
 def p_expr(p):
 		'''Expression : UnaryExpr
-									| Expression COMPARE_OR Expression
-									| Expression COMPARE_AND Expression
-									| Expression EQEQ Expression
-									| Expression NOTEQUALS Expression
-									| Expression LESSTHAN Expression
-									| Expression GREATERTHAN Expression
-									| Expression LESSTHAN_EQUAL Expression
-									| Expression GREATERTHAN_EQUAL Expression
-									| Expression OR Expression
-									| Expression XOR Expression
-									| Expression ANDXOR Expression
-									| Expression DIVIDE Expression
-									| Expression MODULO Expression
-									| Expression LSHIFT Expression
-									| Expression RSHIFT Expression
-									| Expression PLUS Expression
-									| Expression MINUS Expression
-									| Expression MULTIPLY Expression
-									| Expression AND Expression'''
+					| Expression COMPARE_OR Expression
+					| Expression COMPARE_AND Expression
+					| Expression EQEQ Expression
+					| Expression NOTEQUALS Expression
+					| Expression LESSTHAN Expression
+					| Expression GREATERTHAN Expression
+					| Expression LESSTHAN_EQUAL Expression
+					| Expression GREATERTHAN_EQUAL Expression
+					| Expression OR Expression
+					| Expression XOR Expression
+					| Expression ANDXOR Expression
+					| Expression DIVIDE Expression
+					| Expression MODULO Expression
+					| Expression LSHIFT Expression
+					| Expression RSHIFT Expression
+					| Expression PLUS Expression
+					| Expression MINUS Expression
+					| Expression MULTIPLY Expression
+					| Expression AND Expression'''
 		if len(p)==2:
 			p[0]=p[1]
 		else:
@@ -1555,10 +1560,15 @@ def p_unary_expr(p):
 		'''UnaryExpr : PrimaryExpr
 					 | UnaryOp UnaryExpr
 					 | NOT UnaryExpr
+					 | MALLOC LPAREN I INT_LIT RPAREN
 					 | NULL'''
 		if p[1]=='null':
 			p[0] = node()
 			p[0].types = ['*NULL']
+		elif p[1]=='malloc':
+			p[0] = node()
+			p[0].bytesize = int(p[4])
+			p[0].extra['malloc'] = 1
 		elif len(p) == 2:
 				p[0] = p[1]
 		elif p[1] == "!":
@@ -1788,12 +1798,18 @@ def p_inc_dec(p):
 
 def p_assignment(p):
 	''' Assignment : ExpressionList assign_op ExpressionList'''
-	if len(p[1].place)!=len(p[3].types):
+	a = 0
+	if 'malloc' in p[3].extra:
+		a = 1
+	elif len(p[1].place)!=len(p[3].types):
 		raise ValueError("Line "+str(p.lineno(1))+" : "+"No. of expressions on both sides of assignment are not equal")
 	p[0] = node()
 	p[0].code = p[1].code
 	p[0].code+=p[3].code
 	for i in range(len(p[1].place)):
+		if a==1:
+			p[0].code.append(['call_malloc',p[1].place[i],str(p[3].bytesize)])
+			return
 		if p[1].types[i]=='float' or p[1].types[i]=='cfloat':
 			p[2] = 'f' + p[2]
 		if p[2]=='=':
