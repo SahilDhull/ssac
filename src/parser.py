@@ -1776,6 +1776,8 @@ def p_assignment(p):
 	p[0].code = p[1].code
 	p[0].code+=p[3].code
 	for i in range(len(p[1].place)):
+		if p[1].types[i]=='float' or p[1].types[i]=='cfloat':
+			p[2] += 'f'
 		if p[2]=='=':
 			if not equalcheck(p[1].types[i],p[3].types[i]):
 				raise TypeError("Line "+str(p.lineno(1))+" : "+"Types of expressions on both sides of = don't match")

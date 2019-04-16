@@ -1,64 +1,6 @@
 label main 
-$sp -464 
-= temp_c0 5 
-= var3 temp_c0 
-addr var4 var3 
-= var0 var4 
-addr var5 var0 
-= var1 var5 
-addr var6 var1 
-= var2 var6 
-= var8 var0 
-print_int addr_var8 
-= temp_str0 "\n" 
-print_string temp_str0 
-= var10 var1 
-= var12 addr_var10 
-print_int addr_var12 
-= temp_str1 "\n" 
-print_string temp_str1 
-= var14 var2 
-= var16 addr_var14 
-= var18 addr_var16 
-print_int addr_var18 
-= temp_str2 "\n" 
-print_string temp_str2 
-= var20 var0 
-= temp_c1 1 
-= addr_var20 temp_c1 
-= var22 var2 
-= var24 addr_var22 
-= var26 addr_var24 
-print_int addr_var26 
-= temp_str3 "\n" 
-print_string temp_str3 
-print_int var3 
-= temp_str4 "\n" 
-print_string temp_str4 
-= temp_c2 77 
-= var3 temp_c2 
-= var28 var1 
-= var30 addr_var28 
-print_int addr_var30 
-= var32 var1 
-= var34 addr_var32 
-= var36 var0 
-= var38 var2 
-= var40 addr_var38 
-= var42 addr_var40 
-+ var43 addr_var36 addr_var42 
-= addr_var34 var43 
-= var45 var2 
-= var47 addr_var45 
-= var49 addr_var47 
-= temp_c3 5 
-+= addr_var49 temp_c3 
-= temp_str5 "\n" 
-print_string temp_str5 
-= var51 var2 
-= var53 addr_var51 
-= var55 addr_var53 
-print_int addr_var55 
-= temp_str6 "\n" 
-print_string temp_str6 
+$sp -8 
+= temp_c0 1.2 
+= var0 temp_c0 
+print_float var0 
 jr $ra main 
