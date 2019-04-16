@@ -1064,6 +1064,7 @@ def p_basic_lit(p):
     p[0].code.append(["f=",c,p[2]])
   else:
     c = newconst()
+    p[0].code.append(["=",c,p[2]])
   p[0].place.append(c)
   p[0].extra['operandValue'] = [p[2]]
 

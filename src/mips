@@ -1,344 +1,151 @@
 .data
 .text
 .globl main
-insert:
-	addi $sp, $sp, -52
-	lw $5, -4($fp)
+main:
+	addi $fp, $sp, 0
+	addi $sp, $sp, -160
+	lw $5, -12($fp)
 	li $5, 0
-	lw $6, -8($fp)
-	lw $7, 8($fp)
-	seq $6, $7, $5
-	sw $5, -4($fp)
-	sw $6, -8($fp)
-	sw $7, 8($fp)
-	lw $5, -8($fp)
-	beq $5, $0, l2
-	lw $6, 8($fp)
-	li $a0, 8
-	li $v0, 9
-	syscall
-	move $6, $v0
-	sw $6, 8($fp)
-	lw $6, -16($fp)
-	li $6, 4
-	lw $7, -12($fp)
-	lw $8, 8($fp)
-	add $7, $8, $6
-	lw $9, 4($fp)
-	lw $10, 0($7)
-	move $10, $9
-	sw $9, 4($fp)
-	sw $10, 0($7)
-	lw $7, -24($fp)
-	li $7, 0
-	lw $9, -20($fp)
-	add $9, $8, $7
-	lw $10, -28($fp)
-	li $10, 0
-	lw $11, 0($9)
-	move $11, $10
-	sw $10, -28($fp)
-	sw $11, 0($9)
-	sw $5, -8($fp)
-	sw $6, -16($fp)
-	sw $7, -24($fp)
-	sw $8, 8($fp)
-	sw $9, -20($fp)
-	j l3
+	lw $6, -4($fp)
+	move $6, $5
+	sw $6, -4($fp)
+	sw $5, -12($fp)
 l2:
-	lw $5, -36($fp)
-	li $5, 0
-	lw $6, -32($fp)
-	lw $7, 8($fp)
-	add $6, $7, $5
-	lw $8, -44($fp)
-	li $8, 0
-	lw $9, -40($fp)
-	add $9, $7, $8
-	addi $sp, $sp, -20
-	sw $ra, -48($fp)
-	sw $5, -36($fp)
-	sw $6, -32($fp)
-	sw $7, 8($fp)
-	sw $8, -44($fp)
-	sw $9, -40($fp)
-	lw $6, -40($fp)
-	lw $5, 0($6)
-	sw $5, -56($fp)
-	sw $6, -40($fp)
-	lw $5, 4($fp)
-	sw $5, -60($fp)
-	li $3, -64
-	sw $3, -64($fp)
-	addi $fp, $fp, -64
-	jal insert
-	addi $fp, $fp, 64
-	lw $ra, -48($fp)
-	addi $sp, $sp, 20
-	lw $5, -32($fp)
-	lw $6, -52($fp)
-	lw $7, 0($5)
-	move $7, $6
-	sw $6, -52($fp)
-	sw $7, 0($5)
-	sw $5, -32($fp)
-	j l3
-l3:
-	lw $5, 8($fp)
-	sw $5, 12($fp)
-	addi $sp, $sp, 52
-	jr $ra
-	addi $sp, $sp, -52
-	addi $sp, $sp, 52
-	jr $ra
-print_linked_list:
-	addi $sp, $sp, -56
-	lw $5, -4($fp)
-	li $5, 0
-	lw $6, -8($fp)
-	lw $7, 4($fp)
-	seq $6, $7, $5
-	sw $5, -4($fp)
-	sw $6, -8($fp)
-	sw $7, 4($fp)
-	lw $5, -8($fp)
-	beq $5, $0, l5
-	sw $5, -8($fp)
-	addi $sp, $sp, 56
-	jr $ra
-	addi $sp, $sp, -56
-	j l6
-l5:
 	lw $5, -16($fp)
-	li $5, 4
-	lw $6, -12($fp)
-	lw $7, 4($fp)
-	add $6, $7, $5
-	lw $8, -48($fp)
-	li $8, 32
-	sb $8, -48($fp)
-	li $8, 0
-	sb $8, -47($fp)
-	li $8, 0
-	sb $8, -46($fp)
-	li $8, 0
-	sb $8, -45($fp)
-	li $8, 0
-	sb $8, -44($fp)
-	li $8, 0
-	sb $8, -43($fp)
-	li $8, 0
-	sb $8, -42($fp)
-	li $8, 0
-	sb $8, -41($fp)
-	li $8, 0
-	sb $8, -40($fp)
-	li $8, 0
-	sb $8, -39($fp)
-	li $8, 0
-	sb $8, -38($fp)
-	li $8, 0
-	sb $8, -37($fp)
-	li $8, 0
-	sb $8, -36($fp)
-	li $8, 0
-	sb $8, -35($fp)
-	li $8, 0
-	sb $8, -34($fp)
-	li $8, 0
-	sb $8, -33($fp)
-	li $8, 0
-	sb $8, -32($fp)
-	li $8, 0
-	sb $8, -31($fp)
-	li $8, 0
-	sb $8, -30($fp)
-	li $8, 0
-	sb $8, -29($fp)
-	li $8, 0
-	sb $8, -28($fp)
-	li $8, 0
-	sb $8, -27($fp)
-	li $8, 0
-	sb $8, -26($fp)
-	li $8, 0
-	sb $8, -25($fp)
-	li $8, 0
-	sb $8, -24($fp)
-	li $8, 0
-	sb $8, -23($fp)
-	li $8, 0
-	sb $8, -22($fp)
-	li $8, 0
-	sb $8, -21($fp)
-	li $8, 0
-	sb $8, -20($fp)
-	li $8, 0
-	sb $8, -19($fp)
-	li $8, 0
-	sb $8, -18($fp)
-	li $8, 0
-	sb $8, -17($fp)
-	move $4, $6
-	lw $4, 0($4)
-	li $2, 1
-	syscall
-	li $2, 4
-	addi $4, $fp, -48
-	syscall
-	lw $6, -56($fp)
-	li $6, 0
-	lw $8, -52($fp)
-	add $8, $7, $6
-	addi $sp, $sp, -12
-	sw $ra, -60($fp)
+	li $5, 10
+	lw $6, -20($fp)
+	lw $7, -4($fp)
+	slt $6, $7, $5
 	sw $5, -16($fp)
-	sw $6, -56($fp)
-	sw $7, 4($fp)
-	sw $8, -52($fp)
-	lw $6, -52($fp)
-	lw $5, 0($6)
-	sw $5, -64($fp)
-	li $3, -68
-	sw $3, -68($fp)
-	sw $6, -52($fp)
-	addi $fp, $fp, -68
-	jal print_linked_list
-	addi $fp, $fp, 68
-	lw $ra, -60($fp)
-	addi $sp, $sp, 12
-	j l6
-l6:
-	addi $sp, $sp, 56
-	jr $ra
-	addi $sp, $sp, -56
-	addi $sp, $sp, 56
-	jr $ra
-search:
-	addi $sp, $sp, -92
-	lw $5, -4($fp)
-	li $5, 0
-	lw $6, -8($fp)
-	lw $7, 8($fp)
-	seq $6, $7, $5
-	sw $5, -4($fp)
-	sw $6, -8($fp)
-	sw $7, 8($fp)
-	lw $5, -8($fp)
-	beq $5, $0, l10
-	lw $6, -40($fp)
+	sw $6, -20($fp)
+	sw $7, -4($fp)
+	lw $5, -20($fp)
+	beq $5, $0, l3
+	lw $6, -24($fp)
+	li $6, 0
+	lw $7, -8($fp)
+	move $7, $6
+	sw $7, -8($fp)
+	sw $6, -24($fp)
+	sw $5, -20($fp)
+l4:
+	lw $5, -28($fp)
+	li $5, 10
+	lw $6, -32($fp)
+	lw $7, -8($fp)
+	slt $6, $7, $5
+	sw $5, -28($fp)
+	sw $6, -32($fp)
+	sw $7, -8($fp)
+	lw $5, -32($fp)
+	beq $5, $0, l5
+	lw $6, -64($fp)
 	li $6, 32
+	sb $6, -64($fp)
+	li $6, 40
+	sb $6, -63($fp)
+	li $6, 0
+	sb $6, -62($fp)
+	li $6, 0
+	sb $6, -61($fp)
+	li $6, 0
+	sb $6, -60($fp)
+	li $6, 0
+	sb $6, -59($fp)
+	li $6, 0
+	sb $6, -58($fp)
+	li $6, 0
+	sb $6, -57($fp)
+	li $6, 0
+	sb $6, -56($fp)
+	li $6, 0
+	sb $6, -55($fp)
+	li $6, 0
+	sb $6, -54($fp)
+	li $6, 0
+	sb $6, -53($fp)
+	li $6, 0
+	sb $6, -52($fp)
+	li $6, 0
+	sb $6, -51($fp)
+	li $6, 0
+	sb $6, -50($fp)
+	li $6, 0
+	sb $6, -49($fp)
+	li $6, 0
+	sb $6, -48($fp)
+	li $6, 0
+	sb $6, -47($fp)
+	li $6, 0
+	sb $6, -46($fp)
+	li $6, 0
+	sb $6, -45($fp)
+	li $6, 0
+	sb $6, -44($fp)
+	li $6, 0
+	sb $6, -43($fp)
+	li $6, 0
+	sb $6, -42($fp)
+	li $6, 0
+	sb $6, -41($fp)
+	li $6, 0
 	sb $6, -40($fp)
-	li $6, 58
+	li $6, 0
 	sb $6, -39($fp)
-	li $6, 32
+	li $6, 0
 	sb $6, -38($fp)
-	li $6, 78
+	li $6, 0
 	sb $6, -37($fp)
-	li $6, 111
+	li $6, 0
 	sb $6, -36($fp)
-	li $6, 116
+	li $6, 0
 	sb $6, -35($fp)
-	li $6, 32
+	li $6, 0
 	sb $6, -34($fp)
-	li $6, 70
+	li $6, 0
 	sb $6, -33($fp)
-	li $6, 111
-	sb $6, -32($fp)
-	li $6, 117
-	sb $6, -31($fp)
-	li $6, 110
-	sb $6, -30($fp)
-	li $6, 100
-	sb $6, -29($fp)
-	li $6, 10
-	sb $6, -28($fp)
+	lw $6, -96($fp)
+	li $6, 44
+	sb $6, -96($fp)
 	li $6, 0
-	sb $6, -27($fp)
+	sb $6, -95($fp)
 	li $6, 0
-	sb $6, -26($fp)
+	sb $6, -94($fp)
 	li $6, 0
-	sb $6, -25($fp)
+	sb $6, -93($fp)
 	li $6, 0
-	sb $6, -24($fp)
+	sb $6, -92($fp)
 	li $6, 0
-	sb $6, -23($fp)
+	sb $6, -91($fp)
 	li $6, 0
-	sb $6, -22($fp)
+	sb $6, -90($fp)
 	li $6, 0
-	sb $6, -21($fp)
+	sb $6, -89($fp)
 	li $6, 0
-	sb $6, -20($fp)
+	sb $6, -88($fp)
 	li $6, 0
-	sb $6, -19($fp)
+	sb $6, -87($fp)
 	li $6, 0
-	sb $6, -18($fp)
+	sb $6, -86($fp)
 	li $6, 0
-	sb $6, -17($fp)
+	sb $6, -85($fp)
 	li $6, 0
-	sb $6, -16($fp)
-	li $6, 0
-	sb $6, -15($fp)
-	li $6, 0
-	sb $6, -14($fp)
-	li $6, 0
-	sb $6, -13($fp)
-	li $6, 0
-	sb $6, -12($fp)
-	li $6, 0
-	sb $6, -11($fp)
-	li $6, 0
-	sb $6, -10($fp)
-	li $6, 0
-	sb $6, -9($fp)
-	lw $6, 4($fp)
-	li $2, 1
-	move $4, $6
-	syscall
-	li $2, 4
-	addi $4, $fp, -40
-	syscall
-	sw $5, -8($fp)
-	sw $6, 4($fp)
-	addi $sp, $sp, 92
-	jr $ra
-	addi $sp, $sp, -92
-	j l11
-l10:
-	lw $5, -48($fp)
-	li $5, 4
-	lw $6, -44($fp)
-	lw $7, 8($fp)
-	add $6, $7, $5
-	lw $8, -52($fp)
-	lw $6, 0($6)
-	move $9, $6
-	lw $6, 4($fp)
-	seq $8, $9, $6
-	sw $5, -48($fp)
-	sw $6, 4($fp)
-	sw $7, 8($fp)
-	sw $8, -52($fp)
-	lw $5, -52($fp)
-	beq $5, $0, l8
-	lw $6, -84($fp)
-	li $6, 32
 	sb $6, -84($fp)
-	li $6, 58
+	li $6, 0
 	sb $6, -83($fp)
-	li $6, 32
+	li $6, 0
 	sb $6, -82($fp)
-	li $6, 70
+	li $6, 0
 	sb $6, -81($fp)
-	li $6, 111
+	li $6, 0
 	sb $6, -80($fp)
-	li $6, 117
+	li $6, 0
 	sb $6, -79($fp)
-	li $6, 110
+	li $6, 0
 	sb $6, -78($fp)
-	li $6, 100
+	li $6, 0
 	sb $6, -77($fp)
-	li $6, 10
+	li $6, 0
 	sb $6, -76($fp)
 	li $6, 0
 	sb $6, -75($fp)
@@ -362,368 +169,168 @@ l10:
 	sb $6, -66($fp)
 	li $6, 0
 	sb $6, -65($fp)
+	lw $6, -128($fp)
+	li $6, 41
+	sb $6, -128($fp)
+	li $6, 32
+	sb $6, -127($fp)
 	li $6, 0
-	sb $6, -64($fp)
+	sb $6, -126($fp)
 	li $6, 0
-	sb $6, -63($fp)
+	sb $6, -125($fp)
 	li $6, 0
-	sb $6, -62($fp)
+	sb $6, -124($fp)
 	li $6, 0
-	sb $6, -61($fp)
+	sb $6, -123($fp)
 	li $6, 0
-	sb $6, -60($fp)
+	sb $6, -122($fp)
 	li $6, 0
-	sb $6, -59($fp)
+	sb $6, -121($fp)
 	li $6, 0
-	sb $6, -58($fp)
+	sb $6, -120($fp)
 	li $6, 0
-	sb $6, -57($fp)
+	sb $6, -119($fp)
 	li $6, 0
-	sb $6, -56($fp)
+	sb $6, -118($fp)
 	li $6, 0
-	sb $6, -55($fp)
+	sb $6, -117($fp)
 	li $6, 0
-	sb $6, -54($fp)
+	sb $6, -116($fp)
 	li $6, 0
-	sb $6, -53($fp)
-	lw $6, 4($fp)
+	sb $6, -115($fp)
+	li $6, 0
+	sb $6, -114($fp)
+	li $6, 0
+	sb $6, -113($fp)
+	li $6, 0
+	sb $6, -112($fp)
+	li $6, 0
+	sb $6, -111($fp)
+	li $6, 0
+	sb $6, -110($fp)
+	li $6, 0
+	sb $6, -109($fp)
+	li $6, 0
+	sb $6, -108($fp)
+	li $6, 0
+	sb $6, -107($fp)
+	li $6, 0
+	sb $6, -106($fp)
+	li $6, 0
+	sb $6, -105($fp)
+	li $6, 0
+	sb $6, -104($fp)
+	li $6, 0
+	sb $6, -103($fp)
+	li $6, 0
+	sb $6, -102($fp)
+	li $6, 0
+	sb $6, -101($fp)
+	li $6, 0
+	sb $6, -100($fp)
+	li $6, 0
+	sb $6, -99($fp)
+	li $6, 0
+	sb $6, -98($fp)
+	li $6, 0
+	sb $6, -97($fp)
+	li $2, 4
+	addi $4, $fp, -64
+	syscall
+	lw $6, -4($fp)
 	li $2, 1
 	move $4, $6
 	syscall
 	li $2, 4
-	addi $4, $fp, -84
+	addi $4, $fp, -96
 	syscall
-	sw $5, -52($fp)
-	sw $6, 4($fp)
-	addi $sp, $sp, 92
-	jr $ra
-	addi $sp, $sp, -92
-	j l9
-l8:
-	lw $5, -92($fp)
-	li $5, 0
-	lw $6, -88($fp)
-	lw $7, 8($fp)
-	add $6, $7, $5
-	addi $sp, $sp, -16
-	sw $ra, -96($fp)
-	sw $5, -92($fp)
-	sw $6, -88($fp)
-	sw $7, 8($fp)
-	lw $6, -88($fp)
-	lw $5, 0($6)
-	sw $5, -100($fp)
-	sw $6, -88($fp)
-	lw $5, 4($fp)
-	sw $5, -104($fp)
-	li $3, -108
-	sw $3, -108($fp)
-	addi $fp, $fp, -108
-	jal search
-	addi $fp, $fp, 108
-	lw $ra, -96($fp)
-	addi $sp, $sp, 16
-	j l9
-l9:
-	j l11
-l11:
-	addi $sp, $sp, 92
-	jr $ra
-	addi $sp, $sp, -92
-	addi $sp, $sp, 92
-	jr $ra
-main:
-	addi $fp, $sp, 0
-	addi $sp, $sp, -132
-	lw $5, -8($fp)
-	li $5, 0
-	lw $6, -4($fp)
-	move $6, $5
+	lw $7, -8($fp)
+	li $2, 1
+	move $4, $7
+	syscall
+	li $2, 4
+	addi $4, $fp, -128
+	syscall
+	addi $7, 1
+	sw $7, -8($fp)
+	sw $5, -32($fp)
 	sw $6, -4($fp)
-	sw $5, -8($fp)
-	lw $5, -48($fp)
-	li $5, 78
-	sb $5, -48($fp)
-	li $5, 111
-	sb $5, -47($fp)
-	li $5, 46
-	sb $5, -46($fp)
-	li $5, 32
-	sb $5, -45($fp)
-	li $5, 111
-	sb $5, -44($fp)
-	li $5, 102
-	sb $5, -43($fp)
-	li $5, 32
-	sb $5, -42($fp)
-	li $5, 110
-	sb $5, -41($fp)
-	li $5, 111
-	sb $5, -40($fp)
-	li $5, 100
-	sb $5, -39($fp)
-	li $5, 101
-	sb $5, -38($fp)
-	li $5, 115
-	sb $5, -37($fp)
-	li $5, 32
-	sb $5, -36($fp)
-	li $5, 105
-	sb $5, -35($fp)
-	li $5, 110
-	sb $5, -34($fp)
-	li $5, 32
-	sb $5, -33($fp)
-	li $5, 76
-	sb $5, -32($fp)
-	li $5, 105
-	sb $5, -31($fp)
-	li $5, 110
-	sb $5, -30($fp)
-	li $5, 107
-	sb $5, -29($fp)
-	li $5, 101
-	sb $5, -28($fp)
-	li $5, 100
-	sb $5, -27($fp)
-	li $5, 32
-	sb $5, -26($fp)
-	li $5, 76
-	sb $5, -25($fp)
-	li $5, 105
-	sb $5, -24($fp)
-	li $5, 115
-	sb $5, -23($fp)
-	li $5, 116
-	sb $5, -22($fp)
-	li $5, 32
-	sb $5, -21($fp)
-	li $5, 58
-	sb $5, -20($fp)
-	li $5, 32
-	sb $5, -19($fp)
-	li $5, 0
-	sb $5, -18($fp)
-	li $5, 0
-	sb $5, -17($fp)
-	li $2, 4
-	addi $4, $fp, -48
-	syscall
-	lw $5, -12($fp)
-	li $2, 5
-	syscall
-	move $5, $2
-	lw $6, -52($fp)
-	li $6, 0
-	lw $7, -56($fp)
-	move $7, $6
-	sw $7, -56($fp)
-	sw $6, -52($fp)
-	sw $5, -12($fp)
-l13:
-	lw $5, -60($fp)
-	lw $6, -56($fp)
-	lw $7, -12($fp)
-	slt $5, $6, $7
-	sw $5, -60($fp)
-	sw $6, -56($fp)
-	sw $7, -12($fp)
-	lw $5, -60($fp)
-	beq $5, $0, l14
-	lw $6, -16($fp)
-	li $2, 5
-	syscall
-	move $6, $2
-	addi $sp, $sp, -20
-	sw $ra, -64($fp)
-	sw $5, -60($fp)
-	sw $6, -16($fp)
-	lw $5, -4($fp)
-	sw $5, -72($fp)
-	lw $5, -16($fp)
-	sw $5, -76($fp)
-	li $3, -80
-	sw $3, -80($fp)
-	addi $fp, $fp, -80
-	jal insert
-	addi $fp, $fp, 80
-	lw $ra, -64($fp)
-	addi $sp, $sp, 20
-	lw $5, -4($fp)
-	lw $6, -68($fp)
-	move $5, $6
-	sw $5, -4($fp)
-	sw $6, -68($fp)
-	lw $5, -56($fp)
-	addi $5, 1
-	sw $5, -56($fp)
-	sw $5, -56($fp)
-	j l13
-l14:
-	lw $5, -100($fp)
-	li $5, 76
-	sb $5, -100($fp)
-	li $5, 105
-	sb $5, -99($fp)
-	li $5, 110
-	sb $5, -98($fp)
-	li $5, 107
-	sb $5, -97($fp)
-	li $5, 101
-	sb $5, -96($fp)
-	li $5, 100
-	sb $5, -95($fp)
-	li $5, 32
-	sb $5, -94($fp)
-	li $5, 76
-	sb $5, -93($fp)
-	li $5, 105
-	sb $5, -92($fp)
-	li $5, 115
-	sb $5, -91($fp)
-	li $5, 116
-	sb $5, -90($fp)
-	li $5, 32
-	sb $5, -89($fp)
-	li $5, 105
-	sb $5, -88($fp)
-	li $5, 115
-	sb $5, -87($fp)
-	li $5, 32
-	sb $5, -86($fp)
-	li $5, 97
-	sb $5, -85($fp)
-	li $5, 115
-	sb $5, -84($fp)
-	li $5, 32
-	sb $5, -83($fp)
-	li $5, 102
-	sb $5, -82($fp)
-	li $5, 111
-	sb $5, -81($fp)
-	li $5, 108
-	sb $5, -80($fp)
-	li $5, 108
-	sb $5, -79($fp)
-	li $5, 111
-	sb $5, -78($fp)
-	li $5, 119
-	sb $5, -77($fp)
-	li $5, 115
-	sb $5, -76($fp)
-	li $5, 58
-	sb $5, -75($fp)
-	li $5, 32
-	sb $5, -74($fp)
-	li $5, 0
-	sb $5, -73($fp)
-	li $5, 0
-	sb $5, -72($fp)
-	li $5, 0
-	sb $5, -71($fp)
-	li $5, 0
-	sb $5, -70($fp)
-	li $5, 0
-	sb $5, -69($fp)
-	li $2, 4
-	addi $4, $fp, -100
-	syscall
-	addi $sp, $sp, -12
-	sw $ra, -104($fp)
-	lw $5, -4($fp)
-	sw $5, -108($fp)
-	li $3, -112
-	sw $3, -112($fp)
-	addi $fp, $fp, -112
-	jal print_linked_list
-	addi $fp, $fp, 112
-	lw $ra, -104($fp)
-	addi $sp, $sp, 12
-	lw $5, -132($fp)
+	sw $7, -8($fp)
+	j l4
+l5:
+	lw $5, -160($fp)
 	li $5, 10
+	sb $5, -160($fp)
+	li $5, 0
+	sb $5, -159($fp)
+	li $5, 0
+	sb $5, -158($fp)
+	li $5, 0
+	sb $5, -157($fp)
+	li $5, 0
+	sb $5, -156($fp)
+	li $5, 0
+	sb $5, -155($fp)
+	li $5, 0
+	sb $5, -154($fp)
+	li $5, 0
+	sb $5, -153($fp)
+	li $5, 0
+	sb $5, -152($fp)
+	li $5, 0
+	sb $5, -151($fp)
+	li $5, 0
+	sb $5, -150($fp)
+	li $5, 0
+	sb $5, -149($fp)
+	li $5, 0
+	sb $5, -148($fp)
+	li $5, 0
+	sb $5, -147($fp)
+	li $5, 0
+	sb $5, -146($fp)
+	li $5, 0
+	sb $5, -145($fp)
+	li $5, 0
+	sb $5, -144($fp)
+	li $5, 0
+	sb $5, -143($fp)
+	li $5, 0
+	sb $5, -142($fp)
+	li $5, 0
+	sb $5, -141($fp)
+	li $5, 0
+	sb $5, -140($fp)
+	li $5, 0
+	sb $5, -139($fp)
+	li $5, 0
+	sb $5, -138($fp)
+	li $5, 0
+	sb $5, -137($fp)
+	li $5, 0
+	sb $5, -136($fp)
+	li $5, 0
+	sb $5, -135($fp)
+	li $5, 0
+	sb $5, -134($fp)
+	li $5, 0
+	sb $5, -133($fp)
+	li $5, 0
 	sb $5, -132($fp)
-	li $5, 69
+	li $5, 0
 	sb $5, -131($fp)
-	li $5, 110
+	li $5, 0
 	sb $5, -130($fp)
-	li $5, 116
+	li $5, 0
 	sb $5, -129($fp)
-	li $5, 101
-	sb $5, -128($fp)
-	li $5, 114
-	sb $5, -127($fp)
-	li $5, 32
-	sb $5, -126($fp)
-	li $5, 116
-	sb $5, -125($fp)
-	li $5, 104
-	sb $5, -124($fp)
-	li $5, 101
-	sb $5, -123($fp)
-	li $5, 32
-	sb $5, -122($fp)
-	li $5, 78
-	sb $5, -121($fp)
-	li $5, 111
-	sb $5, -120($fp)
-	li $5, 46
-	sb $5, -119($fp)
-	li $5, 32
-	sb $5, -118($fp)
-	li $5, 116
-	sb $5, -117($fp)
-	li $5, 111
-	sb $5, -116($fp)
-	li $5, 32
-	sb $5, -115($fp)
-	li $5, 115
-	sb $5, -114($fp)
-	li $5, 101
-	sb $5, -113($fp)
-	li $5, 97
-	sb $5, -112($fp)
-	li $5, 114
-	sb $5, -111($fp)
-	li $5, 99
-	sb $5, -110($fp)
-	li $5, 104
-	sb $5, -109($fp)
-	li $5, 58
-	sb $5, -108($fp)
-	li $5, 32
-	sb $5, -107($fp)
-	li $5, 0
-	sb $5, -106($fp)
-	li $5, 0
-	sb $5, -105($fp)
-	li $5, 0
-	sb $5, -104($fp)
-	li $5, 0
-	sb $5, -103($fp)
-	li $5, 0
-	sb $5, -102($fp)
-	li $5, 0
-	sb $5, -101($fp)
 	li $2, 4
-	addi $4, $fp, -132
+	addi $4, $fp, -160
 	syscall
-	lw $5, -16($fp)
-	li $2, 5
-	syscall
-	move $5, $2
-	addi $sp, $sp, -16
-	sw $ra, -136($fp)
-	sw $5, -16($fp)
 	lw $5, -4($fp)
-	sw $5, -140($fp)
-	lw $5, -16($fp)
-	sw $5, -144($fp)
-	li $3, -148
-	sw $3, -148($fp)
-	addi $fp, $fp, -148
-	jal search
-	addi $fp, $fp, 148
-	lw $ra, -136($fp)
-	addi $sp, $sp, 16
-	addi $sp, $sp, 132
+	addi $5, 1
+	sw $5, -4($fp)
+	sw $5, -4($fp)
+	j l2
+l3:
+	addi $sp, $sp, 160
 	jr $ra
