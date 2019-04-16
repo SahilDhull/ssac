@@ -1,8 +1,8 @@
 package main;
 
 func main() {
-	var a float = 5.2;
-	var b float = 4.3;
+	var a float = 4.6;
+	var b float = 2.3;
 	var n string = "\n";
 	print "a : ",a,n;
 	print "b : ",b,n;
