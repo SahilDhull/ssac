@@ -1,6 +1,0 @@
-label main 
-$sp -8 
-= temp_c0 1.2 
-= var0 temp_c0 
-print_float var0 
-jr $ra main 
