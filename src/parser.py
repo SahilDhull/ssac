@@ -79,6 +79,7 @@ def opTypeCheck(a,b,op):
 		a = a[0]
 	if type(b) is list:
 		b = b[0]
+	# if op.startswith('f') and () 
 	if a.startswith('*') and b.startswith('*'):
 		return False
 	if a.startswith('c') and a[1:]==b:
@@ -1498,9 +1499,7 @@ def p_expr(p):
 			scopeDict[curScope].extra['curOffset'] -= 4
 			vinfo.offset = scopeDict[curScope].extra['curOffset']
 			vinfo.mysize = 4
-			if p[2]=='*':
-				p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
-			elif p[2]=='&&':
+			if p[2]=='&&':
 				p[0].code.append(['&',v,p[1].place[0],p[3].place[0]])
 			elif p[2]=='||':
 				p[0].code.append(['|',v,p[1].place[0],p[3].place[0]])
@@ -1535,19 +1534,22 @@ def p_expr(p):
 					p[0].code.append(['typecast','float',p[1].place[0]])
 					p[1].types = ['float']
 					p[0].types = ['float']
+					p[3].types = ['float']
 					p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 				elif (p[3].types[0]=='cint'or p[3].types[0]=='int') and (p[1].types[0]=='cfloat'or p[1].types[0]=='float'):
 					p[0].code.append(['typecast','float',p[3].place[0]])
 					p[3].types = ['float']
 					p[0].types = ['float']
+					p[1].types = ['float']
 					p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 				else:
 					p[0].code.append([op,v,p[1].place[0],p[3].place[0]])
 			else:
 				p[0].code.append([p[2],v,p[1].place[0],p[3].place[0]])
 			p[0].place = [v]
-
-			if not opTypeCheck(p[1].types[0],p[3].types[0],p[2]):
+			# print p[1].types
+			# print p[3].types
+			if not opTypeCheck(p[1].types[0],p[3].types[0],op):
 				raise TypeError("Line "+str(p.lineno(1))+" : "+"Expression types dont match on both side of operation "+p[2])
 
 

@@ -50,7 +50,7 @@ def update_symbol_table():
 # Registers:----------------------------------
 
 regs = ["$"+str(i) for i in range(5,26)]
-fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18,19,20,21,22,23,24,25,26,27,28,29]]
+fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]]
 regsState = dict((i, 0) for i in regs)
 floatState = dict((i,0) for i in fregs)
 fnum = 0
@@ -185,6 +185,7 @@ def free_all_reg():
 		del regTovar[reg]
 		del varToreg[varname]
 
+# def free_all_float():
 
 # ---------------------------------------------
 
@@ -231,6 +232,17 @@ def gen_assembly(line):
 		asmCode.append('move '+dest+', $v0')
 		empty_reg(dest)
 
+	# Typecast
+	if test=='typecast':
+		# reg = get_float(line[2])
+		info = findinfo(line[2])
+		off = info.offset
+		asmCode.append('lwc1 $f27, '+str(off)+'($fp)')
+		asmCode.append('cvt.s.w $f28, $f27')
+		floatToreg[line[2]] = '$f28'
+		regTofloat['$f28'] = line[2]
+		floatState['$f28'] = 1
+		# asmCode.append('s.s '+reg+', '+str(off)+'($fp)')
 
 	# ---------   FLOAT  -------------------
 	# To complete

@@ -1,27 +1,30 @@
 package main;
 
-type kk struct {
+type node struct {
 	a int;
-	b *kk;
+	b *type node;
 };
 
 func main() {
-	var str [10]*kk;
+	var x [10]*type node;
+	var v,g *type node;
 	for i := 0; i < 10; i++ {
-		str[i] = new(kk);
-		ptr := str[i];
+		v = malloc(8);
+		x[i] = v;
 		for j := 0; j < 10; j++ {
-			ptr.a = 10 + i*10 + j;
-			ptr.b = new(kk);
-			ptr = ptr.b;
+			v.a = 10 + i*10 + j;
+			g = malloc(8);
+			v.b = g;
+			v = v.b;
 		};
 	};
 
 	for i := 0; i < 10; i++ {
-		ptr := str[i];
+		v = x[i];
 		for j := 0; j < 10; j++ {
-			fmt.Printf("%d\n", ptr.a);
-			ptr = ptr.b;
+			print v.a,"\n";
+			v = v.b;
 		};
+		print "--\n";
 	};
 };

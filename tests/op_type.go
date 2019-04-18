@@ -1,7 +1,7 @@
 package main;
 
 func main() {
-	var a float = 9.2;
+	var a float = 5.2;
 	var b int = 4;
 	var n string = "\n";
 	print "a : ",a,n;
