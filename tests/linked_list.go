@@ -1,32 +1,60 @@
 package main;
 
-type rect struct {
-    name string;
-    age  int;
-    next *type rect;
+type node struct {
+    val  int;
+    next *type node;
 };
 
+func insert(head *type node, c int) *type node{
+	if head == null{
+		head = malloc(8);
+		head.val = c;
+		head.next = null;
+	} else{
+		head.next = insert(head.next,c);
+	};
+	return head;
+};
+
+func print_linked_list(head *type node){
+	if head == null{
+		return;
+	}
+	else{
+		print head.val," ";
+		print_linked_list(head.next);
+	};
+	return;
+};
+
+func search(head *type node,c int){
+	if head == null{
+		print c," : Not Found\n";
+		return;
+	}
+	else if head.val==c{
+		print c," : Found\n";
+		return;
+	}
+	else{
+		search(head.next,c);
+	};
+	return;
+};
 
 func main(){
-	var a,b,c,d,e type rect;
-	a.next, b.next, c.next, d.next = &b, &c, &d, &e;
-	var an,bn,cn,dn *type rect;
-	an,bn,cn,dn = a.next, b.next, c.next, d.next;
-	b.name = "b\n";
-	b.age = 4;
-	c.name = "name of c\n";
-	c.age = 5;
-	d.name = "name of d\n";
-	d.age = 6;
-	e.name = "name of e\n";
-	e.age = 7;
-	var s string = an.name;
-	print s;
-	print an.age;					// 4
-	print "\n";
-	print bn.age; 				// 5
-	print "\n";
-	print a.next.next.next.age; 		// 6
-	print "\n";
-	print a.next.next.next.next.age; 	// 7
+	var head *type node;
+	head = null;
+	var n,c int;
+	print "No. of nodes in Linked List : ";
+	scan n;
+	for i:=0;i<n;i++{
+		scan c;
+		head = insert(head,c);
+	};
+	print "Linked List is as follows: ";
+	print_linked_list(head);
+	print "\nEnter the No. to search: ";
+	scan c;
+	search(head,c);
 };

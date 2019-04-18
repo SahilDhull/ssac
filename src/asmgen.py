@@ -50,10 +50,15 @@ def update_symbol_table():
 # Registers:----------------------------------
 
 regs = ["$"+str(i) for i in range(5,26)]
+fregs = ["$f"+str(i) for i in [4,5,6,7,8,9,10,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]]
 regsState = dict((i, 0) for i in regs)
+floatState = dict((i,0) for i in fregs)
+fnum = 0
 rnum = 0
 regTovar = {}
 varToreg = {}
+regTofloat = {}
+floatToreg = {}
 
 def free_reg():
 	# print "-------------------------------------------"
@@ -61,6 +66,13 @@ def free_reg():
 	for i in regs:
 		if regsState[i]==0:
 			regsState[i]=1
+			return i
+	return -1
+
+def free_float():
+	for i in fregs:
+		if floatState[i]==0:
+			floatState[i]=1
 			return i
 	return -1
 
@@ -81,9 +93,22 @@ def reg_replace(reg_to_rep,newVar=None):
 		off = off_cal(newVar)
 		asmCode.append('lw '+reg_to_rep+', '+str(off)+'($fp)')
 
+def float_replace(reg_to_rep,newVar=None):
+	oldVar = regTofloat[reg_to_rep]
+	old_off = off_cal(oldVar)
+	asmCode.append('swc1 '+reg_to_rep+', '+str(old_off)+'($fp)')
+	if newVar:
+		regTofloat[reg_to_rep] = newVar
+		floatToreg[newVar] = reg_to_rep
+		off = off_cal(newVar)
+		asmCode.append('lwc1 '+reg_to_rep+', '+str(off)+'($fp)')
+
 def get_reg(var,load=0):
 	info = findinfo(var)
 	off = off_cal(var)
+	flag = 0
+	if off==None:
+		flag = 1
 
 	if var in varToreg and regsState[varToreg[var]]==1:
 		return varToreg[var]
@@ -94,7 +119,9 @@ def get_reg(var,load=0):
 		varToreg[var] = freereg
 		regTovar[freereg] = var
 		regsState[freereg] = 1
-		if load==0:
+		if load==0 and flag==0:
+			asmCode.append('lw '+freereg+', '+str(off)+'($fp)')
+		elif flag == 1:
 			asmCode.append('lw '+freereg+', '+str(off)+'($fp)')
 		return freereg
 	global rnum
@@ -103,6 +130,29 @@ def get_reg(var,load=0):
 	varname = regTovar[reg_to_rep]
 	reg_replace(reg_to_rep,varname)
 	return reg_to_rep
+
+def get_float(var, load=0):
+	info = findinfo(var)
+	off = off_cal(var)
+	if var in floatToreg and floatState[floatToreg[var]]==1:
+		return floatToreg[var]
+
+	freefloat = free_float()
+
+	if type(freefloat) is str:
+		floatToreg[var] = freefloat
+		regTofloat[freefloat] = var
+		floatState[freefloat] = 1
+		if load==0:
+			asmCode.append('lwc1 '+freefloat+', '+str(off)+'($fp)')
+		return freefloat
+	global fnum
+	reg_to_rep = fregs[fnum%len(fregs)]
+	fnum += 1
+	varname = regTofloat[reg_to_rep]
+	float_replace(reg_to_rep,varname)
+	return reg_to_rep
+
 
 def empty_reg(reg):
 	if regsState[reg] == 0:
@@ -135,6 +185,7 @@ def free_all_reg():
 		del regTovar[reg]
 		del varToreg[varname]
 
+# def free_all_float():
 
 # ---------------------------------------------
 
@@ -159,9 +210,12 @@ binaryop = ['+','-','*','/','%','&','|','^','!=','<=','>=','==','<','>','<<','>>
 eqop = ['=','+=','-=','*=','/=','%=','<<=','>>=',':=','!']  
 op = binaryop + eqop
 
+feqop = ['f=','f+=','f-=','f*=','f/=']
+fbop = ['f+','f-','f*','f/']
+
 # Start of MIPS
 asmCode.append('.data')
-asmCode.append("\tstr1: .asciiz \"----\\n\" ")
+# asmCode.append("\tstr1: .asciiz \"----\\n\" ")
 global_variables()
 asmCode.append('.text')
 asmCode.append('.globl main')
@@ -169,6 +223,82 @@ asmCode.append('.globl main')
 
 def gen_assembly(line):
 	test = line[0]
+
+	if test == 'call_malloc':
+		dest = get_reg(line[1])
+		asmCode.append('li $a0, '+str(line[2]))
+		asmCode.append('li $v0, 9')
+		asmCode.append('syscall')
+		asmCode.append('move '+dest+', $v0')
+		empty_reg(dest)
+
+	# Typecast
+	if test=='typecast':
+		# reg = get_float(line[2])
+		info = findinfo(line[2])
+		off = info.offset
+		asmCode.append('lwc1 $f27, '+str(off)+'($fp)')
+		asmCode.append('cvt.s.w $f28, $f27')
+		floatToreg[line[2]] = '$f28'
+		regTofloat['$f28'] = line[2]
+		floatState['$f28'] = 1
+		# asmCode.append('s.s '+reg+', '+str(off)+'($fp)')
+
+	# ---------   FLOAT  -------------------
+	# To complete
+	if test.startswith('f'):
+		x = test
+
+		if test=='fprint':
+			dest = get_float(line[1])
+			asmCode.append('li, $v0, 2')
+			asmCode.append('mov.s $f12, '+dest)
+			asmCode.append('syscall')
+
+		if test=='fscan':
+			asmCode.append('li $2, 6')
+			asmCode.append('syscall')
+
+		if test in feqop:
+			arg1 = str(line[1])
+			arg2 = str(line[2])
+
+			dest = get_float(arg1)
+
+			if x=='f=' and arg1.startswith('temp_c'):
+				asmCode.append('li.s '+dest+', '+arg2)
+				return
+
+			src = get_float(arg2)		
+
+			if x=='f=':
+				asmCode.append('mov.s '+dest+', '+src)
+			elif x=='f+=':
+				asmCode.append('add.s '+dest+', '+dest+', '+src)
+			elif x=='f-=':
+				asmCode.append('sub.s '+dest+', '+dest+', '+src)
+			elif x=='f*=':
+				asmCode.append('mul.s '+dest+', '+dest+', '+src)
+			elif x=='f/=':
+				asmCode.append('div.s '+dest+', '+dest+', '+src)
+
+		if test in fbop:
+			arg1 = str(line[1])
+			arg2 = str(line[2])
+			arg3 = str(line[3])
+
+			dest = get_float(arg1)
+			src1 = get_float(arg2)
+			src2 = get_float(arg3)
+
+			if x=='f+':
+				asmCode.append('add.s '+dest+', '+src1+', '+src2)
+			if x=='f-':
+				asmCode.append('sub.s '+dest+', '+src1+', '+src2)
+			if x=='f*':
+				asmCode.append('mul.s '+dest+', '+src1+', '+src2)
+			if x=='f/':
+				asmCode.append('div.s '+dest+', '+src1+', '+src2)				
 
 	# If Statement
 	if test=='ifgoto':
@@ -194,6 +324,19 @@ def gen_assembly(line):
 	# Print Statement except string
 	if test.startswith('print'):
 		arg1 = line[1]
+		if len(test)==12 and arg1.startswith('addr_'):
+			arg1 = arg1[5:]
+			reg1 = get_reg(arg1)
+			asmCode.append('move $4, '+reg1)
+			asmCode.append('li $2, 4')
+			asmCode.append('syscall')
+			return
+		elif len(test) == 12:
+			info = findinfo(line[1])
+			asmCode.append('li $2, 4')
+			asmCode.append('addi $4, $fp, '+str(info.offset))
+			asmCode.append('syscall')
+			return
 		cnt = 0
 		if arg1.startswith('addr_'):
 			while arg1.startswith('addr_'):
@@ -201,7 +344,7 @@ def gen_assembly(line):
 				cnt+=1
 			reg1 = get_reg(arg1)
 			info = findinfo(arg1)
-			print info.mysize
+			# print info.mysize
 			asmCode.append('move $4, '+reg1)
 			while cnt:
 				cnt-=1
@@ -222,11 +365,6 @@ def gen_assembly(line):
 			src = get_reg(line[1])
 			asmCode.append('li $2, 2')
 			asmCode.append('move $f12, '+src)
-			asmCode.append('syscall')
-		else:       # string case
-			info = findinfo(line[1])
-			asmCode.append('li $2, 4')
-			asmCode.append('addi $4, $fp, '+str(info.offset))
 			asmCode.append('syscall')
 
 	if test.startswith('scan'):
@@ -334,6 +472,12 @@ def gen_assembly(line):
 			arg3 = int(line[3])
 			free_all_reg()
 			src = free_reg()
+			if arg1.startswith('addr_'):
+				arg1 = arg1[5:]
+				reg1 = get_reg(arg1)
+				asmCode.append('lw '+src+', 0('+reg1+')')
+				asmCode.append('sw '+src+', '+str(arg3)+'($fp)')
+				return
 			info = findinfo(arg1)
 			off = info.offset
 			num = arg2
@@ -411,6 +555,7 @@ def gen_assembly(line):
 		if arg1.startswith('addr_') and arg2.startswith('addr_'):
 			if no_of_free_regs()<6:
 				free_all_reg()
+			flag = 1
 			# arg1 = arg1[5:]
 			# arg2 = arg2[5:]
 			cnt1 = 0
@@ -424,12 +569,12 @@ def gen_assembly(line):
 			reg1 = get_reg(arg1)
 			reg2 = get_reg(arg2)
 
-			flag = 1
 			# cnt = 2
 
 			src1 = free_reg()
 			dest = free_reg()
 			regs1 = free_reg()
+			regs2 = free_reg()
 
 			# for reg in regs:
 			# 	if cnt == 0:
@@ -444,20 +589,23 @@ def gen_assembly(line):
 			# 		dest = reg
 			# 		cnt -= 1
 			# 		continue
+
 			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
 			asmCode.append('lw '+regs1+', 0('+reg1+')')
 
-			while cnt2:
+			while cnt2>1:
 				cnt2-=1
 				asmCode.append('lw '+reg2+', 0('+reg2+')')
-
+			asmCode.append('lw '+regs2+', 0('+reg2+')')
+			
 			asmCode.append('move '+dest+', '+regs1)
-			asmCode.append('move '+src1+', '+reg2)
+			asmCode.append('move '+src1+', '+regs2)
 			# only_empty(reg1)
 			only_empty(reg2)
 			regsState[regs1] = 0
+			regsState[regs2] = 0
 
 
 		elif arg1.startswith('addr_'):
@@ -473,19 +621,19 @@ def gen_assembly(line):
 			reg1 = get_reg(arg1)
 			src1 = get_reg(arg2)
 			dest = free_reg()
-			regs1 = free_reg()
+			# regs1 = free_reg()
 
 			while cnt1>1:
 				cnt1-=1
 				asmCode.append('lw '+reg1+', 0('+reg1+')')
-			asmCode.append('lw '+regs1+', 0('+reg1+')')
+			asmCode.append('lw '+dest+', 0('+reg1+')')
 			# for reg in regs:
 			# 	if reg != reg1 and reg != src1:
 			# 		empty_reg(reg)
 			# 		dest = reg
 			# 		break
-			asmCode.append('move '+dest+', '+regs1)
-			regsState[regs1] = 0
+			# asmCode.append('move '+dest+', '+regs1)
+			# regsState[regs1] = 0
 
 		elif arg2.startswith('addr_'):
 			if no_of_free_regs()<3:
@@ -499,15 +647,17 @@ def gen_assembly(line):
 			reg2 = get_reg(arg2)
 			dest = get_reg(arg1)
 			src1 = free_reg()
-			while cnt2:
+			while cnt2>1:
 				cnt2-=1
 				asmCode.append('lw '+reg2+', 0('+reg2+')')
-			asmCode.append('move '+src1+', '+reg2)
+			asmCode.append('lw '+src1+', 0('+reg2+')')
+			# asmCode.append('move '+src1+', '+regs2)
 			# for reg in regs:
 			# 	if reg != reg2 and reg != dest:
 			# 		empty_reg(reg)
 			# 		src1 = reg
 			# 		break
+
 
 		else:
 			info1 = findinfo(arg1)
@@ -529,26 +679,100 @@ def gen_assembly(line):
 		info2 = findinfo(arg2)
 		typ2 = info2.type
 
+		if line[0] == '=' and ((info1.mysize==4 or typ1==None) and (info2.mysize==4 or typ2 ==None)):
+		# if line[0]=='=' and ((typ1 == None or typ2 == None) or typ1.startswith('*') or typ2.startswith('*') or typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool'):
 
-		if line[0]=='=' and (typ1=='float' or typ1=='int' or typ1=='bool' or typ2=='float' or typ2=='int' or typ2=='bool' or typ1 == None or typ2 == None):
 			asmCode.append('move '+dest+', '+src1)
 			empty_reg(dest)
 			empty_reg(src1)
 			# empty_reg(dest)
+		
+##################################################################
+		# elif x=='=':
+		# 	siz = info1.mysize
+		# 	off1 = info1.offset
+		# 	off2 = info2.offset
+		# 	free_all_reg()
+		# 	regn = free_reg()
+		# 	while siz:
+		# 		asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+		# 		asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+		# 		off1 += 4
+		# 		off2 += 4
+		# 		siz -= 4
+		# 	regsState[regn] = 0
+
+#####################################################################
+
 		elif x=='=':
-			siz = info1.mysize
-			off1 = info1.offset
-			off2 = info2.offset
-			free_all_reg()
-			regn = free_reg()
-			while siz:
-				asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
-				asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
-				off1 += 4
-				off2 += 4
-				siz -= 4
-			regsState[regn] = 0
+			if flag == 2:
+				siz = info2.mysize
+				off2 = info2.offset
+				free_all_reg()
+				regn = free_reg()
+				reg1 = get_reg(arg1)
+
+				off1 = 0
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+					asmCode.append('sw '+regn+', '+str(off1)+'('+reg1+')')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0
+				flag = 0
+
+			elif flag == 3:
+				siz = info1.mysize
+				off1 = info1.offset
+				free_all_reg()
+				regn = free_reg()
+				reg2 = get_reg(arg2)
 				
+				off2 = 0
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'('+reg2+')')
+					asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0
+				flag = 0
+
+			elif flag == 1:
+				siz = 32
+				off1 = 0
+				off2 = 0
+				free_all_reg()
+				regn = free_reg()
+				reg1 = get_reg(arg1)
+				reg2 = get_reg(arg2)
+
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'('+reg2+')')
+					asmCode.append('sw '+regn+', '+str(off1)+'('+reg1+')')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0
+				flag = 0
+
+			else :
+				siz = info1.mysize
+				off1 = info1.offset
+				off2 = info2.offset
+				free_all_reg()
+				regn = free_reg()
+				while siz:
+					asmCode.append('lw '+regn+', '+str(off2)+'($fp)')
+					asmCode.append('sw '+regn+', '+str(off1)+'($fp)')
+					off1 += 4
+					off2 += 4
+					siz -= 4
+				regsState[regn] = 0		
+
+###############################################################
+
 
 		if (x == '+='):
 			asmCode.append('add ' + dest + ', ' + dest + ', ' + src1)
@@ -582,7 +806,8 @@ def gen_assembly(line):
 
 		if flag == 1 or flag==2:
 			asmCode.append('sw '+dest+', 0('+reg1+')')
-			only_empty(reg1)
+			# only_empty(reg1)
+			regsState[reg1] = 0
 			return
 		# if flag == 1 or flag == 2:
 			# asmCode.append('sw '+dest+', 0('+reg1+')')

@@ -58,6 +58,12 @@ class st:
 	def look(self,name):
 		return (name in self.table)
 
+	def reset(self,name,type1,m=None):
+		(self.table)[name] = symnode()
+		self.symbols.append(name)
+		(self.table)[name].insertType(type1)
+		(self.table)[name].insertname(m)
+
 	def insert(self,name,type1,m=None):
 		if(not self.look(name)):
 			(self.table)[name] = symnode()
